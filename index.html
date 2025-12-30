@@ -1,13 +1,699 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>davidsonandco</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Davidson & Co. | Private Property Office</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP & Plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/MotionPathPlugin.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif'],
+          },
+          backgroundImage: {
+            'noise': "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22 opacity=%220.05%22/%3E%3C/svg%3E')",
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Hide scrollbar for immersive feel */
+    ::-webkit-scrollbar {
+      width: 0px;
+      background: transparent;
+    }
+
+    .text-gold-gradient {
+      background: linear-gradient(to right, #D4AF37, #FEE180, #D4AF37);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shine 5s linear infinite;
+    }
+
+    @keyframes shine {
+      to {
+        background-position: 200% center;
+      }
+    }
+
+    .clip-image {
+      clip-path: inset(0 0 0 0);
+    }
+
+    .gsap-marker-scroller-start,
+    .gsap-marker-scroller-end,
+    .gsap-marker-start,
+    .gsap-marker-end {
+      display: none !important;
+      /* Hide debugging markers */
+    }
+
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    /* Architectural lines */
+    .arch-line {
+      position: absolute;
+      background-color: #D4AF37;
+      opacity: 0.3;
+    }
+  </style>
+</head>
+
+<body class="relative">
+
+  <!-- Cinematic Grain Overlay -->
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation (Minimal) -->
+  <nav
+    class="fixed top-0 left-0 w-full z-50 flex justify-between items-center p-8 mix-blend-difference pointer-events-none">
+    <div class="text-xl tracking-[0.2em] font-serif font-bold pointer-events-auto">DAVIDSON & CO.</div>
+    <div
+      class="text-xs tracking-widest font-sans pointer-events-auto cursor-pointer hover:text-brand-gold transition-colors">
+      MENU</div>
+  </nav>
+
+  <!-- SECTION 1: HERO - THE VAULT DOOR -->
+  <section id="hero" class="relative h-screen w-full overflow-hidden flex items-center justify-center bg-brand-black">
+
+    <!-- The Image Behind the Doors -->
+    <div class="absolute inset-0 z-0">
+      <img src="https://images.unsplash.com/photo-1600596542815-e32c530480b7?q=80&w=2674&auto=format&fit=crop"
+        alt="Luxury Interior" class="w-full h-full object-cover opacity-60 scale-125" id="hero-bg-img">
+      <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-brand-black opacity-80"></div>
+    </div>
+
+    <!-- Content Revealed -->
+    <div class="relative z-10 text-center opacity-0" id="hero-content">
+      <h1 class="text-5xl md:text-8xl font-serif font-bold tracking-tighter mb-4">DAVIDSON & CO.</h1>
+      <div class="h-[1px] w-0 bg-brand-gold mx-auto mb-6" id="hero-line"></div>
+      <p class="text-sm md:text-lg font-sans tracking-[0.3em] uppercase text-brand-gold" id="hero-tagline"></p>
+      <button
+        class="mt-12 px-8 py-3 border border-brand-gold/30 text-xs tracking-widest hover:bg-brand-gold hover:text-brand-black transition-all duration-500 opacity-0 transform translate-y-4"
+        id="hero-cta">
+        ENTER PRIVATE OFFICE
+      </button>
+    </div>
+
+    <!-- The Vault Doors -->
+    <div
+      class="absolute inset-y-0 left-0 w-1/2 bg-brand-charcoal z-20 flex items-center justify-end pr-4 border-r border-white/5"
+      id="door-left">
+      <div class="w-2 h-12 bg-brand-gold/20 rounded-full"></div>
+    </div>
+    <div class="absolute inset-y-0 right-0 w-1/2 bg-brand-charcoal z-20 flex items-center pl-4 border-l border-white/5"
+      id="door-right">
+      <div class="w-2 h-12 bg-brand-gold/20 rounded-full"></div>
+    </div>
+
+    <!-- Initial Centered Logo Mark (Before doors open) -->
+    <div class="absolute z-30 pointer-events-none" id="intro-logo">
+      <div class="text-6xl font-serif text-brand-gold">D&C</div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: BRAND STATEMENT - FLOATING IN SPACE -->
+  <section id="statements" class="relative h-screen bg-brand-black flex items-center justify-center overflow-hidden">
+    <div class="statement absolute text-center w-full px-4 opacity-0 blur-sm transform scale-90">
+      <h2 class="text-4xl md:text-6xl font-serif leading-tight text-brand-white">Discretion over <span
+          class="text-brand-gold italic">exposure</span>.</h2>
+    </div>
+    <div class="statement absolute text-center w-full px-4 opacity-0 blur-sm transform scale-90">
+      <h2 class="text-4xl md:text-6xl font-serif leading-tight text-brand-white">Advisory before <span
+          class="text-brand-gold italic">transaction</span>.</h2>
+    </div>
+    <div class="statement absolute text-center w-full px-4 opacity-0 blur-sm transform scale-90">
+      <h2 class="text-4xl md:text-6xl font-serif leading-tight text-brand-white">Property handled <span
+          class="text-brand-gold italic">privately</span>.</h2>
+    </div>
+  </section>
+
+  <!-- SECTION 3: ABOUT - PARALLAX DEPTH STACK -->
+  <section id="about" class="relative h-[150vh] bg-brand-stone overflow-hidden flex items-center justify-center">
+    <!-- Parallax Layer 1: Background -->
+    <div class="absolute inset-0 opacity-20" id="about-bg">
+      <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2670&auto=format&fit=crop"
+        class="w-full h-full object-cover grayscale">
+    </div>
+
+    <!-- Parallax Layer 2: Content -->
+    <div class="relative z-10 max-w-2xl px-8 text-center" id="about-text">
+      <div class="w-[1px] h-24 bg-brand-gold mx-auto mb-8 origin-top scale-y-0" id="about-line"></div>
+      <h3 class="text-3xl font-serif mb-6">The Private Office</h3>
+      <p class="font-sans font-light text-lg leading-relaxed text-gray-400">
+        We exist for those who do not wish to be seen. Davidson & Co. operates within the quiet corridors of the
+        property market, facilitating off-market acquisitions for high-net-worth individuals and family offices.
+      </p>
+    </div>
+
+    <!-- Layer 3: Architectural SVG overlay -->
+    <svg class="absolute bottom-0 left-0 w-full h-full z-20 pointer-events-none opacity-30" viewBox="0 0 100 100"
+      preserveAspectRatio="none">
+      <path id="gold-path" d="M0,100 C20,100 20,80 50,50 C80,20 80,0 100,0" fill="none" stroke="#D4AF37"
+        stroke-width="0.2" />
+    </svg>
+  </section>
+
+  <!-- SECTION 4: SERVICES - VERTICAL TO HORIZONTAL -->
+  <section id="services-wrapper" class="h-screen bg-brand-charcoal overflow-hidden relative">
+    <div class="absolute top-10 left-10 z-20">
+      <span class="text-xs tracking-widest text-brand-gold/50 uppercase">Our Expertise</span>
+    </div>
+
+    <!-- The horizontal track -->
+    <div id="services-track" class="flex h-full w-[500vw]">
+
+      <!-- Service 1 -->
+      <div class="w-screen h-full flex flex-col justify-center items-center border-r border-white/5 relative group">
+        <div
+          class="absolute inset-0 bg-cover bg-center opacity-0 group-hover:opacity-10 transition-opacity duration-700 ease-out"
+          style="background-image: url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2301')">
+        </div>
+        <h3
+          class="text-6xl md:text-9xl font-serif text-transparent stroke-text hover:text-brand-gold transition-colors duration-500 cursor-none">
+          Sales</h3>
+        <p class="mt-4 font-sans tracking-widest text-sm opacity-50">OFF-MARKET ACQUISITIONS</p>
+      </div>
+
+      <!-- Service 2 -->
+      <div class="w-screen h-full flex flex-col justify-center items-center border-r border-white/5 relative group">
+        <div
+          class="absolute inset-0 bg-cover bg-center opacity-0 group-hover:opacity-10 transition-opacity duration-700 ease-out"
+          style="background-image: url('https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?auto=format&fit=crop&q=80&w=2670')">
+        </div>
+        <h3
+          class="text-6xl md:text-9xl font-serif text-transparent stroke-text hover:text-brand-gold transition-colors duration-500 cursor-none">
+          Lettings</h3>
+        <p class="mt-4 font-sans tracking-widest text-sm opacity-50">CORPORATE & PRIVATE</p>
+      </div>
+
+      <!-- Service 3 -->
+      <div class="w-screen h-full flex flex-col justify-center items-center border-r border-white/5 relative group">
+        <div
+          class="absolute inset-0 bg-cover bg-center opacity-0 group-hover:opacity-10 transition-opacity duration-700 ease-out"
+          style="background-image: url('https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?auto=format&fit=crop&q=80&w=2674')">
+        </div>
+        <h3
+          class="text-6xl md:text-9xl font-serif text-transparent stroke-text hover:text-brand-gold transition-colors duration-500 cursor-none">
+          Management</h3>
+        <p class="mt-4 font-sans tracking-widest text-sm opacity-50">ASSET OPTIMIZATION</p>
+      </div>
+
+      <!-- Service 4 -->
+      <div class="w-screen h-full flex flex-col justify-center items-center border-r border-white/5 relative group">
+        <div
+          class="absolute inset-0 bg-cover bg-center opacity-0 group-hover:opacity-10 transition-opacity duration-700 ease-out"
+          style="background-image: url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=2653')">
+        </div>
+        <h3
+          class="text-6xl md:text-9xl font-serif text-transparent stroke-text hover:text-brand-gold transition-colors duration-500 cursor-none">
+          Commercial</h3>
+        <p class="mt-4 font-sans tracking-widest text-sm opacity-50">INVESTMENT ADVISORY</p>
+      </div>
+
+      <!-- Service 5 -->
+      <div class="w-screen h-full flex flex-col justify-center items-center relative group">
+        <div
+          class="absolute inset-0 bg-cover bg-center opacity-0 group-hover:opacity-10 transition-opacity duration-700 ease-out"
+          style="background-image: url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=2670')">
+        </div>
+        <h3
+          class="text-6xl md:text-9xl font-serif text-transparent stroke-text hover:text-brand-gold transition-colors duration-500 cursor-none">
+          Legal</h3>
+        <p class="mt-4 font-sans tracking-widest text-sm opacity-50">COMPLIANCE & STRUCTURE</p>
+      </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="absolute bottom-10 right-10 flex items-center gap-4">
+      <span class="text-[10px] tracking-[0.2em] uppercase opacity-60">Scroll to Explore</span>
+      <div class="w-12 h-[1px] bg-white/20"></div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: PROPERTY PORTFOLIO - CINEMATIC TRACKING -->
+  <section id="portfolio" class="bg-brand-black py-32 overflow-hidden">
+    <div class="px-8 mb-16 flex items-end justify-between">
+      <h2 class="text-4xl font-serif">Selected Works</h2>
+      <div class="w-32 h-[1px] bg-brand-gold"></div>
+    </div>
+
+    <!-- Draggable/Scrollable Strip -->
+    <div class="overflow-x-auto hide-scrollbar flex gap-0 w-full portfolio-strip">
+      <!-- Item 1 -->
+      <div class="min-w-[80vw] md:min-w-[60vw] h-[60vh] relative group overflow-hidden border-r border-brand-black/50">
+        <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=2671&auto=format&fit=crop"
+          class="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105 filter brightness-75 group-hover:brightness-100">
+        <div class="absolute bottom-8 left-8">
+          <div class="text-[10px] text-brand-gold tracking-widest mb-2">MAYFAIR</div>
+          <h4 class="text-3xl font-serif">The Grosvenor Penthouse</h4>
+        </div>
+      </div>
+      <!-- Item 2 -->
+      <div class="min-w-[80vw] md:min-w-[60vw] h-[60vh] relative group overflow-hidden border-r border-brand-black/50">
+        <img src="https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=2400&auto=format&fit=crop"
+          class="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105 filter brightness-75 group-hover:brightness-100">
+        <div class="absolute bottom-8 left-8">
+          <div class="text-[10px] text-brand-gold tracking-widest mb-2">KNIGHTSBRIDGE</div>
+          <h4 class="text-3xl font-serif">Hans Place Residence</h4>
+        </div>
+      </div>
+      <!-- Item 3 -->
+      <div class="min-w-[80vw] md:min-w-[60vw] h-[60vh] relative group overflow-hidden border-r border-brand-black/50">
+        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2670&auto=format&fit=crop"
+          class="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105 filter brightness-75 group-hover:brightness-100">
+        <div class="absolute bottom-8 left-8">
+          <div class="text-[10px] text-brand-gold tracking-widest mb-2">SURREY</div>
+          <h4 class="text-3xl font-serif">Wentworth Estate</h4>
+        </div>
+      </div>
+      <!-- Item 4 -->
+      <div class="min-w-[80vw] md:min-w-[60vw] h-[60vh] relative group overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2670&auto=format&fit=crop"
+          class="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105 filter brightness-75 group-hover:brightness-100">
+        <div class="absolute bottom-8 left-8">
+          <div class="text-[10px] text-brand-gold tracking-widest mb-2">NOTTING HILL</div>
+          <h4 class="text-3xl font-serif">Lansdowne Crescent</h4>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: PRIVATE OFFICE - SILENCE & FOCUS -->
+  <section id="silence"
+    class="h-screen bg-brand-black flex flex-col items-center justify-center relative overflow-hidden">
+    <div class="w-[1px] h-full absolute left-1/2 top-0 bg-white/5"></div>
+
+    <div class="relative z-10 text-center max-w-lg">
+      <h3 class="text-xl md:text-2xl font-serif italic text-brand-white/80" id="silence-text"></h3>
+      <div class="w-full h-[2px] mt-8 overflow-hidden relative">
+        <div class="absolute top-0 left-0 h-full bg-brand-gold w-0" id="silence-line"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: TRUST - GRID -->
+  <section id="trust" class="py-24 bg-brand-charcoal relative">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-t border-white/10 max-w-7xl mx-auto">
+
+      <!-- Grid Item Template -->
+      <div
+        class="trust-item border-b border-r border-white/10 p-12 min-h-[300px] flex flex-col justify-between hover:bg-white/5 transition-colors duration-500 group">
+        <span class="text-brand-gold text-xs tracking-widest opacity-50 group-hover:opacity-100">01</span>
+        <h4
+          class="text-2xl font-serif mt-4 transform translate-y-4 opacity-0 transition-all duration-700 group-hover:translate-y-0 group-hover:opacity-100">
+          Global Reach</h4>
+        <p
+          class="text-xs font-sans text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-700 delay-100">
+          Access to international markets through our private network.</p>
+      </div>
+
+      <div
+        class="trust-item border-b border-r border-white/10 p-12 min-h-[300px] flex flex-col justify-between hover:bg-white/5 transition-colors duration-500 group">
+        <span class="text-brand-gold text-xs tracking-widest opacity-50 group-hover:opacity-100">02</span>
+        <h4
+          class="text-2xl font-serif mt-4 transform translate-y-4 opacity-0 transition-all duration-700 group-hover:translate-y-0 group-hover:opacity-100">
+          Strict Privacy</h4>
+        <p
+          class="text-xs font-sans text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-700 delay-100">
+          NDAs are standard. Your identity remains protected.</p>
+      </div>
+
+      <div
+        class="trust-item border-b border-white/10 p-12 min-h-[300px] flex flex-col justify-between hover:bg-white/5 transition-colors duration-500 group">
+        <span class="text-brand-gold text-xs tracking-widest opacity-50 group-hover:opacity-100">03</span>
+        <h4
+          class="text-2xl font-serif mt-4 transform translate-y-4 opacity-0 transition-all duration-700 group-hover:translate-y-0 group-hover:opacity-100">
+          Legal Excellence</h4>
+        <p
+          class="text-xs font-sans text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-700 delay-100">
+          In-house counsel ensuring compliant transactions.</p>
+      </div>
+
+      <div
+        class="trust-item border-b border-r border-white/10 p-12 min-h-[300px] flex flex-col justify-between hover:bg-white/5 transition-colors duration-500 group">
+        <span class="text-brand-gold text-xs tracking-widest opacity-50 group-hover:opacity-100">04</span>
+        <h4
+          class="text-2xl font-serif mt-4 transform translate-y-4 opacity-0 transition-all duration-700 group-hover:translate-y-0 group-hover:opacity-100">
+          Asset Management</h4>
+        <p
+          class="text-xs font-sans text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-700 delay-100">
+          Full lifecycle management of your portfolio.</p>
+      </div>
+
+      <div
+        class="trust-item border-b border-r border-white/10 p-12 min-h-[300px] flex flex-col justify-between hover:bg-white/5 transition-colors duration-500 group">
+        <span class="text-brand-gold text-xs tracking-widest opacity-50 group-hover:opacity-100">05</span>
+        <h4
+          class="text-2xl font-serif mt-4 transform translate-y-4 opacity-0 transition-all duration-700 group-hover:translate-y-0 group-hover:opacity-100">
+          Market Intelligence</h4>
+        <p
+          class="text-xs font-sans text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-700 delay-100">
+          Data-driven valuations and forecasting.</p>
+      </div>
+
+      <div
+        class="trust-item border-b border-white/10 p-12 min-h-[300px] flex flex-col justify-between hover:bg-white/5 transition-colors duration-500 group">
+        <span class="text-brand-gold text-xs tracking-widest opacity-50 group-hover:opacity-100">06</span>
+        <h4
+          class="text-2xl font-serif mt-4 transform translate-y-4 opacity-0 transition-all duration-700 group-hover:translate-y-0 group-hover:opacity-100">
+          Family Office</h4>
+        <p
+          class="text-xs font-sans text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-700 delay-100">
+          Comprehensive services for multi-generational wealth.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 8: VALUATIONS - CONTRAST -->
+  <section id="contact"
+    class="min-h-screen bg-brand-white text-brand-black flex items-center justify-center p-8 transition-colors duration-1000">
+    <div class="max-w-xl w-full">
+      <div class="mb-12">
+        <h2 class="text-5xl font-serif mb-4">Request Consultation</h2>
+        <p class="font-sans text-gray-500">Access is by invitation or application only.</p>
+      </div>
+
+      <form class="space-y-8">
+        <div class="group relative">
+          <input type="text"
+            class="w-full bg-transparent border-b border-gray-300 py-4 outline-none focus:border-brand-black transition-colors"
+            placeholder="Name">
+        </div>
+        <div class="group relative">
+          <input type="email"
+            class="w-full bg-transparent border-b border-gray-300 py-4 outline-none focus:border-brand-black transition-colors"
+            placeholder="Email">
+        </div>
+        <div class="group relative">
+          <select
+            class="w-full bg-transparent border-b border-gray-300 py-4 outline-none focus:border-brand-black transition-colors text-gray-500">
+            <option>Reason for Inquiry</option>
+            <option>Acquisition</option>
+            <option>Valuation</option>
+            <option>Management</option>
+          </select>
+        </div>
+        <button type="button"
+          class="mt-8 px-8 py-4 bg-brand-black text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-colors duration-300">
+          SUBMIT APPLICATION
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- SECTION 9: FOOTER -->
+  <footer id="footer" class="bg-black text-white/40 py-24 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start">
+      <div class="mb-12 md:mb-0">
+        <h5 class="text-2xl font-serif text-white mb-4">DAVIDSON & CO.</h5>
+        <p class="text-xs font-sans tracking-widest">LONDON • DUBAI • NEW YORK</p>
+      </div>
+      <div class="grid grid-cols-2 gap-12 text-xs font-sans tracking-widest">
+        <div>
+          <h6 class="text-white mb-4">LEGAL</h6>
+          <ul class="space-y-2">
+            <li class="hover:text-brand-gold cursor-pointer">Privacy Policy</li>
+            <li class="hover:text-brand-gold cursor-pointer">Terms of Use</li>
+            <li class="hover:text-brand-gold cursor-pointer">Compliance</li>
+          </ul>
+        </div>
+        <div>
+          <h6 class="text-white mb-4">CONTACT</h6>
+          <ul class="space-y-2">
+            <li>+44 (0) 20 7123 4567</li>
+            <li>private@davidson.co</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-24 opacity-20 font-sans">
+      © 2024 DAVIDSON & CO. ALL RIGHTS RESERVED.
+    </div>
+  </footer>
+
+  <!-- Styles for Text Stroke effect in Services -->
+  <style>
+    .stroke-text {
+      -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+    }
+
+    .stroke-text:hover {
+      -webkit-text-stroke: 1px #D4AF37;
+    }
+  </style>
+
+  <!-- SCRIPT -->
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      gsap.registerPlugin(ScrollTrigger, TextPlugin, MotionPathPlugin);
+
+      // --- HERO ANIMATION ---
+      const heroTl = gsap.timeline();
+
+      // 1. Initial Scale Down of Logo
+      heroTl.to("#intro-logo", {
+        scale: 0.5,
+        opacity: 0,
+        duration: 1.5,
+        ease: "power2.inOut",
+        delay: 0.5
+      })
+        // 2. Doors Open
+        .to("#door-left", { xPercent: -100, duration: 2, ease: "power3.inOut" }, "-=0.5")
+        .to("#door-right", { xPercent: 100, duration: 2, ease: "power3.inOut" }, "<")
+        // 3. Image Scaling
+        .to("#hero-bg-img", { scale: 1, duration: 2.5, ease: "power2.out" }, "<")
+        // 4. Content Reveal
+        .to("#hero-content", { opacity: 1, duration: 1 }, "-=1")
+        .to("#hero-line", { width: "100px", duration: 1, ease: "power2.out" }, "<")
+        // 5. Text Typing
+        .to("#hero-tagline", {
+          text: "The Art of Private Property",
+          duration: 1.5,
+          ease: "none"
+        })
+        .to("#hero-cta", {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          ease: "power2.out"
+        });
+
+      // --- BRAND STATEMENTS (Floating in Space) ---
+      const statements = gsap.utils.toArray(".statement");
+
+      // Pin the section
+      ScrollTrigger.create({
+        trigger: "#statements",
+        start: "top top",
+        end: `+=${statements.length * 100}%`,
+        pin: true,
+        scrub: 1,
+        // markers: true,
+        onUpdate: (self) => {
+          // Logic to handle fading through statements
+          const progress = self.progress * (statements.length);
+          statements.forEach((statement, i) => {
+            const dist = progress - i; // distance from "active" index
+
+            // Creating a Gaussian-like curve for opacity/blur/scale
+            // Visible when dist is close to 0.5 (middle of the slot)
+
+            let opacity = 0;
+            let scale = 0.8;
+            let blur = 10;
+
+            if (dist > -0.5 && dist < 1.5) {
+              // Being revealed
+              if (dist < 0.5) {
+                opacity = gsap.utils.mapRange(-0.5, 0.5, 0, 1, dist);
+                scale = gsap.utils.mapRange(-0.5, 0.5, 0.8, 1, dist);
+                blur = gsap.utils.mapRange(-0.5, 0.5, 10, 0, dist);
+              } else {
+                // Fading out
+                opacity = gsap.utils.mapRange(0.5, 1.5, 1, 0, dist);
+                scale = gsap.utils.mapRange(0.5, 1.5, 1, 1.2, dist);
+                blur = gsap.utils.mapRange(0.5, 1.5, 0, 10, dist);
+              }
+            }
+
+            gsap.set(statement, {
+              opacity: opacity,
+              scale: scale,
+              filter: `blur(${blur}px)`,
+              zIndex: Math.round(opacity * 10)
+            });
+          });
+        }
+      });
+
+
+      // --- ABOUT (Parallax) ---
+      gsap.to("#about-bg", {
+        yPercent: 20,
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#about",
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true
+        }
+      });
+
+      gsap.to("#about-text", {
+        yPercent: -10,
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#about",
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true
+        }
+      });
+
+      gsap.to("#about-line", {
+        scaleY: 1,
+        duration: 1.5,
+        scrollTrigger: {
+          trigger: "#about",
+          start: "top center",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      // Gold Path Animation (Drawing)
+      gsap.from("#gold-path", {
+        strokeDasharray: 300,
+        strokeDashoffset: 300,
+        scrollTrigger: {
+          trigger: "#about",
+          start: "top center",
+          end: "bottom center",
+          scrub: 1
+        }
+      });
+
+
+      // --- SERVICES (Horizontal Scroll) ---
+      let servicesSection = document.getElementById("services-wrapper");
+      let servicesTrack = document.getElementById("services-track");
+
+      let servicesScroll = gsap.to(servicesTrack, {
+        xPercent: -100 * (4 / 5), // Move 4 out of 5 sections (since 5 sections total, we stop at the last one)
+        ease: "none",
+        scrollTrigger: {
+          trigger: servicesSection,
+          pin: true,
+          scrub: 1,
+          snap: 1 / 4,
+          end: "+=3000" // Length of scroll
+        }
+      });
+
+
+      // --- PRIVATE OFFICE (Silence) ---
+      ScrollTrigger.create({
+        trigger: "#silence",
+        start: "center center",
+        end: "+=1000",
+        pin: true,
+        onEnter: () => {
+          gsap.to("#silence-text", {
+            text: "True luxury is the absence of noise.",
+            duration: 3,
+            ease: "none"
+          });
+          gsap.to("#silence-line", {
+            width: "100%",
+            duration: 2,
+            delay: 1,
+            ease: "power2.inOut"
+          });
+        }
+      });
+
+
+      // --- TRUST GRID ---
+      gsap.utils.toArray(".trust-item").forEach((item, i) => {
+        gsap.to(item.querySelectorAll("h4, p"), {
+          y: 0,
+          opacity: 1,
+          stagger: 0.1,
+          scrollTrigger: {
+            trigger: item,
+            start: "top 80%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+
+
+      // --- FOOTER FADE ---
+      ScrollTrigger.create({
+        trigger: "#footer",
+        start: "top 90%",
+        onEnter: () => {
+          gsap.to("body", { backgroundColor: "#000", duration: 1 });
+          gsap.to("#contact", { opacity: 0.2, duration: 1 }); // Dim previous section
+        },
+        onLeaveBack: () => {
+          gsap.to("body", { backgroundColor: "#080808", duration: 1 });
+          gsap.to("#contact", { opacity: 1, duration: 1 });
+        }
+      });
+
+    });
+  </script>
+</body>
+
 </html>
