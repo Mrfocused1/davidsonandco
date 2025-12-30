@@ -29,7 +29,7 @@ const SectionHero = () => {
             tl.to(letters, {
                 x: (i) => {
                     const mid = (letters.length - 1) / 2;
-                    return (i - mid) * 80;
+                    return (i - mid) * 40;
                 },
                 opacity: 0.5,
                 scale: 1.1,
@@ -64,16 +64,16 @@ const SectionHero = () => {
             <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
 
             <div ref={textRef} className="relative z-10 flex justify-center w-full px-4 mix-blend-darken overflow-visible">
-                {"DAVIDSON".split("").map((char, i) => (
+                {"DAVIDSON & CO".split("").map((char, i) => (
                     <span
                         key={i}
-                        className="hero-char text-[12vw] md:text-[14vw] font-serif font-black leading-none text-transparent bg-clip-text bg-cover bg-center select-none"
+                        className="hero-char text-[8vw] md:text-[10vw] font-serif font-black leading-none text-transparent bg-clip-text bg-cover bg-center select-none"
                         style={{
                             backgroundImage: `url(${bgImage})`,
                             backgroundPosition: '50% 0%'
                         }}
                     >
-                        {char}
+                        {char === " " ? "\u00A0" : char}
                     </span>
                 ))}
             </div>
