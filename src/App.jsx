@@ -4,6 +4,7 @@ import SectionHero from './components/SectionHero';
 import SectionAbout from './components/SectionAbout';
 import SectionServices from './components/SectionServices';
 import SectionPortfolio from './components/SectionPortfolio';
+import SectionMediaGrid from './components/SectionMediaGrid';
 import SectionPrivateOffice from './components/SectionPrivateOffice';
 import SectionWhyUs from './components/SectionWhyUs';
 import Footer from './components/Footer';
@@ -18,6 +19,7 @@ function App() {
         <SectionAbout />
         <SectionServices />
         <SectionPortfolio />
+        <SectionMediaGrid />
         <SectionPrivateOffice />
         <SectionWhyUs />
 
