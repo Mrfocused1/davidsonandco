@@ -1,5 +1,6 @@
 import React from 'react';
 import { Instagram, Linkedin, Twitter, Mail } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 const Footer = () => {
     return (
@@ -7,7 +8,7 @@ const Footer = () => {
             <div className="max-w-7xl mx-auto px-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-24">
                     <div className="col-span-1 md:col-span-1">
-                        <span className="text-2xl font-serif tracking-tighter">DAVIDSON <span className="text-[#C5A059]">&</span> CO</span>
+                        <img src={logo} alt="Davidson & Co" className="h-10 mb-6 brightness-0" />
                         <p className="mt-6 text-slate-500 text-sm leading-relaxed max-w-xs">
                             Redefining luxury real estate advisory through discretion, expertise, and a global network of excellence.
                         </p>
