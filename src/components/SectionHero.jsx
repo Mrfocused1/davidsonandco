@@ -63,18 +63,22 @@ const SectionHero = () => {
         <section ref={containerRef} className="relative h-screen flex flex-col justify-center items-center bg-[#fdfdfd] overflow-hidden">
             <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
 
-            <div ref={textRef} className="relative z-10 flex justify-center w-full px-4 mix-blend-darken overflow-visible">
-                {"DAVIDSON & CO".split("").map((char, i) => (
-                    <span
-                        key={i}
-                        className="hero-char text-[8vw] md:text-[10vw] font-serif font-black leading-none text-transparent bg-clip-text bg-cover bg-center select-none"
-                        style={{
-                            backgroundImage: `url(${bgImage})`,
-                            backgroundPosition: '50% 0%'
-                        }}
-                    >
-                        {char === " " ? "\u00A0" : char}
-                    </span>
+            <div ref={textRef} className="relative z-10 flex flex-col items-center w-full px-4 mix-blend-darken overflow-visible space-y-4 md:space-y-6">
+                {["DAVIDSON", "&", "CO"].map((line, lineIndex) => (
+                    <div key={lineIndex} className="flex justify-center flex-nowrap">
+                        {line.split("").map((char, charIndex) => (
+                            <span
+                                key={`${lineIndex}-${charIndex}`}
+                                className="hero-char text-[12vw] md:text-[15vw] font-serif font-black leading-[0.85] text-transparent bg-clip-text bg-cover bg-center select-none"
+                                style={{
+                                    backgroundImage: `url(${bgImage})`,
+                                    backgroundPosition: '50% 0%'
+                                }}
+                            >
+                                {char}
+                            </span>
+                        ))}
+                    </div>
                 ))}
             </div>
 
