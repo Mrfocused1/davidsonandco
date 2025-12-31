@@ -427,31 +427,53 @@
         <p class="font-sans text-gray-500">Access is by invitation or application only.</p>
       </div>
 
-      <form class="space-y-8">
+      <form id="consultationForm" class="space-y-8">
         <div class="group relative">
-          <input type="text"
+          <input type="text" id="contactName" required
             class="w-full bg-transparent border-b border-gray-300 py-4 outline-none focus:border-brand-black transition-colors"
             placeholder="Name">
         </div>
         <div class="group relative">
-          <input type="email"
+          <input type="email" id="contactEmail" required
             class="w-full bg-transparent border-b border-gray-300 py-4 outline-none focus:border-brand-black transition-colors"
             placeholder="Email">
         </div>
         <div class="group relative">
-          <select
+          <select id="contactReason"
             class="w-full bg-transparent border-b border-gray-300 py-4 outline-none focus:border-brand-black transition-colors text-gray-500">
-            <option>Reason for Inquiry</option>
-            <option>Acquisition</option>
-            <option>Valuation</option>
-            <option>Management</option>
+            <option value="">Reason for Inquiry</option>
+            <option value="Acquisition">Acquisition</option>
+            <option value="Valuation">Valuation</option>
+            <option value="Management">Management</option>
           </select>
         </div>
-        <button type="button"
+        <button type="submit"
           class="mt-8 px-8 py-4 bg-brand-black text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-colors duration-300">
           SUBMIT APPLICATION
         </button>
       </form>
+
+      <script>
+        document.getElementById('consultationForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+
+          const name = document.getElementById('contactName').value;
+          const email = document.getElementById('contactEmail').value;
+          const reason = document.getElementById('contactReason').value || 'General Inquiry';
+
+          const subject = encodeURIComponent(`Consultation Request - ${reason}`);
+          const body = encodeURIComponent(
+            `Name: ${name}\n` +
+            `Email: ${email}\n` +
+            `Reason for Inquiry: ${reason}\n\n` +
+            `---\n` +
+            `This consultation request was submitted via the Davidson & Co. website.`
+          );
+
+          const mailtoLink = `mailto:Info@davidsoncolondon.com?subject=${subject}&body=${body}`;
+          window.location.href = mailtoLink;
+        });
+      </script>
     </div>
   </section>
 
