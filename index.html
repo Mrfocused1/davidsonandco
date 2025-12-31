@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Davidson & Co. | Private Property Office</title>
+  <title>Davidson & Co. London | Private Property Office</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -133,13 +133,13 @@
 
     <!-- Content Revealed -->
     <div class="relative z-10 text-center opacity-0" id="hero-content">
-      <h1 class="text-5xl md:text-8xl font-serif font-bold tracking-tighter mb-4">DAVIDSON & CO.</h1>
+      <h1 class="text-5xl md:text-8xl font-serif font-bold tracking-tighter mb-4">DAVIDSON & CO. LONDON</h1>
       <div class="h-[1px] w-0 bg-brand-gold mx-auto mb-6" id="hero-line"></div>
       <p class="text-sm md:text-lg font-sans tracking-[0.3em] uppercase text-brand-gold" id="hero-tagline"></p>
       <button
         class="mt-12 px-8 py-3 border border-brand-gold/30 text-xs tracking-widest hover:bg-brand-gold hover:text-brand-black transition-all duration-500 opacity-0 transform translate-y-4"
         id="hero-cta">
-        ENTER PRIVATE OFFICE
+        ENTER OUR OFFICE
       </button>
     </div>
 
@@ -188,10 +188,9 @@
     <!-- Parallax Layer 2: Content -->
     <div class="relative z-10 max-w-2xl px-8 text-center" id="about-text">
       <div class="w-[1px] h-24 bg-brand-gold mx-auto mb-8 origin-top scale-y-0" id="about-line"></div>
-      <h3 class="text-3xl font-serif mb-6">The Private Office</h3>
+      <h3 class="text-3xl font-serif mb-6">The Office</h3>
       <p class="font-sans font-light text-lg leading-relaxed text-gray-400">
-        We exist for those who do not wish to be seen. Davidson & Co. operates within the quiet corridors of the
-        property market, facilitating off-market acquisitions for high-net-worth individuals and family offices.
+        Property, Managed with Precision. A boutique London estate agency delivering discreet, compliance-led property solutions through a private office model.
       </p>
     </div>
 
@@ -210,7 +209,7 @@
     </div>
 
     <!-- The horizontal track -->
-    <div id="services-track" class="flex h-full w-[500vw]">
+    <div id="services-track" class="flex h-full w-[600vw]">
 
       <!-- Service 1 -->
       <div class="w-screen h-full flex flex-col justify-center items-center border-r border-white/5 relative group">
@@ -261,6 +260,18 @@
       </div>
 
       <!-- Service 5 -->
+      <div class="w-screen h-full flex flex-col justify-center items-center border-r border-white/5 relative group">
+        <div
+          class="absolute inset-0 bg-cover bg-center opacity-0 group-hover:opacity-10 transition-opacity duration-700 ease-out"
+          style="background-image: url('https://images.pexels.com/photos/4386431/pexels-photo-4386431.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')">
+        </div>
+        <h3
+          class="text-6xl md:text-9xl font-serif text-transparent stroke-text hover:text-brand-gold transition-colors duration-500 cursor-none">
+          Finance</h3>
+        <p class="mt-4 font-sans tracking-widest text-sm opacity-50">MORTGAGE ADVISORY</p>
+      </div>
+
+      <!-- Service 6 -->
       <div class="w-screen h-full flex flex-col justify-center items-center relative group">
         <div
           class="absolute inset-0 bg-cover bg-center opacity-0 group-hover:opacity-10 transition-opacity duration-700 ease-out"
@@ -482,20 +493,19 @@
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start">
       <div class="mb-12 md:mb-0">
         <img src="src/assets/logo.png" alt="Davidson & Co." class="h-12 mb-4">
-        <p class="text-xs font-sans tracking-widest">LONDON • DUBAI • NEW YORK</p>
       </div>
       <div class="text-xs font-sans tracking-widest">
         <div>
           <h6 class="text-white mb-4">CONTACT</h6>
           <ul class="space-y-2">
             <li>+44 (0) 20 7123 4567</li>
-            <li>private@davidson.co</li>
+            <li>info@davidsoncolondon.com</li>
           </ul>
         </div>
       </div>
     </div>
     <div class="text-[10px] text-center mt-24 opacity-20 font-sans">
-      © 2024 DAVIDSON & CO. ALL RIGHTS RESERVED.
+      © 2024 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.
     </div>
   </footer>
 
@@ -536,7 +546,7 @@
         .to("#hero-line", { width: "100px", duration: 1, ease: "power2.out" }, "<")
         // 5. Text Typing
         .to("#hero-tagline", {
-          text: "The Art of Private Property",
+          text: "The Art of Property",
           duration: 1.5,
           ease: "none"
         })
@@ -647,14 +657,14 @@
       let servicesTrack = document.getElementById("services-track");
 
       let servicesScroll = gsap.to(servicesTrack, {
-        xPercent: -100 * (4 / 5), // Move 4 out of 5 sections (since 5 sections total, we stop at the last one)
+        xPercent: -100 * (5 / 6), // Move 5 out of 6 sections (since 6 sections total, we stop at the last one)
         ease: "none",
         scrollTrigger: {
           trigger: servicesSection,
           pin: true,
           scrub: 1,
-          snap: 1 / 4,
-          end: "+=3000" // Length of scroll
+          snap: 1 / 5,
+          end: "+=3600" // Length of scroll
         }
       });
 
