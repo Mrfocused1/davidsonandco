@@ -463,23 +463,73 @@
       scrollToBottom();
     }
 
-    // Add typing indicator with logo blur animation
+    // Thinking status messages (non-technical, friendly)
+    const thinkingMessages = [
+      "Reading your request...",
+      "Understanding what you need...",
+      "Looking at the website...",
+      "Planning the changes...",
+      "Working on your request...",
+      "Building your content...",
+      "Adding the finishing touches...",
+      "Almost there..."
+    ];
+
+    let thinkingInterval = null;
+    let timerInterval = null;
+    let startTime = null;
+
+    // Add typing indicator with timer and thinking status
     function addTypingIndicator() {
+      startTime = Date.now();
+      let messageIndex = 0;
+
       const typingDiv = document.createElement('div');
       typingDiv.id = 'typingIndicator';
       typingDiv.className = 'message-appear flex gap-3 sm:gap-4 items-center justify-center py-8';
       typingDiv.innerHTML = `
-        <div class="flex flex-col items-center gap-3">
+        <div class="flex flex-col items-center gap-4">
           <img src="/secondary-logo.png" alt="Loading..." class="typing-logo w-16 h-16 sm:w-20 sm:h-20">
-          <span class="text-[10px] tracking-[0.2em] text-brand-gold/40 uppercase">Processing</span>
+          <div class="flex flex-col items-center gap-2">
+            <span id="thinkingStatus" class="text-xs sm:text-sm text-gray-400 transition-opacity duration-300">${thinkingMessages[0]}</span>
+            <span id="thinkingTimer" class="text-[10px] tracking-[0.2em] text-brand-gold/60 font-mono">0.0s</span>
+          </div>
         </div>
       `;
       chatContainer.appendChild(typingDiv);
       scrollToBottom();
+
+      // Update timer every 100ms
+      timerInterval = setInterval(() => {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const timerEl = document.getElementById('thinkingTimer');
+        if (timerEl) timerEl.textContent = `${elapsed}s`;
+      }, 100);
+
+      // Cycle through thinking messages every 2.5 seconds
+      thinkingInterval = setInterval(() => {
+        messageIndex = (messageIndex + 1) % thinkingMessages.length;
+        const statusEl = document.getElementById('thinkingStatus');
+        if (statusEl) {
+          statusEl.style.opacity = '0';
+          setTimeout(() => {
+            statusEl.textContent = thinkingMessages[messageIndex];
+            statusEl.style.opacity = '1';
+          }, 150);
+        }
+      }, 2500);
     }
 
-    // Remove typing indicator
+    // Remove typing indicator and clear intervals
     function removeTypingIndicator() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      if (thinkingInterval) {
+        clearInterval(thinkingInterval);
+        thinkingInterval = null;
+      }
       const typing = document.getElementById('typingIndicator');
       if (typing) typing.remove();
     }
