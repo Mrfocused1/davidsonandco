@@ -1,7 +1,12 @@
 import OpenAI from 'openai';
+import { Octokit } from '@octokit/rest';
 
 // Models to try in order of preference (glm-4.7 is the newest, used by EastD)
 const MODELS = ['glm-4.7', 'glm-4-flash', 'glm-4-air', 'glm-4', 'glm-4-plus'];
+
+// GitHub config
+const REPO_OWNER = 'Mrfocused1';
+const REPO_NAME = 'davidsonandco';
 
 // Initialize GLM client using OpenAI SDK (GLM is OpenAI-compatible)
 const glmClient = new OpenAI({
@@ -105,46 +110,101 @@ const tools = [
   }
 ];
 
+// Call GitHub directly instead of through internal APIs
 async function executeFunction(name, args) {
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'http://localhost:3000';
+  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
-  switch (name) {
-    case 'read_file': {
-      const res = await fetch(`${baseUrl}/api/github/read`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: args.path })
-      });
-      return await res.json();
+  try {
+    switch (name) {
+      case 'read_file': {
+        console.log(`Reading file: ${args.path}`);
+        const response = await octokit.repos.getContent({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: args.path,
+          ref: 'main'
+        });
+
+        if (Array.isArray(response.data)) {
+          return { error: 'Path is a directory, not a file' };
+        }
+
+        const content = Buffer.from(response.data.content, 'base64').toString('utf-8');
+        return { path: args.path, content: content, sha: response.data.sha };
+      }
+
+      case 'write_file': {
+        console.log(`Writing file: ${args.path}`);
+
+        // Get existing file SHA if it exists
+        let sha;
+        try {
+          const existing = await octokit.repos.getContent({
+            owner: REPO_OWNER,
+            repo: REPO_NAME,
+            path: args.path,
+            ref: 'main'
+          });
+          sha = existing.data.sha;
+        } catch (e) {
+          if (e.status !== 404) throw e;
+        }
+
+        const response = await octokit.repos.createOrUpdateFileContents({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: args.path,
+          message: `[Davidson AI] ${args.message}`,
+          content: Buffer.from(args.content).toString('base64'),
+          sha: sha,
+          branch: 'main'
+        });
+
+        return {
+          success: true,
+          path: args.path,
+          message: `File ${sha ? 'updated' : 'created'} successfully`
+        };
+      }
+
+      case 'list_files': {
+        console.log(`Listing files: ${args.path || '/'}`);
+        const response = await octokit.repos.getContent({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: args.path || '',
+          ref: 'main'
+        });
+
+        if (!Array.isArray(response.data)) {
+          return { error: 'Path is a file, not a directory' };
+        }
+
+        const files = response.data.map(item => ({
+          name: item.name,
+          path: item.path,
+          type: item.type
+        }));
+
+        return { path: args.path || '/', files: files };
+      }
+
+      case 'deploy': {
+        console.log(`Deploy triggered: ${args.message}`);
+        // Vercel auto-deploys on push to main, so just confirm
+        return {
+          success: true,
+          message: 'Changes pushed to main. Vercel will auto-deploy.',
+          description: args.message
+        };
+      }
+
+      default:
+        return { error: 'Unknown function' };
     }
-    case 'write_file': {
-      const res = await fetch(`${baseUrl}/api/github/write`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(args)
-      });
-      return await res.json();
-    }
-    case 'list_files': {
-      const res = await fetch(`${baseUrl}/api/github/list`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: args.path })
-      });
-      return await res.json();
-    }
-    case 'deploy': {
-      const res = await fetch(`${baseUrl}/api/github/deploy`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: args.message })
-      });
-      return await res.json();
-    }
-    default:
-      return { error: 'Unknown function' };
+  } catch (error) {
+    console.error(`Tool execution error (${name}):`, error.message);
+    return { error: error.message };
   }
 }
 
