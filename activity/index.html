@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activity Log | Davidson & Co London</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #121212;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #D4AF37;
+      border-radius: 3px;
+    }
+
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    .activity-item {
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body class="relative font-sans min-h-screen">
+
+  <!-- Cinematic Grain Overlay -->
+  <div class="grain-overlay"></div>
+
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 z-40 bg-brand-black/90 backdrop-blur-sm border-b border-white/5">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+      </a>
+      <div class="flex items-center gap-4">
+        <a href="/admin" class="text-xs text-gray-400 hover:text-brand-gold transition-colors flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+          </svg>
+          <span class="hidden sm:inline">Back to Chat</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="pt-24 pb-12 px-4 sm:px-6 max-w-4xl mx-auto">
+
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-serif text-brand-white mb-2">Activity Log</h1>
+      <p class="text-gray-400 text-sm">Track all changes made to your website</p>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="flex items-center justify-center py-16">
+      <div class="flex flex-col items-center gap-4">
+        <svg class="w-8 h-8 text-brand-gold animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        <span class="text-gray-400 text-sm">Loading activity log...</span>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden flex flex-col items-center justify-center py-16 text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h3 class="text-xl font-serif text-gray-400 mb-2">No Activity Yet</h3>
+      <p class="text-gray-500 text-sm max-w-md">When you make changes to your website through the chat, they'll appear here.</p>
+      <a href="/admin" class="mt-6 px-4 py-2 bg-brand-gold/20 hover:bg-brand-gold/30 text-brand-gold text-sm rounded-lg transition-colors">
+        Go to Chat
+      </a>
+    </div>
+
+    <!-- Activity List -->
+    <div id="activityList" class="hidden space-y-4">
+    </div>
+
+  </main>
+
+  <script>
+    const loadingState = document.getElementById('loadingState');
+    const emptyState = document.getElementById('emptyState');
+    const activityList = document.getElementById('activityList');
+
+    // Format relative time
+    function formatRelativeTime(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffSecs = Math.floor(diffMs / 1000);
+      const diffMins = Math.floor(diffSecs / 60);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffSecs < 60) return 'Just now';
+      if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+      if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+      if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+
+      return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    // Get action icon
+    function getActionIcon(action) {
+      const icons = {
+        'create': '<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />',
+        'edit': '<path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />',
+        'delete': '<path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />',
+        'upload': '<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />',
+        'deploy': '<path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />'
+      };
+      return icons[action] || icons['edit'];
+    }
+
+    // Get action color
+    function getActionColor(action) {
+      const colors = {
+        'create': 'text-green-400 bg-green-400/10 border-green-400/20',
+        'edit': 'text-blue-400 bg-blue-400/10 border-blue-400/20',
+        'delete': 'text-red-400 bg-red-400/10 border-red-400/20',
+        'upload': 'text-purple-400 bg-purple-400/10 border-purple-400/20',
+        'deploy': 'text-brand-gold bg-brand-gold/10 border-brand-gold/20'
+      };
+      return colors[action] || colors['edit'];
+    }
+
+    // Render activity item
+    function renderActivity(activity) {
+      const iconPath = getActionIcon(activity.action);
+      const colorClass = getActionColor(activity.action);
+
+      let filesHtml = '';
+      if (activity.files && activity.files.length > 0) {
+        filesHtml = `
+          <div class="mt-3 flex flex-wrap gap-2">
+            ${activity.files.map(file => `
+              <span class="text-xs px-2 py-1 bg-brand-stone rounded text-gray-400">${file}</span>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      return `
+        <div class="activity-item bg-brand-charcoal rounded-xl p-4 sm:p-5 border border-white/5 hover:border-white/10 transition-colors">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 w-10 h-10 rounded-lg ${colorClass} border flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                ${iconPath}
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <span class="text-xs uppercase tracking-wider ${colorClass.split(' ')[0]} font-medium">${activity.action}</span>
+                <span class="text-xs text-gray-500">${formatRelativeTime(activity.timestamp)}</span>
+              </div>
+              <p class="text-sm text-gray-300">${activity.description}</p>
+              ${filesHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Load activities
+    async function loadActivities() {
+      try {
+        const response = await fetch('/api/activity');
+        const data = await response.json();
+
+        loadingState.classList.add('hidden');
+
+        if (!data.activities || data.activities.length === 0) {
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        activityList.classList.remove('hidden');
+        activityList.innerHTML = data.activities.map(renderActivity).join('');
+      } catch (error) {
+        console.error('Error loading activities:', error);
+        loadingState.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+      }
+    }
+
+    // Load on page ready
+    document.addEventListener('DOMContentLoaded', loadActivities);
+  </script>
+
+</body>
+</html>
