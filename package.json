@@ -13,6 +13,7 @@
     "@octokit/rest": "^21.0.0",
     "autoprefixer": "^10.4.23",
     "gsap": "^3.14.2",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.562.0",
     "openai": "^4.70.0",
     "postcss": "^8.5.6",
