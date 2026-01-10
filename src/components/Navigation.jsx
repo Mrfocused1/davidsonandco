@@ -30,7 +30,7 @@ const Navigation = () => {
             {/* Mobile Menu Overlay */}
             <div className={`fixed inset-0 bg-[#0a0a0a]/95 backdrop-blur-md text-white flex items-center justify-center transition-transform duration-700 ease-[0.16,1,0.3,1] z-50 ${isOpen ? 'translate-y-0' : '-translate-y-full'}`}>
                 <ul className="text-center space-y-8">
-                    {['Residences', 'Advisory', 'Private Office', 'Journal', 'Contact'].map((item, i) => (
+                    {['Residences', 'Gallery', 'Advisory', 'Private Office', 'Journal', 'Contact'].map((item, i) => (
                         <li key={i} className="overflow-hidden">
                             <a
                                 href="#"
