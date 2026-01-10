@@ -11,9 +11,6 @@ const Navigation = () => {
                 <img src={logo} alt="Davidson & Co" className="h-10 md:h-12 object-contain" />
             </a>
             <div className="flex items-center gap-8">
-                <a href="/gallery" className="hidden md:block text-xs tracking-[0.2em] uppercase hover:text-gray-300 transition-colors">
-                    Gallery
-                </a>
                 <button className="hidden md:block text-xs tracking-[0.2em] uppercase hover:text-gray-300 transition-colors">
                     Private Office
                 </button>
@@ -30,7 +27,7 @@ const Navigation = () => {
             {/* Mobile Menu Overlay */}
             <div className={`fixed inset-0 bg-[#0a0a0a]/95 backdrop-blur-md text-white flex items-center justify-center transition-transform duration-700 ease-[0.16,1,0.3,1] z-50 ${isOpen ? 'translate-y-0' : '-translate-y-full'}`}>
                 <ul className="text-center space-y-8">
-                    {['Residences', 'Gallery', 'Advisory', 'Private Office', 'Journal', 'Contact'].map((item, i) => (
+                    {['Residences', 'Advisory', 'Private Office', 'Journal', 'Contact'].map((item, i) => (
                         <li key={i} className="overflow-hidden">
                             <a
                                 href="#"
