@@ -190,10 +190,37 @@
 
   </main>
 
+  <!-- JWT Library for Zhipu AI Authentication -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+
   <script>
     // GLM-4 API Configuration
-    const API_KEY = 'b173f65bddf643859165f424036f20e8.SBNisaIvJgVEmyeh';
+    const API_KEY_ID = 'b173f65bddf643859165f424036f20e8';
+    const API_SECRET = 'SBNisaIvJgVEmyeh';
     const API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+
+    // Generate JWT token for Zhipu AI
+    function generateToken() {
+      const header = {
+        alg: 'HS256',
+        sign_type: 'SIGN'
+      };
+
+      const now = Date.now();
+      const payload = {
+        api_key: API_KEY_ID,
+        exp: now + 3600000, // 1 hour expiry
+        timestamp: now
+      };
+
+      const base64Header = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+      const base64Payload = btoa(JSON.stringify(payload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+
+      const signatureInput = base64Header + '.' + base64Payload;
+      const signature = CryptoJS.HmacSHA256(signatureInput, API_SECRET).toString(CryptoJS.enc.Base64).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+
+      return base64Header + '.' + base64Payload + '.' + signature;
+    }
 
     // Chat history for context
     let chatHistory = [
@@ -313,14 +340,15 @@ Be professional, concise, and helpful. Maintain a luxurious, sophisticated tone 
       chatHistory.push({ role: 'user', content: message });
 
       try {
+        const token = generateToken();
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${API_KEY}`
+            'Authorization': token
           },
           body: JSON.stringify({
-            model: 'glm-4',
+            model: 'glm-4-flash',
             messages: chatHistory,
             temperature: 0.7,
             max_tokens: 1024
@@ -328,6 +356,8 @@ Be professional, concise, and helpful. Maintain a luxurious, sophisticated tone 
         });
 
         if (!response.ok) {
+          const errorData = await response.text();
+          console.error('API Response:', errorData);
           throw new Error(`API error: ${response.status}`);
         }
 
