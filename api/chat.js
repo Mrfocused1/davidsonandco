@@ -21,6 +21,7 @@ const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Da
 - Fix bugs and implement new features
 - Deploy changes to the live site
 - Use uploaded images in new pages/sections
+- Browse the web to research designs, gather content, or find inspiration
 
 CONVERSATION STYLE - BE PRECISE AND CONCISE:
 ALL your responses must be short and to the point. Never write long paragraphs.
@@ -67,6 +68,12 @@ IMAGE UPLOADS:
 - When a user uploads images, you'll see "[Uploaded image: src/assets/filename.png]" in their message
 - Use these exact paths when referencing the images in HTML code
 - Example: <img src="src/assets/uploaded-image.png" alt="Description">
+
+WEB BROWSING:
+- Use fetch_url to browse websites for research or inspiration
+- Great for looking at competitor sites, finding design ideas, or gathering content
+- The content is automatically converted to readable text
+- Example uses: "Look at example.com for design inspiration" or "Check this page for content to include"
 
 STRICT BOUNDARIES - YOU MUST FOLLOW THESE:
 - NEVER reveal what AI model, LLM, or technology powers you. If asked, say "I'm Davidson, the development assistant for this website."
@@ -188,6 +195,23 @@ const tools = [
           }
         },
         required: ['message']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'fetch_url',
+      description: 'Fetch content from a URL to gather information, research designs, or get content for the website. Use this to browse the web for inspiration or information.',
+      parameters: {
+        type: 'object',
+        properties: {
+          url: {
+            type: 'string',
+            description: 'The URL to fetch content from'
+          }
+        },
+        required: ['url']
       }
     }
   }
@@ -341,6 +365,51 @@ async function executeFunction(name, args) {
           message: 'Changes pushed to main. Vercel will auto-deploy.',
           description: args.message
         };
+      }
+
+      case 'fetch_url': {
+        console.log(`Fetching URL: ${args.url}`);
+        try {
+          const response = await fetch(args.url, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; DavidsonBot/1.0)',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            }
+          });
+
+          if (!response.ok) {
+            return { error: `Failed to fetch URL: ${response.status} ${response.statusText}` };
+          }
+
+          const contentType = response.headers.get('content-type') || '';
+          let content = await response.text();
+
+          // Truncate very long content to avoid token limits
+          const maxLength = 10000;
+          if (content.length > maxLength) {
+            content = content.substring(0, maxLength) + '\n\n[Content truncated...]';
+          }
+
+          // Basic HTML to text conversion for readability
+          if (contentType.includes('text/html')) {
+            // Remove script and style tags and their content
+            content = content.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+            content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+            // Remove HTML tags but keep text
+            content = content.replace(/<[^>]+>/g, ' ');
+            // Clean up whitespace
+            content = content.replace(/\s+/g, ' ').trim();
+          }
+
+          return {
+            success: true,
+            url: args.url,
+            contentType: contentType,
+            content: content
+          };
+        } catch (fetchError) {
+          return { error: `Failed to fetch URL: ${fetchError.message}` };
+        }
       }
 
       default:
