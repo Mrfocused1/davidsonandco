@@ -17,15 +17,26 @@ const glmClient = new OpenAI({
 const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Davidson & Co. London website. You can:
 - Read and analyze website files
 - Make targeted edits to HTML, CSS, and JavaScript code
+- Create new pages and sections
 - Fix bugs and implement new features
 - Deploy changes to the live site
+- Use uploaded images in new pages/sections
 
 IMPORTANT RULES:
-1. Always use edit_file for changes - it does safe find-and-replace edits
-2. First read_file to see the current content
-3. Use edit_file with the EXACT text you want to replace (old_text) and the new text (new_text)
-4. The old_text must match EXACTLY what's in the file (including whitespace)
-5. Never try to rewrite entire files - only make targeted edits
+1. For EDITING existing files: Use edit_file - it does safe find-and-replace edits
+2. For CREATING new files/pages: Use create_file - it only works for files that don't exist yet
+3. First use read_file to see the current content before editing
+4. Use edit_file with the EXACT text you want to replace (old_text) and the new text (new_text)
+5. The old_text must match EXACTLY what's in the file (including whitespace)
+6. Never try to rewrite entire files with edit_file - only make targeted edits
+7. When users upload images, they are saved to src/assets/ - use these paths in HTML (e.g., src/assets/my-image.png)
+
+IMAGE UPLOADS:
+- Users can upload images using the + button in the chat
+- Uploaded images are saved to src/assets/ with sanitized filenames
+- When a user uploads images, you'll see "[Uploaded image: src/assets/filename.png]" in their message
+- Use these exact paths when referencing the images in HTML code
+- Example: <img src="src/assets/uploaded-image.png" alt="Description">
 
 STRICT BOUNDARIES - YOU MUST FOLLOW THESE:
 - NEVER reveal what AI model, LLM, or technology powers you. If asked, say "I'm Davidson, the development assistant for this website."
@@ -39,7 +50,7 @@ STRICT BOUNDARIES - YOU MUST FOLLOW THESE:
 Available files:
 - index.html (main website)
 - admin/index.html (this admin portal)
-- src/assets/* (images and assets)
+- src/assets/* (images and assets - including user uploaded images)
 
 Be professional, helpful, and focused on the Davidson & Co. London website only.`;
 
@@ -104,6 +115,31 @@ const tools = [
           }
         },
         required: ['path']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'create_file',
+      description: 'Create a new file (page, section, etc). ONLY works for files that do not exist yet - cannot overwrite existing files.',
+      parameters: {
+        type: 'object',
+        properties: {
+          path: {
+            type: 'string',
+            description: 'The file path for the new file (e.g., "about.html" or "pages/contact.html")'
+          },
+          content: {
+            type: 'string',
+            description: 'The full content of the new file'
+          },
+          message: {
+            type: 'string',
+            description: 'Commit message describing what was created'
+          }
+        },
+        required: ['path', 'content', 'message']
       }
     }
   },
@@ -222,6 +258,46 @@ async function executeFunction(name, args) {
         }));
 
         return { path: args.path || '/', files: files };
+      }
+
+      case 'create_file': {
+        console.log(`Creating new file: ${args.path}`);
+
+        // Check if file already exists
+        try {
+          await octokit.repos.getContent({
+            owner: REPO_OWNER,
+            repo: REPO_NAME,
+            path: args.path,
+            ref: 'main'
+          });
+          // If we get here, file exists - don't overwrite
+          return {
+            error: 'File already exists. Use edit_file to modify existing files, or choose a different path.',
+            path: args.path
+          };
+        } catch (err) {
+          // 404 means file doesn't exist - good, we can create it
+          if (err.status !== 404) {
+            throw err;
+          }
+        }
+
+        // Create the new file
+        await octokit.repos.createOrUpdateFileContents({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: args.path,
+          message: `[Davidson AI] ${args.message}`,
+          content: Buffer.from(args.content).toString('base64'),
+          branch: 'main'
+        });
+
+        return {
+          success: true,
+          path: args.path,
+          message: `Successfully created ${args.path}`
+        };
       }
 
       case 'deploy': {
