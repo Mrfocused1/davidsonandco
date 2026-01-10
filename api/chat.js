@@ -444,8 +444,18 @@ export default async function handler(req, res) {
       }
     }
 
+    // Provide a fallback message if the AI returned empty content after making changes
+    let finalMessage = assistantMessage.content;
+    if (!finalMessage || finalMessage.trim() === '') {
+      if (madeChanges) {
+        finalMessage = "I've made the changes you requested. Would you like me to make any other adjustments?";
+      } else {
+        finalMessage = "I've processed your request. Is there anything else you'd like me to help with?";
+      }
+    }
+
     return res.status(200).json({
-      message: assistantMessage.content,
+      message: finalMessage,
       usage: response.usage,
       toolsEnabled: toolsEnabled,
       madeChanges: madeChanges
