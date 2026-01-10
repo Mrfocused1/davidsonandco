@@ -11,6 +11,9 @@ const Navigation = () => {
                 <img src={logo} alt="Davidson & Co" className="h-10 md:h-12 object-contain" />
             </a>
             <div className="flex items-center gap-8">
+                <a href="/gallery" className="hidden md:block text-xs tracking-[0.2em] uppercase hover:text-gray-300 transition-colors">
+                    Gallery
+                </a>
                 <button className="hidden md:block text-xs tracking-[0.2em] uppercase hover:text-gray-300 transition-colors">
                     Private Office
                 </button>
