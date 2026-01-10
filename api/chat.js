@@ -405,6 +405,7 @@ export default async function handler(req, res) {
     }
 
     let assistantMessage = response.choices[0].message;
+    let madeChanges = false; // Track if file changes were made
 
     // Handle tool calls (only if tools are enabled)
     if (toolsEnabled) {
@@ -417,6 +418,11 @@ export default async function handler(req, res) {
 
           console.log(`Executing tool: ${functionName}`, functionArgs);
           const result = await executeFunction(functionName, functionArgs);
+
+          // Track if changes were made (edit_file or create_file with success)
+          if ((functionName === 'edit_file' || functionName === 'create_file') && result.success) {
+            madeChanges = true;
+          }
 
           fullMessages.push({
             role: 'tool',
@@ -441,7 +447,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       message: assistantMessage.content,
       usage: response.usage,
-      toolsEnabled: toolsEnabled
+      toolsEnabled: toolsEnabled,
+      madeChanges: madeChanges
     });
 
   } catch (error) {
