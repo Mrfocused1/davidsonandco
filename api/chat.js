@@ -264,6 +264,65 @@ const tools = [
   }
 ];
 
+// Log activity to activity-log.json
+async function logActivity(octokit, action, description, files = []) {
+  try {
+    const ACTIVITY_FILE = 'activity-log.json';
+
+    // Fetch existing log
+    let activities = [];
+    let sha = null;
+
+    try {
+      const existing = await octokit.repos.getContent({
+        owner: REPO_OWNER,
+        repo: REPO_NAME,
+        path: ACTIVITY_FILE,
+        ref: 'main'
+      });
+      const content = Buffer.from(existing.data.content, 'base64').toString('utf-8');
+      activities = JSON.parse(content);
+      sha = existing.data.sha;
+    } catch (e) {
+      if (e.status !== 404) throw e;
+    }
+
+    // Add new activity
+    const newActivity = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      action,
+      description,
+      files,
+      status: 'completed'
+    };
+
+    activities.unshift(newActivity);
+
+    // Keep only last 100
+    if (activities.length > 100) {
+      activities = activities.slice(0, 100);
+    }
+
+    // Save
+    const updateParams = {
+      owner: REPO_OWNER,
+      repo: REPO_NAME,
+      path: ACTIVITY_FILE,
+      message: `[Activity Log] ${action}: ${description}`,
+      content: Buffer.from(JSON.stringify(activities, null, 2)).toString('base64'),
+      branch: 'main'
+    };
+
+    if (sha) updateParams.sha = sha;
+
+    await octokit.repos.createOrUpdateFileContents(updateParams);
+  } catch (error) {
+    console.error('Failed to log activity:', error.message);
+    // Don't throw - activity logging shouldn't break the main operation
+  }
+}
+
 // Call GitHub directly instead of through internal APIs
 async function executeFunction(name, args) {
   const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
@@ -334,6 +393,9 @@ async function executeFunction(name, args) {
           branch: 'main'
         });
 
+        // Log activity
+        await logActivity(octokit, 'edit', args.message || `Edited ${args.path}`, [args.path]);
+
         return {
           success: true,
           path: args.path,
@@ -397,6 +459,9 @@ async function executeFunction(name, args) {
           branch: 'main'
         });
 
+        // Log activity
+        await logActivity(octokit, 'create', args.message || `Created ${args.path}`, [args.path]);
+
         return {
           success: true,
           path: args.path,
@@ -437,6 +502,9 @@ async function executeFunction(name, args) {
           sha: fileSha,
           branch: 'main'
         });
+
+        // Log activity
+        await logActivity(octokit, 'delete', args.message || `Deleted ${args.path}`, [args.path]);
 
         return {
           success: true,
