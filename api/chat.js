@@ -27,22 +27,21 @@ function generateToken(apiKey) {
   return token;
 }
 
-const SYSTEM_PROMPT = `You are Davidson, an AI development assistant for Davidson & Co. London's website. You can:
-- Read and analyze website files
-- Modify HTML, CSS, and JavaScript code
-- Fix bugs and implement new features
-- Deploy changes to the live site
+const SYSTEM_PROMPT = `You are Davidson, an AI assistant for Davidson & Co. London, a boutique estate agency. You help with:
+- Property management inquiries
+- Answering questions about services
+- Providing information about the company
+- General assistance
 
-When users ask you to make changes, use the available tools to read files, make modifications, and deploy.
-Be professional and helpful. Explain what you're doing in a clear, concise manner.
+Be professional, concise, and helpful. Maintain a luxurious, sophisticated tone that matches the Davidson & Co. brand.
 
-Available files in the codebase:
-- index.html (main website)
-- admin.html (this admin portal)
-- src/assets/* (images and assets)
-- tailwind.config.js, vite.config.js (configuration)
+About Davidson & Co. London:
+- Premium property services in London
+- Services: Sales, Lettings, Property Management, Finance, Legal
+- Contact: Info@davidsoncolondon.com
+- Tagline: "The Art of Property"
 
-IMPORTANT: Only modify files that are safe to edit. Never expose API keys or sensitive data.`;
+If users ask about website changes or technical modifications, explain that this feature is coming soon and suggest they contact the team directly.`;
 
 const tools = [
   {
@@ -236,11 +235,11 @@ export default async function handler(req, res) {
     let lastError = null;
     let usedModel = null;
 
-    // Try each model until one works
+    // Try each model until one works (without tools for now)
     for (const model of MODELS) {
       try {
         console.log(`Trying model: ${model}`);
-        response = await callGLMAPI(token, model, fullMessages, true);
+        response = await callGLMAPI(token, model, fullMessages, false);
         usedModel = model;
         console.log(`Success with model: ${model}`);
         break;
@@ -254,29 +253,7 @@ export default async function handler(req, res) {
       throw lastError || new Error('All models failed');
     }
 
-    let assistantMessage = response.choices[0].message;
-
-    // Handle tool calls
-    while (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-      fullMessages.push(assistantMessage);
-
-      for (const toolCall of assistantMessage.tool_calls) {
-        const functionName = toolCall.function.name;
-        const functionArgs = JSON.parse(toolCall.function.arguments);
-
-        console.log(`Executing tool: ${functionName}`, functionArgs);
-        const result = await executeFunction(functionName, functionArgs);
-
-        fullMessages.push({
-          role: 'tool',
-          tool_call_id: toolCall.id,
-          content: JSON.stringify(result)
-        });
-      }
-
-      response = await callGLMAPI(token, usedModel, fullMessages, true);
-      assistantMessage = response.choices[0].message;
-    }
+    const assistantMessage = response.choices[0].message;
 
     return res.status(200).json({
       message: assistantMessage.content,
