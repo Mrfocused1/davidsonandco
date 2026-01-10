@@ -5,10 +5,5 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" }
-  ],
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "@vercel/node@3.0.0"
-    }
-  }
+  ]
 }
