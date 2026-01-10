@@ -226,17 +226,39 @@
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
 
-    // Blur fade-in letter animation function
+    // Blur fade-in letter animation function (word-aware to prevent splitting)
     function animateTextBlur(element, text, baseDelay = 0) {
       element.innerHTML = '';
-      const chars = text.split('');
+      const words = text.split(' ');
+      let charIndex = 0;
 
-      chars.forEach((char, index) => {
-        const span = document.createElement('span');
-        span.className = 'blur-text-char' + (char === ' ' ? ' space' : '');
-        span.textContent = char === ' ' ? '\u00A0' : char;
-        span.style.animationDelay = `${baseDelay + (index * 15)}ms`;
-        element.appendChild(span);
+      words.forEach((word, wordIndex) => {
+        // Create word wrapper to keep letters together
+        const wordSpan = document.createElement('span');
+        wordSpan.style.whiteSpace = 'nowrap';
+        wordSpan.style.display = 'inline-block';
+
+        // Add each character in the word
+        word.split('').forEach((char) => {
+          const charSpan = document.createElement('span');
+          charSpan.className = 'blur-text-char';
+          charSpan.textContent = char;
+          charSpan.style.animationDelay = `${baseDelay + (charIndex * 15)}ms`;
+          wordSpan.appendChild(charSpan);
+          charIndex++;
+        });
+
+        element.appendChild(wordSpan);
+
+        // Add space between words (except after last word)
+        if (wordIndex < words.length - 1) {
+          const spaceSpan = document.createElement('span');
+          spaceSpan.className = 'blur-text-char space';
+          spaceSpan.innerHTML = '&nbsp;';
+          spaceSpan.style.animationDelay = `${baseDelay + (charIndex * 15)}ms`;
+          element.appendChild(spaceSpan);
+          charIndex++;
+        }
       });
     }
 
