@@ -221,11 +221,12 @@ async function executeFunction(name, args) {
         }
 
         // Commit the change
+        const commitMessage = args.message || `Edit ${args.path}`;
         await octokit.repos.createOrUpdateFileContents({
           owner: REPO_OWNER,
           repo: REPO_NAME,
           path: args.path,
-          message: `[Davidson AI] ${args.message}`,
+          message: `[Davidson AI] ${commitMessage}`,
           content: Buffer.from(newContent).toString('base64'),
           sha: sha,
           branch: 'main'
@@ -284,11 +285,12 @@ async function executeFunction(name, args) {
         }
 
         // Create the new file
+        const commitMessage = args.message || `Create ${args.path}`;
         await octokit.repos.createOrUpdateFileContents({
           owner: REPO_OWNER,
           repo: REPO_NAME,
           path: args.path,
-          message: `[Davidson AI] ${args.message}`,
+          message: `[Davidson AI] ${commitMessage}`,
           content: Buffer.from(args.content).toString('base64'),
           branch: 'main'
         });
