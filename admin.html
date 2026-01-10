@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Davidson & Co. London | Admin Portal</title>
+  <title>Davidson & Co. London | AI Builder</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -135,7 +135,7 @@
         <img src="src/assets/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
       </a>
       <div class="flex items-center gap-2">
-        <span class="text-[10px] sm:text-xs tracking-[0.2em] text-brand-gold/60 uppercase">Admin Portal</span>
+        <span class="text-[10px] sm:text-xs tracking-[0.2em] text-brand-gold/60 uppercase">AI Builder</span>
         <div class="w-2 h-2 rounded-full bg-brand-gold animate-pulse"></div>
       </div>
     </div>
@@ -154,7 +154,16 @@
         </div>
         <div class="flex-1 bg-brand-charcoal rounded-2xl rounded-tl-none p-4 sm:p-5 border border-white/5">
           <p class="text-sm sm:text-base text-gray-300 leading-relaxed">
-            Welcome to the Davidson & Co. London Admin Portal. I'm your AI assistant, here to help you manage property inquiries, client information, and administrative tasks. How may I assist you today?
+            Welcome to the Davidson & Co. London AI Builder. I'm Davidson, your AI development assistant. I can help you:
+          </p>
+          <ul class="text-sm sm:text-base text-gray-300 mt-3 space-y-1">
+            <li class="flex items-center gap-2"><span class="text-brand-gold">•</span> Read and analyze website files</li>
+            <li class="flex items-center gap-2"><span class="text-brand-gold">•</span> Modify HTML, CSS, and JavaScript code</li>
+            <li class="flex items-center gap-2"><span class="text-brand-gold">•</span> Fix bugs and implement new features</li>
+            <li class="flex items-center gap-2"><span class="text-brand-gold">•</span> Deploy changes to the live site</li>
+          </ul>
+          <p class="text-sm sm:text-base text-gray-300 mt-3">
+            What would you like me to help you build today?
           </p>
         </div>
       </div>
@@ -190,52 +199,12 @@
 
   </main>
 
-  <!-- JWT Library for Zhipu AI Authentication -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
-
   <script>
-    // GLM-4 API Configuration
-    const API_KEY_ID = 'b173f65bddf643859165f424036f20e8';
-    const API_SECRET = 'SBNisaIvJgVEmyeh';
-    const API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+    // Chat API Configuration - Uses serverless API endpoint
+    const CHAT_API_URL = '/api/chat';
 
-    // Generate JWT token for Zhipu AI
-    function generateToken() {
-      const header = {
-        alg: 'HS256',
-        sign_type: 'SIGN'
-      };
-
-      const now = Date.now();
-      const payload = {
-        api_key: API_KEY_ID,
-        exp: now + 3600000, // 1 hour expiry
-        timestamp: now
-      };
-
-      const base64Header = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-      const base64Payload = btoa(JSON.stringify(payload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-
-      const signatureInput = base64Header + '.' + base64Payload;
-      const signature = CryptoJS.HmacSHA256(signatureInput, API_SECRET).toString(CryptoJS.enc.Base64).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-
-      return base64Header + '.' + base64Payload + '.' + signature;
-    }
-
-    // Chat history for context
-    let chatHistory = [
-      {
-        role: 'system',
-        content: `You are a professional AI assistant for Davidson & Co. London, a boutique estate agency. You help with:
-- Property management inquiries
-- Client information and scheduling
-- Valuation requests
-- Administrative tasks
-- General property market questions
-
-Be professional, concise, and helpful. Maintain a luxurious, sophisticated tone that matches the Davidson & Co. brand. Always be respectful and provide accurate information.`
-      }
-    ];
+    // Chat history for context (system prompt is handled server-side)
+    let chatHistory = [];
 
     // DOM Elements
     const chatContainer = document.getElementById('chatContainer');
@@ -335,57 +304,37 @@ Be professional, concise, and helpful. Maintain a luxurious, sophisticated tone 
         .replace(/`(.*?)`/g, '<code class="bg-brand-stone px-1 rounded text-brand-gold">$1</code>');
     }
 
-    // Models to try in order of preference
-    const MODELS_TO_TRY = ['glm-4-air', 'glm-4-flash', 'glm-4', 'chatglm_turbo'];
-
-    // Send message to GLM-4 API with model fallback
+    // Send message to serverless API
     async function sendMessage(message) {
       chatHistory.push({ role: 'user', content: message });
 
-      const token = generateToken();
+      try {
+        const response = await fetch(CHAT_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            messages: chatHistory
+          })
+        });
 
-      for (const model of MODELS_TO_TRY) {
-        try {
-          console.log(`Trying model: ${model}`);
-          const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': token
-            },
-            body: JSON.stringify({
-              model: model,
-              messages: chatHistory,
-              temperature: 0.7,
-              max_tokens: 1024
-            })
-          });
+        const data = await response.json();
 
-          const data = await response.json();
-
-          if (!response.ok) {
-            console.error(`Model ${model} failed:`, data);
-            // If it's a model error, try next model
-            if (data.error && data.error.code === '1211') {
-              continue;
-            }
-            throw new Error(`API error: ${response.status}`);
-          }
-
-          console.log(`Success with model: ${model}`);
-          const assistantMessage = data.choices[0].message.content;
-          chatHistory.push({ role: 'assistant', content: assistantMessage });
-          return assistantMessage;
-
-        } catch (error) {
-          console.error(`Error with model ${model}:`, error);
-          // Continue to next model
+        if (!response.ok) {
+          console.error('API error:', data);
+          throw new Error(data.error || 'API request failed');
         }
-      }
 
-      // All models failed
-      chatHistory.pop(); // Remove the user message we added
-      return 'I apologize, but I encountered an issue connecting to the AI service. Please check your API key and try again, or contact support if the problem persists.';
+        const assistantMessage = data.message;
+        chatHistory.push({ role: 'assistant', content: assistantMessage });
+        return assistantMessage;
+
+      } catch (error) {
+        console.error('Chat error:', error);
+        chatHistory.pop(); // Remove the user message we added
+        return 'I apologize, but I encountered an issue connecting to the AI service. Please try again or contact support if the problem persists.';
+      }
     }
 
     // Handle form submission
