@@ -198,4 +198,96 @@ const Gallery = () => {
                 {/* View Details Button */}
                 <button
                   onClick={() => openPropertyModal(property)}
-                  className="w-full py-3 border border-neutral-600 hover:border-[#C5A059] hover:bg-[#C5A05
+                  className="w-full py-3 border border-neutral-600 hover:border-[#C5A059] hover:bg-[#C5A059]/10 transition-all duration-300 flex items-center justify-center gap-2 group/btn"
+                >
+                  <span className="text-xs tracking-[0.2em] uppercase group-hover/btn:text-[#C5A059]">View Details</span>
+                  <ArrowRight size={14} className="group-hover/btn:translate-x-2 transition-transform duration-300" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Property Modal */}
+      {selectedProperty && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm" onClick={closePropertyModal}>
+          <div className="bg-neutral-900 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative" onClick={(e) => e.stopPropagation()}>
+            {/* Close Button */}
+            <button
+              onClick={closePropertyModal}
+              className="absolute top-4 right-4 z-10 p-2 bg-neutral-800 hover:bg-[#C5A059] hover:text-neutral-900 transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            {/* Modal Image */}
+            <div className="h-64 md:h-96 overflow-hidden">
+              <img
+                src={selectedProperty.image}
+                alt={selectedProperty.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-8">
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <span className="text-[#C5A059] text-xs tracking-[0.2em] uppercase">{selectedProperty.type}</span>
+                  <h2 className="text-3xl font-serif mt-2">{selectedProperty.title}</h2>
+                  <p className="text-neutral-500 flex items-center gap-2 mt-1">
+                    <span className="text-[#C5A059]">●</span> {selectedProperty.location}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-serif text-[#C5A059]">{selectedProperty.price}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-6 py-6 border-t border-b border-neutral-800 mb-6">
+                <div className="text-center">
+                  <Bed className="w-6 h-6 text-[#C5A059] mx-auto mb-2" />
+                  <div className="text-2xl font-serif">{selectedProperty.bedrooms}</div>
+                  <div className="text-xs uppercase tracking-wider text-neutral-500">Bedrooms</div>
+                </div>
+                <div className="text-center">
+                  <Bath className="w-6 h-6 text-[#C5A059] mx-auto mb-2" />
+                  <div className="text-2xl font-serif">{selectedProperty.bathrooms}</div>
+                  <div className="text-xs uppercase tracking-wider text-neutral-500">Bathrooms</div>
+                </div>
+                <div className="text-center">
+                  <Maximize className="w-6 h-6 text-[#C5A059] mx-auto mb-2" />
+                  <div className="text-2xl font-serif">{selectedProperty.sqft.toLocaleString()}</div>
+                  <div className="text-xs uppercase tracking-wider text-neutral-500">Sq Ft</div>
+                </div>
+              </div>
+
+              <p className="text-neutral-400 leading-relaxed mb-8">{selectedProperty.description}</p>
+
+              <button className="w-full py-4 bg-[#C5A059] text-neutral-900 font-bold tracking-[0.2em] uppercase hover:bg-[#D4AF37] transition-colors">
+                Enquire About This Property
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer CTA */}
+      <section className="py-24 bg-neutral-800/30 text-center">
+        <h2 className="text-3xl md:text-4xl font-serif mb-6">Interested in a Property?</h2>
+        <p className="text-neutral-400 mb-8 max-w-xl mx-auto">
+          Our private office offers discreet consultations for qualified clients. Contact us to discuss your requirements.
+        </p>
+        <a
+          href="mailto:info@davidsoncolondon.com"
+          className="inline-block px-8 py-4 border border-[#C5A059] text-[#C5A059] hover:bg-[#C5A059] hover:text-neutral-900 transition-all duration-300 text-xs tracking-[0.2em] uppercase"
+        >
+          Schedule a Consultation
+        </a>
+      </section>
+    </div>
+  );
+};
+
+export default Gallery;9] hover:bg-[#C5A05
