@@ -120,6 +120,31 @@
       z-index: 9999;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
     }
+
+    /* Blur fade-in letter animation */
+    .blur-text-char {
+      display: inline-block;
+      opacity: 0;
+      filter: blur(8px);
+      animation: blurFadeIn 0.4s ease-out forwards;
+    }
+
+    .blur-text-char.space {
+      width: 0.25em;
+    }
+
+    @keyframes blurFadeIn {
+      0% {
+        opacity: 0;
+        filter: blur(8px);
+        transform: translateY(5px);
+      }
+      100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0);
+      }
+    }
   </style>
 </head>
 
@@ -153,18 +178,7 @@
           <span class="text-brand-gold text-xs sm:text-sm font-serif font-bold">D</span>
         </div>
         <div class="flex-1 bg-brand-charcoal rounded-2xl rounded-tl-none p-4 sm:p-5 border border-white/5">
-          <p class="text-sm sm:text-base text-gray-300 leading-relaxed">
-            Welcome to the Davidson & Co. London AI Builder. I'm Davidson, your AI development assistant. I can help you:
-          </p>
-          <ul class="text-sm sm:text-base text-gray-300 mt-3 space-y-1">
-            <li class="flex items-center gap-2"><span class="text-brand-gold">•</span> Read and analyze website files</li>
-            <li class="flex items-center gap-2"><span class="text-brand-gold">•</span> Modify HTML, CSS, and JavaScript code</li>
-            <li class="flex items-center gap-2"><span class="text-brand-gold">•</span> Fix bugs and implement new features</li>
-            <li class="flex items-center gap-2"><span class="text-brand-gold">•</span> Deploy changes to the live site</li>
-          </ul>
-          <p class="text-sm sm:text-base text-gray-300 mt-3">
-            What would you like me to help you build today?
-          </p>
+          <p id="welcomeText" class="text-sm sm:text-base text-gray-300 leading-relaxed blur-text-container" data-text="Welcome to the Davidson & Co. London website development assistant. What would you like me to help you build today?"></p>
         </div>
       </div>
 
@@ -212,6 +226,29 @@
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
 
+    // Blur fade-in letter animation function
+    function animateTextBlur(element, text, baseDelay = 0) {
+      element.innerHTML = '';
+      const chars = text.split('');
+
+      chars.forEach((char, index) => {
+        const span = document.createElement('span');
+        span.className = 'blur-text-char' + (char === ' ' ? ' space' : '');
+        span.textContent = char === ' ' ? '\u00A0' : char;
+        span.style.animationDelay = `${baseDelay + (index * 15)}ms`;
+        element.appendChild(span);
+      });
+    }
+
+    // Animate welcome text on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const welcomeText = document.getElementById('welcomeText');
+      if (welcomeText) {
+        const text = welcomeText.getAttribute('data-text');
+        animateTextBlur(welcomeText, text, 300);
+      }
+    });
+
     // Auto-resize textarea
     messageInput.addEventListener('input', function() {
       this.style.height = 'auto';
@@ -243,14 +280,23 @@
           </div>
         `;
       } else {
+        // Create message structure for bot response
+        const msgId = 'botMsg_' + Date.now();
         messageDiv.innerHTML = `
           <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-gold/20 flex items-center justify-center">
             <span class="text-brand-gold text-xs sm:text-sm font-serif font-bold">D</span>
           </div>
           <div class="flex-1 bg-brand-charcoal rounded-2xl rounded-tl-none p-4 sm:p-5 border border-white/5 mr-8 sm:mr-12">
-            <p class="text-sm sm:text-base text-gray-300 leading-relaxed whitespace-pre-wrap">${formatResponse(content)}</p>
+            <p id="${msgId}" class="text-sm sm:text-base text-gray-300 leading-relaxed whitespace-pre-wrap blur-text-container"></p>
           </div>
         `;
+        chatContainer.appendChild(messageDiv);
+
+        // Apply blur animation to bot response
+        const textElement = document.getElementById(msgId);
+        animateTextBlur(textElement, content, 0);
+        scrollToBottom();
+        return;
       }
 
       chatContainer.appendChild(messageDiv);
