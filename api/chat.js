@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 
-// Models to try in order of preference
-const MODELS = ['glm-4-flash', 'glm-4-air', 'glm-4', 'glm-4-plus'];
+// Models to try in order of preference (glm-4.7 is the newest, used by EastD)
+const MODELS = ['glm-4.7', 'glm-4-flash', 'glm-4-air', 'glm-4', 'glm-4-plus'];
 
 // Initialize GLM client using OpenAI SDK (GLM is OpenAI-compatible)
 const glmClient = new OpenAI({
@@ -174,11 +174,12 @@ export default async function handler(req, res) {
     let response = null;
     let lastError = null;
     let usedModel = null;
+    let toolsEnabled = true;
 
-    // Try each model until one works
+    // Try each model with tools first
     for (const model of MODELS) {
       try {
-        console.log(`Trying model: ${model}`);
+        console.log(`Trying model: ${model} with tools`);
         response = await glmClient.chat.completions.create({
           model: model,
           messages: fullMessages,
@@ -191,8 +192,31 @@ export default async function handler(req, res) {
         console.log(`Success with model: ${model}`);
         break;
       } catch (err) {
-        console.error(`Model ${model} failed:`, err.message);
+        console.error(`Model ${model} with tools failed:`, err.message);
         lastError = err;
+      }
+    }
+
+    // If tools failed, try without tools
+    if (!response) {
+      console.log('Trying without tools...');
+      toolsEnabled = false;
+      for (const model of MODELS) {
+        try {
+          console.log(`Trying model: ${model} without tools`);
+          response = await glmClient.chat.completions.create({
+            model: model,
+            messages: fullMessages,
+            temperature: 0.7,
+            max_tokens: 2048
+          });
+          usedModel = model;
+          console.log(`Success with model: ${model} (no tools)`);
+          break;
+        } catch (err) {
+          console.error(`Model ${model} without tools failed:`, err.message);
+          lastError = err;
+        }
       }
     }
 
@@ -202,39 +226,42 @@ export default async function handler(req, res) {
 
     let assistantMessage = response.choices[0].message;
 
-    // Handle tool calls
-    while (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-      fullMessages.push(assistantMessage);
+    // Handle tool calls (only if tools are enabled)
+    if (toolsEnabled) {
+      while (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
+        fullMessages.push(assistantMessage);
 
-      for (const toolCall of assistantMessage.tool_calls) {
-        const functionName = toolCall.function.name;
-        const functionArgs = JSON.parse(toolCall.function.arguments);
+        for (const toolCall of assistantMessage.tool_calls) {
+          const functionName = toolCall.function.name;
+          const functionArgs = JSON.parse(toolCall.function.arguments);
 
-        console.log(`Executing tool: ${functionName}`, functionArgs);
-        const result = await executeFunction(functionName, functionArgs);
+          console.log(`Executing tool: ${functionName}`, functionArgs);
+          const result = await executeFunction(functionName, functionArgs);
 
-        fullMessages.push({
-          role: 'tool',
-          tool_call_id: toolCall.id,
-          content: JSON.stringify(result)
+          fullMessages.push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(result)
+          });
+        }
+
+        response = await glmClient.chat.completions.create({
+          model: usedModel,
+          messages: fullMessages,
+          tools: tools,
+          tool_choice: 'auto',
+          temperature: 0.7,
+          max_tokens: 2048
         });
+
+        assistantMessage = response.choices[0].message;
       }
-
-      response = await glmClient.chat.completions.create({
-        model: usedModel,
-        messages: fullMessages,
-        tools: tools,
-        tool_choice: 'auto',
-        temperature: 0.7,
-        max_tokens: 2048
-      });
-
-      assistantMessage = response.choices[0].message;
     }
 
     return res.status(200).json({
       message: assistantMessage.content,
-      usage: response.usage
+      usage: response.usage,
+      toolsEnabled: toolsEnabled
     });
 
   } catch (error) {
