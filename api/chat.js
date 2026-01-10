@@ -18,6 +18,7 @@ const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Da
 - Read and analyze website files
 - Make targeted edits to HTML, CSS, and JavaScript code
 - Create new pages and sections
+- Delete pages or files that are no longer needed
 - Fix bugs and implement new features
 - Deploy changes to the live site
 - Use uploaded images in new pages/sections
@@ -178,6 +179,27 @@ const tools = [
           }
         },
         required: ['path', 'content', 'message']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'delete_file',
+      description: 'Delete a file or page from the repository. Use this to remove pages, sections, or files that are no longer needed.',
+      parameters: {
+        type: 'object',
+        properties: {
+          path: {
+            type: 'string',
+            description: 'The file path to delete (e.g., "partner/index.html" to delete the partner page)'
+          },
+          message: {
+            type: 'string',
+            description: 'Commit message describing what was deleted'
+          }
+        },
+        required: ['path', 'message']
       }
     }
   },
@@ -357,6 +379,47 @@ async function executeFunction(name, args) {
         };
       }
 
+      case 'delete_file': {
+        console.log(`Deleting file: ${args.path}`);
+
+        // Get the file's SHA (required for deletion)
+        let fileSha;
+        try {
+          const { data } = await octokit.repos.getContent({
+            owner: REPO_OWNER,
+            repo: REPO_NAME,
+            path: args.path,
+            ref: 'main'
+          });
+          fileSha = data.sha;
+        } catch (err) {
+          if (err.status === 404) {
+            return {
+              error: 'File not found. Please check the path and try again.',
+              path: args.path
+            };
+          }
+          throw err;
+        }
+
+        // Delete the file
+        const commitMessage = args.message || `Delete ${args.path}`;
+        await octokit.repos.deleteFile({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: args.path,
+          message: `[Davidson AI] ${commitMessage}`,
+          sha: fileSha,
+          branch: 'main'
+        });
+
+        return {
+          success: true,
+          path: args.path,
+          message: `Successfully deleted ${args.path}`
+        };
+      }
+
       case 'deploy': {
         console.log(`Deploy triggered: ${args.message}`);
         // Vercel auto-deploys on push to main, so just confirm
@@ -512,8 +575,8 @@ export default async function handler(req, res) {
           console.log(`Executing tool: ${functionName}`, functionArgs);
           const result = await executeFunction(functionName, functionArgs);
 
-          // Track if changes were made (edit_file or create_file with success)
-          if ((functionName === 'edit_file' || functionName === 'create_file') && result.success) {
+          // Track if changes were made (edit_file, create_file, or delete_file with success)
+          if ((functionName === 'edit_file' || functionName === 'create_file' || functionName === 'delete_file') && result.success) {
             madeChanges = true;
           }
 
