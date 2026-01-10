@@ -532,22 +532,42 @@ export default async function handler(req, res) {
       ...messages
     ];
 
+    // Helper function to retry API calls with exponential backoff
+    const retryWithBackoff = async (fn, maxRetries = 2) => {
+      let lastErr;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          return await fn();
+        } catch (err) {
+          lastErr = err;
+          if (attempt < maxRetries) {
+            const delay = Math.pow(2, attempt) * 1000; // 1s, 2s
+            console.log(`Retry attempt ${attempt + 1} after ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
+      }
+      throw lastErr;
+    };
+
     let response = null;
     let lastError = null;
     let usedModel = null;
     let toolsEnabled = true;
 
-    // Try each model with tools first
+    // Try each model with tools first (with retry)
     for (const model of MODELS) {
       try {
         console.log(`Trying model: ${model} with tools`);
-        response = await glmClient.chat.completions.create({
-          model: model,
-          messages: fullMessages,
-          tools: tools,
-          tool_choice: 'auto',
-          temperature: 0.7,
-          max_tokens: 2048
+        response = await retryWithBackoff(async () => {
+          return await glmClient.chat.completions.create({
+            model: model,
+            messages: fullMessages,
+            tools: tools,
+            tool_choice: 'auto',
+            temperature: 0.7,
+            max_tokens: 2048
+          });
         });
         usedModel = model;
         console.log(`Success with model: ${model}`);
@@ -558,18 +578,20 @@ export default async function handler(req, res) {
       }
     }
 
-    // If tools failed, try without tools
+    // If tools failed, try without tools (with retry)
     if (!response) {
       console.log('Trying without tools...');
       toolsEnabled = false;
       for (const model of MODELS) {
         try {
           console.log(`Trying model: ${model} without tools`);
-          response = await glmClient.chat.completions.create({
-            model: model,
-            messages: fullMessages,
-            temperature: 0.7,
-            max_tokens: 2048
+          response = await retryWithBackoff(async () => {
+            return await glmClient.chat.completions.create({
+              model: model,
+              messages: fullMessages,
+              temperature: 0.7,
+              max_tokens: 2048
+            });
           });
           usedModel = model;
           console.log(`Success with model: ${model} (no tools)`);
@@ -612,13 +634,15 @@ export default async function handler(req, res) {
           });
         }
 
-        response = await glmClient.chat.completions.create({
-          model: usedModel,
-          messages: fullMessages,
-          tools: tools,
-          tool_choice: 'auto',
-          temperature: 0.7,
-          max_tokens: 2048
+        response = await retryWithBackoff(async () => {
+          return await glmClient.chat.completions.create({
+            model: usedModel,
+            messages: fullMessages,
+            tools: tools,
+            tool_choice: 'auto',
+            temperature: 0.7,
+            max_tokens: 2048
+          });
         });
 
         assistantMessage = response.choices[0].message;
@@ -644,8 +668,26 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Chat API error:', error);
+
+    // Provide more specific error messages
+    let errorMessage = 'Failed to process request';
+    let userFriendlyMessage = 'I encountered an issue. Please try again.';
+
+    if (error.message?.includes('timeout') || error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
+      userFriendlyMessage = 'The request took too long. Please try again with a simpler request.';
+    } else if (error.message?.includes('rate') || error.status === 429) {
+      userFriendlyMessage = 'Too many requests. Please wait a moment and try again.';
+    } else if (error.message?.includes('network') || error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      userFriendlyMessage = 'Network connection issue. Please check your connection and try again.';
+    } else if (error.status === 401 || error.status === 403) {
+      userFriendlyMessage = 'Authentication issue. Please contact support.';
+    } else if (error.status >= 500) {
+      userFriendlyMessage = 'The AI service is temporarily unavailable. Please try again in a moment.';
+    }
+
     return res.status(500).json({
-      error: 'Failed to process request',
+      error: errorMessage,
+      message: userFriendlyMessage,
       details: error.message
     });
   }

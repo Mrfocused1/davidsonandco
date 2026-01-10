@@ -815,7 +815,8 @@
 
         if (!response.ok) {
           console.error('API error:', data);
-          throw new Error(data.error || 'API request failed');
+          // Use server's user-friendly message if available
+          throw new Error(data.message || data.error || 'API request failed');
         }
 
         const assistantMessage = data.message;
@@ -831,7 +832,11 @@
           return { message: null, madeChanges: false, stopped: true };
         }
 
-        return { message: 'I apologize, but I encountered an issue connecting to the AI service. Please try again or contact support if the problem persists.', madeChanges: false, stopped: false };
+        // Use the error message from server if available, otherwise show generic message
+        const errorMessage = error.message && error.message !== 'API request failed'
+          ? error.message
+          : 'I encountered an issue. Please try again.';
+        return { message: errorMessage, madeChanges: false, stopped: false };
       }
     }
 
