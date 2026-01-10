@@ -336,7 +336,8 @@ Be professional, concise, and helpful. Maintain a luxurious, sophisticated tone 
     }
 
     // Models to try in order of preference
-    const MODELS_TO_TRY = ['glm-4-air', 'glm-4-flash', 'glm-4', 'chatglm_turbo'];
+    // User has GLM Coding Lite plan - powered by GLM-4.7 / CodeGeeX
+    const MODELS_TO_TRY = ['codegeex-4', 'glm-4-0520', 'glm-4-air', 'glm-4-flash', 'glm-4-plus', 'glm-4'];
 
     // Send message to GLM-4 API with model fallback
     async function sendMessage(message) {
