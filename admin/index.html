@@ -684,6 +684,7 @@
     // Publishing indicator variables
     let publishingInterval = null;
     let publishTimerInterval = null;
+    let publishStartTime = null;
 
     // Start the publishing process
     async function startPublishing() {
@@ -692,7 +693,7 @@
       if (publishConfirm) publishConfirm.remove();
 
       // Show publishing indicator
-      const publishStartTime = Date.now();
+      publishStartTime = Date.now();
       let messageIndex = 0;
 
       const publishingDiv = document.createElement('div');
@@ -790,6 +791,9 @@
 
     // Show success animation
     function showSuccessAnimation() {
+      // Calculate publishing duration
+      const publishDuration = publishStartTime ? ((Date.now() - publishStartTime) / 1000).toFixed(1) : '0.0';
+
       const successDiv = document.createElement('div');
       successDiv.id = 'successMessage';
       successDiv.className = 'message-appear flex gap-3 sm:gap-4 items-center justify-center py-8';
@@ -801,7 +805,8 @@
           </svg>
           <div class="text-center">
             <h3 class="text-xl font-serif text-green-400 mb-2">Congratulations!</h3>
-            <p class="text-sm text-gray-300 mb-4">Your changes have been published successfully.</p>
+            <p class="text-sm text-gray-300 mb-2">Your changes have been published successfully.</p>
+            <p class="text-xs text-brand-gold/80 mb-4">Published in ${publishDuration} seconds</p>
             <p class="text-xs text-gray-400 mb-4">Refresh your main website to see the changes.</p>
             <p class="text-xs text-brand-gold">Feel free to return if you want further changes.</p>
           </div>
