@@ -165,6 +165,76 @@
             <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
           </div>
           <h4 class="font-serif text-lg mb-2">Event Access</h4>
-          <p class="text-xs text-sm text-gray-300"><span class="w-2 h-2 bg-brand-gold mr-3"></span>Logo on website</li>
+          <p class="text-xs text-gray-500">Exclusive private events</p>
+        </div>
+        <div class="text-center opacity-0 benefit-item">
+          <div class="w-16 h-16 border border-brand-gold/30 flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+          </div>
+          <h4 class="font-serif text-lg mb-2">Credibility</h4>
+          <p class="text-xs text-gray-500">Association with excellence</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Form -->
+  <section id="contact" class="py-32 bg-brand-stone">
+    <div class="max-w-3xl mx-auto px-8">
+      <div class="text-center mb-16 opacity-0" id="contact-title">
+        <span class="text-brand-gold text-xs tracking-widest uppercase mb-4 block">Begin Your Partnership</span>
+        <h2 class="text-4xl md:text-5xl font-serif">Request <span class="text-brand-gold">Information</span></h2>
+      </div>
+      <form id="sponsorshipForm" class="space-y-8 opacity-0" id="contact-form">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div><label class="text-xs tracking-widest text-gray-500 block mb-3">FULL NAME</label><input type="text" required class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white"></div>
+          <div><label class="text-xs tracking-widest text-gray-500 block mb-3">COMPANY</label><input type="text" required class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white"></div>
+        </div>
+        <div><label class="text-xs tracking-widest text-gray-500 block mb-3">EMAIL</label><input type="email" required class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white"></div>
+        <div><label class="text-xs tracking-widest text-gray-500 block mb-3">PARTNERSHIP INTEREST</label><select class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white"><option value="" class="bg-brand-charcoal">Select Tier</option><option value="Associate" class="bg-brand-charcoal">Associate Partner</option><option value="Strategic" class="bg-brand-charcoal">Strategic Partner</option><option value="Principal" class="bg-brand-charcoal">Principal Partner</option><option value="Custom" class="bg-brand-charcoal">Custom Partnership</option></select></div>
+        <div><label class="text-xs tracking-widest text-gray-500 block mb-3">MESSAGE</label><textarea rows="4" class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white resize-none"></textarea></div>
+        <div class="text-center"><button type="submit" class="px-12 py-4 bg-brand-gold text-brand-black text-xs tracking-[0.2em] hover:bg-brand-white transition-colors duration-300">SUBMIT INQUIRY</button></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-black text-white/40 py-16 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+      <div class="mb-8 md:mb-0"><a href="/"><img src="../src/assets/logo.png" alt="Davidson & Co." class="h-10"></a></div>
+      <div class="flex gap-12 text-xs font-sans tracking-widest">
+        <a href="/" class="hover:text-brand-gold transition-colors">Home</a>
+        <a href="/about" class="hover:text-brand-gold transition-colors">About</a>
+        <a href="/sponsorship" class="text-brand-gold">Sponsorship</a>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-12 opacity-20 font-sans">© 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.</div>
+  </footer>
+
+  <!-- GSAP Animations -->
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      gsap.registerPlugin(ScrollTrigger);
+      gsap.to("#hero-line", { scaleY: 1, duration: 1, ease: "power2.out" });
+      gsap.to("#hero-title", { opacity: 1, duration: 1, delay: 0.3 });
+      gsap.to("#hero-subtitle", { opacity: 1, duration: 1, delay: 0.5 });
+      gsap.to("#hero-cta", { opacity: 1, duration: 1, delay: 0.7 });
+      gsap.to("#intro-text", { opacity: 1, y: 0, duration: 1, scrollTrigger: { trigger: "#intro", start: "top 70%" } });
+      gsap.to("#intro-stats", { opacity: 1, duration: 1, delay: 0.3, scrollTrigger: { trigger: "#intro", start: "top 70%" } });
+      gsap.to("#tiers-title", { opacity: 1, duration: 1, scrollTrigger: { trigger: "#tiers", start: "top 70%" } });
+      gsap.to("#tier-1", { opacity: 1, y: 0, duration: 0.8, scrollTrigger: { trigger: "#tiers", start: "top 60%" } });
+      gsap.to("#tier-2", { opacity: 1, y: 0, duration: 0.8, delay: 0.2, scrollTrigger: { trigger: "#tiers", start: "top 60%" } });
+      gsap.to("#tier-3", { opacity: 1, y: 0, duration: 0.8, delay: 0.4, scrollTrigger: { trigger: "#tiers", start: "top 60%" } });
+      gsap.to("#benefits-title", { opacity: 1, duration: 1, scrollTrigger: { trigger: "#benefits", start: "top 70%" } });
+      gsap.utils.toArray(".benefit-item").forEach((item, i) => {
+        gsap.to(item, { opacity: 1, y: 0, duration: 0.6, delay: i * 0.1, scrollTrigger: { trigger: "#benefits", start: "top 60%" } });
+      });
+      gsap.to("#contact-title", { opacity: 1, duration: 1, scrollTrigger: { trigger: "#contact", start: "top 70%" } });
+      gsap.to("#contact-form", { opacity: 1, duration: 1, scrollTrigger: { trigger: "#contact", start: "top 70%" } });
+      document.getElementById('sponsorshipForm').addEventListener('submit', function(e) { e.preventDefault(); alert('Thank you for your interest. Our partnerships team will be in touch shortly.'); });
+    });
+  </script>
+</body>
+</html>-sm text-gray-300"><span class="w-2 h-2 bg-brand-gold mr-3"></span>Logo on website</li>
             <li class="flex items-center text-sm text-gray-300"><span class="w-2 h-2 bg-brand-gold mr-3"></span>Event invitations (2/year)</li>
             <li class="flex items-center text
