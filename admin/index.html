@@ -539,19 +539,137 @@
       scrollToBottom();
     }
 
-    // Thinking status messages (non-technical, friendly)
-    const thinkingMessages = [
-      "Reading your request...",
-      "Understanding what you need...",
-      "Looking at the website...",
-      "Planning the changes...",
-      "Working on your request...",
-      "Building your content...",
-      "Adding the finishing touches...",
-      "Almost there...",
-      "Making it perfect...",
-      "Just a moment more..."
-    ];
+    // Generate contextual thinking messages based on user input
+    function getContextualThinkingMessages(userMessage) {
+      const msg = userMessage.toLowerCase();
+
+      // Competitor/research related
+      if (msg.includes('competitor') || msg.includes('competition') || msg.includes('rival')) {
+        return [
+          "Analysing competitors...",
+          "Accessing competitor information...",
+          "Researching market positioning...",
+          "Applying competitive analysis...",
+          "Identifying key differentiators...",
+          "Reviewing industry standards...",
+          "Compiling insights...",
+          "Finalising analysis..."
+        ];
+      }
+
+      // Brainstorm/idea related
+      if (msg.includes('brainstorm') || msg.includes('idea') || msg.includes('suggest') || msg.includes('recommend')) {
+        return [
+          "Generating creative ideas...",
+          "Exploring possibilities...",
+          "Thinking through options...",
+          "Considering different angles...",
+          "Refining the concepts...",
+          "Evaluating best approaches...",
+          "Curating recommendations...",
+          "Preparing suggestions..."
+        ];
+      }
+
+      // Page creation related
+      if (msg.includes('page') || msg.includes('section') || msg.includes('create') || msg.includes('add') || msg.includes('build')) {
+        return [
+          "Planning the structure...",
+          "Designing the layout...",
+          "Ensuring visual consistency...",
+          "Keeping the elegance intact...",
+          "Building your content...",
+          "Checking for potential issues...",
+          "Optimising for all devices...",
+          "Adding finishing touches..."
+        ];
+      }
+
+      // Design/style related
+      if (msg.includes('design') || msg.includes('style') || msg.includes('look') || msg.includes('colour') || msg.includes('color') || msg.includes('font')) {
+        return [
+          "Analysing current design...",
+          "Exploring style options...",
+          "Balancing aesthetics...",
+          "Ensuring brand consistency...",
+          "Refining visual elements...",
+          "Harmonising the palette...",
+          "Perfecting the details...",
+          "Making it beautiful..."
+        ];
+      }
+
+      // Fix/bug related
+      if (msg.includes('fix') || msg.includes('bug') || msg.includes('error') || msg.includes('broken') || msg.includes('wrong') || msg.includes('issue')) {
+        return [
+          "Investigating the issue...",
+          "Tracing the problem...",
+          "Analysing the code...",
+          "Identifying the root cause...",
+          "Developing a solution...",
+          "Testing the fix...",
+          "Verifying everything works...",
+          "Ensuring stability..."
+        ];
+      }
+
+      // Content/text related
+      if (msg.includes('text') || msg.includes('content') || msg.includes('copy') || msg.includes('write') || msg.includes('word')) {
+        return [
+          "Crafting the message...",
+          "Refining the language...",
+          "Ensuring clarity...",
+          "Matching the brand voice...",
+          "Polishing the copy...",
+          "Reviewing readability...",
+          "Adding the right tone...",
+          "Perfecting the words..."
+        ];
+      }
+
+      // Image related
+      if (msg.includes('image') || msg.includes('photo') || msg.includes('picture') || msg.includes('logo') || msg.includes('upload')) {
+        return [
+          "Processing your image...",
+          "Optimising placement...",
+          "Ensuring visual balance...",
+          "Integrating seamlessly...",
+          "Checking responsiveness...",
+          "Aligning with design...",
+          "Fine-tuning display...",
+          "Making it look great..."
+        ];
+      }
+
+      // Web browsing related
+      if (msg.includes('browse') || msg.includes('look at') || msg.includes('check out') || msg.includes('website') || msg.includes('url') || msg.includes('http')) {
+        return [
+          "Accessing the website...",
+          "Gathering information...",
+          "Analysing the content...",
+          "Extracting key details...",
+          "Processing the data...",
+          "Compiling findings...",
+          "Reviewing insights...",
+          "Preparing summary..."
+        ];
+      }
+
+      // Default messages
+      return [
+        "Reading your request...",
+        "Understanding what you need...",
+        "Looking at the website...",
+        "Planning the approach...",
+        "Working on your request...",
+        "Building your content...",
+        "Adding finishing touches...",
+        "Almost there..."
+      ];
+    }
+
+    // Current thinking messages (set dynamically)
+    let currentThinkingMessages = [];
 
     // Publishing status messages
     const publishingMessages = [
@@ -569,9 +687,12 @@
     let startTime = null;
 
     // Add typing indicator with timer and thinking status
-    function addTypingIndicator() {
+    function addTypingIndicator(userMessage = '') {
       startTime = Date.now();
       let messageIndex = 0;
+
+      // Get contextual messages based on user input
+      currentThinkingMessages = getContextualThinkingMessages(userMessage);
 
       const typingDiv = document.createElement('div');
       typingDiv.id = 'typingIndicator';
@@ -580,7 +701,7 @@
         <div class="flex flex-col items-center gap-4">
           <img src="/secondary-logo.png" alt="Loading..." class="typing-logo w-16 h-16 sm:w-20 sm:h-20">
           <div class="flex flex-col items-center gap-2">
-            <span id="thinkingStatus" class="text-xs sm:text-sm text-gray-400 transition-opacity duration-300">${thinkingMessages[0]}</span>
+            <span id="thinkingStatus" class="text-xs sm:text-sm text-gray-400 transition-opacity duration-300">${currentThinkingMessages[0]}</span>
             <span id="thinkingTimer" class="text-[10px] tracking-[0.2em] text-brand-gold/60 font-mono">0.0s</span>
           </div>
         </div>
@@ -597,12 +718,12 @@
 
       // Cycle through thinking messages every 2.5 seconds
       thinkingInterval = setInterval(() => {
-        messageIndex = (messageIndex + 1) % thinkingMessages.length;
+        messageIndex = (messageIndex + 1) % currentThinkingMessages.length;
         const statusEl = document.getElementById('thinkingStatus');
         if (statusEl) {
           statusEl.style.opacity = '0';
           setTimeout(() => {
-            statusEl.textContent = thinkingMessages[messageIndex];
+            statusEl.textContent = currentThinkingMessages[messageIndex];
             statusEl.style.opacity = '1';
           }, 150);
         }
@@ -886,8 +1007,8 @@
       uploadPreview.innerHTML = '';
       uploadPreview.classList.add('hidden');
 
-      // Show typing indicator
-      addTypingIndicator();
+      // Show typing indicator with contextual messages
+      addTypingIndicator(displayMessage);
 
       // Get AI response
       const result = await sendMessage(message);
