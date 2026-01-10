@@ -686,6 +686,16 @@
     let timerInterval = null;
     let startTime = null;
 
+    // Format elapsed time as minutes and seconds (e.g., "1m30s" or "45s")
+    function formatElapsedTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = (seconds % 60).toFixed(0);
+      if (mins > 0) {
+        return `${mins}m${secs.padStart(2, '0')}s`;
+      }
+      return `${seconds.toFixed(1)}s`;
+    }
+
     // Add typing indicator with timer and thinking status
     function addTypingIndicator(userMessage = '') {
       startTime = Date.now();
@@ -711,9 +721,9 @@
 
       // Update timer every 100ms
       timerInterval = setInterval(() => {
-        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const elapsed = (Date.now() - startTime) / 1000;
         const timerEl = document.getElementById('thinkingTimer');
-        if (timerEl) timerEl.textContent = `${elapsed}s`;
+        if (timerEl) timerEl.textContent = formatElapsedTime(elapsed);
       }, 100);
 
       // Cycle through thinking messages every 2.5 seconds
@@ -853,9 +863,9 @@
 
       // Update timer every 100ms
       publishTimerInterval = setInterval(() => {
-        const elapsed = ((Date.now() - publishStartTime) / 1000).toFixed(1);
+        const elapsed = (Date.now() - publishStartTime) / 1000;
         const timerEl = document.getElementById('publishingTimer');
-        if (timerEl) timerEl.textContent = `${elapsed}s`;
+        if (timerEl) timerEl.textContent = formatElapsedTime(elapsed);
       }, 100);
 
       // Cycle through publishing messages every 2 seconds
