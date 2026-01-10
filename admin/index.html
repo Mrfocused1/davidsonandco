@@ -180,7 +180,23 @@
 
     <!-- Input Area -->
     <div class="flex-shrink-0 pt-4 border-t border-white/5">
-      <form id="chatForm" class="flex gap-3 items-end">
+      <!-- Upload Preview Area -->
+      <div id="uploadPreview" class="hidden mb-3 flex flex-wrap gap-2">
+      </div>
+      <form id="chatForm" class="flex gap-2 sm:gap-3 items-end">
+        <!-- Hidden file input -->
+        <input type="file" id="imageInput" accept="image/*" multiple class="hidden">
+        <!-- Upload button -->
+        <button
+          type="button"
+          id="uploadButton"
+          class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-brand-charcoal border border-white/10 text-gray-400 rounded-xl flex items-center justify-center hover:border-brand-gold/50 hover:text-brand-gold transition-colors"
+          title="Upload images"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
         <div class="flex-1 relative">
           <textarea
             id="messageInput"
@@ -193,7 +209,7 @@
         <button
           type="submit"
           id="sendButton"
-          class="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-brand-gold text-brand-black rounded-xl flex items-center justify-center hover:bg-brand-gold/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-brand-gold text-brand-black rounded-xl flex items-center justify-center hover:bg-brand-gold/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M5 12l7-7 7 7" />
@@ -216,6 +232,120 @@
     const chatForm = document.getElementById('chatForm');
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
+    const uploadButton = document.getElementById('uploadButton');
+    const imageInput = document.getElementById('imageInput');
+    const uploadPreview = document.getElementById('uploadPreview');
+
+    // Track uploaded images
+    let uploadedImages = [];
+
+    // Upload button click handler
+    uploadButton.addEventListener('click', () => {
+      imageInput.click();
+    });
+
+    // Handle file selection
+    imageInput.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+
+      uploadButton.disabled = true;
+      uploadButton.classList.add('opacity-50');
+
+      for (const file of files) {
+        await uploadImage(file);
+      }
+
+      uploadButton.disabled = false;
+      uploadButton.classList.remove('opacity-50');
+      imageInput.value = ''; // Reset input
+    });
+
+    // Upload a single image
+    async function uploadImage(file) {
+      // Show uploading preview
+      const previewId = 'preview-' + Date.now();
+      uploadPreview.classList.remove('hidden');
+      uploadPreview.innerHTML += `
+        <div id="${previewId}" class="relative">
+          <div class="w-16 h-16 bg-brand-charcoal rounded-lg flex items-center justify-center border border-white/10">
+            <svg class="w-6 h-6 text-brand-gold animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </div>
+        </div>
+      `;
+
+      try {
+        // Convert to base64
+        const base64 = await fileToBase64(file);
+        const base64Content = base64.split(',')[1]; // Remove data:image/... prefix
+
+        // Upload to server
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: file.name,
+            content: base64Content,
+            contentType: file.type
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Update preview with actual image
+          const previewEl = document.getElementById(previewId);
+          previewEl.innerHTML = `
+            <div class="relative group">
+              <img src="${base64}" class="w-16 h-16 object-cover rounded-lg border border-brand-gold/30">
+              <button type="button" onclick="removeUpload('${previewId}', '${result.path}')"
+                class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                ×
+              </button>
+              <div class="absolute bottom-0 left-0 right-0 bg-black/70 text-[8px] text-center text-brand-gold truncate px-1 rounded-b-lg">
+                ${result.filename}
+              </div>
+            </div>
+          `;
+          uploadedImages.push({ path: result.path, filename: result.filename, previewId });
+        } else {
+          throw new Error(result.error || 'Upload failed');
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        const previewEl = document.getElementById(previewId);
+        previewEl.innerHTML = `
+          <div class="w-16 h-16 bg-red-500/20 rounded-lg flex items-center justify-center border border-red-500/50">
+            <span class="text-red-400 text-xs">Error</span>
+          </div>
+        `;
+        setTimeout(() => previewEl.remove(), 2000);
+      }
+    }
+
+    // Convert file to base64
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Remove uploaded image from preview
+    function removeUpload(previewId, path) {
+      document.getElementById(previewId)?.remove();
+      uploadedImages = uploadedImages.filter(img => img.path !== path);
+      if (uploadedImages.length === 0) {
+        uploadPreview.classList.add('hidden');
+      }
+    }
+    // Make removeUpload globally accessible
+    window.removeUpload = removeUpload;
 
     // Blur fade-in letter animation function (word-aware to prevent splitting)
     function animateTextBlur(element, text, baseDelay = 0) {
@@ -277,14 +407,31 @@
     });
 
     // Add message to chat
-    function addMessage(content, isUser = false) {
+    function addMessage(content, isUser = false, images = []) {
       const messageDiv = document.createElement('div');
       messageDiv.className = 'message-appear flex gap-3 sm:gap-4';
 
       if (isUser) {
+        // Build image thumbnails if any
+        let imageThumbnails = '';
+        if (images && images.length > 0) {
+          imageThumbnails = `
+            <div class="flex flex-wrap gap-2 mt-2">
+              ${images.map(img => `
+                <div class="w-12 h-12 rounded bg-brand-charcoal border border-brand-gold/30 flex items-center justify-center overflow-hidden">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-brand-gold/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                  </svg>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
         messageDiv.innerHTML = `
           <div class="flex-1 bg-brand-gold/10 rounded-2xl rounded-tr-none p-4 sm:p-5 border border-brand-gold/20 ml-8 sm:ml-12">
             <p class="text-sm sm:text-base text-gray-200 leading-relaxed whitespace-pre-wrap">${escapeHtml(content)}</p>
+            ${imageThumbnails}
           </div>
           <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-stone flex items-center justify-center border border-white/10">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -394,19 +541,30 @@
     chatForm.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      const message = messageInput.value.trim();
-      if (!message) return;
+      let message = messageInput.value.trim();
+      if (!message && uploadedImages.length === 0) return;
+
+      // Append uploaded image info to message
+      if (uploadedImages.length > 0) {
+        const imageInfo = uploadedImages.map(img => `[Uploaded image: ${img.path}]`).join('\n');
+        message = message ? `${message}\n\n${imageInfo}` : imageInfo;
+      }
 
       // Disable input while processing
       messageInput.disabled = true;
       sendButton.disabled = true;
+      uploadButton.disabled = true;
 
-      // Add user message
-      addMessage(message, true);
+      // Add user message (show original text without image paths for cleaner UI)
+      const displayMessage = messageInput.value.trim() || 'Uploaded images';
+      addMessage(displayMessage, true, uploadedImages);
 
-      // Clear input
+      // Clear input and uploads
       messageInput.value = '';
       messageInput.style.height = 'auto';
+      uploadedImages = [];
+      uploadPreview.innerHTML = '';
+      uploadPreview.classList.add('hidden');
 
       // Show typing indicator
       addTypingIndicator();
@@ -421,6 +579,7 @@
       // Re-enable input
       messageInput.disabled = false;
       sendButton.disabled = false;
+      uploadButton.disabled = false;
       messageInput.focus();
     });
 
