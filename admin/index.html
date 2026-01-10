@@ -127,6 +127,13 @@
       animation: blurFadeIn 0.4s ease-out forwards;
     }
 
+    .blur-text-char.animation-complete {
+      opacity: 1 !important;
+      filter: none !important;
+      transform: none !important;
+      animation: none !important;
+    }
+
     .blur-text-char.space {
       width: 0.25em;
     }
@@ -139,7 +146,7 @@
       }
       100% {
         opacity: 1;
-        filter: blur(0);
+        filter: none;
         transform: translateY(0);
       }
     }
@@ -410,6 +417,7 @@
       element.innerHTML = '';
       const words = text.split(' ');
       let charIndex = 0;
+      const allCharSpans = [];
 
       words.forEach((word, wordIndex) => {
         // Create word wrapper to keep letters together
@@ -424,6 +432,7 @@
           charSpan.textContent = char;
           charSpan.style.animationDelay = `${baseDelay + (charIndex * 15)}ms`;
           wordSpan.appendChild(charSpan);
+          allCharSpans.push(charSpan);
           charIndex++;
         });
 
@@ -436,9 +445,18 @@
           spaceSpan.innerHTML = '&nbsp;';
           spaceSpan.style.animationDelay = `${baseDelay + (charIndex * 15)}ms`;
           element.appendChild(spaceSpan);
+          allCharSpans.push(spaceSpan);
           charIndex++;
         }
       });
+
+      // After all animations complete, add class to ensure no blur remains
+      const totalAnimationTime = baseDelay + (charIndex * 15) + 500; // 500ms buffer after last char
+      setTimeout(() => {
+        allCharSpans.forEach(span => {
+          span.classList.add('animation-complete');
+        });
+      }, totalAnimationTime);
     }
 
     // Animate welcome text on page load
