@@ -40,6 +40,10 @@
   </script>
 
   <style>
+    html, body {
+      height: 100%;
+    }
+
     body {
       background-color: #080808;
       color: #F5F5F5;
@@ -65,13 +69,10 @@
     }
 
     .chat-container {
-      height: calc(100vh - 180px);
-    }
-
-    @media (max-width: 768px) {
-      .chat-container {
-        height: calc(100vh - 160px);
-      }
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .message-appear {
@@ -164,7 +165,7 @@
   </header>
 
   <!-- Main Chat Interface -->
-  <main class="pt-20 pb-4 px-4 sm:px-6 h-screen flex flex-col max-w-5xl mx-auto">
+  <main class="pt-20 pb-4 px-4 sm:px-6 flex flex-col max-w-5xl mx-auto" style="height: 100%; height: 100dvh;">
 
     <!-- Chat Messages Container -->
     <div id="chatContainer" class="chat-container overflow-y-auto flex flex-col gap-4 py-6">
