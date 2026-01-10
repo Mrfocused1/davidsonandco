@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Davidson & Co. London | Admin Portal</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #121212;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #D4AF37;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8A7120;
+    }
+
+    .chat-container {
+      height: calc(100vh - 180px);
+    }
+
+    @media (max-width: 768px) {
+      .chat-container {
+        height: calc(100vh - 160px);
+      }
+    }
+
+    .message-appear {
+      animation: fadeInUp 0.3s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .typing-indicator span {
+      animation: blink 1.4s infinite both;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes blink {
+      0%, 80%, 100% {
+        opacity: 0.2;
+      }
+      40% {
+        opacity: 1;
+      }
+    }
+
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+  </style>
+</head>
+
+<body class="relative font-sans">
+
+  <!-- Cinematic Grain Overlay -->
+  <div class="grain-overlay"></div>
+
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 z-40 bg-brand-black/90 backdrop-blur-sm border-b border-white/5">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-3">
+        <img src="src/assets/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+      </a>
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] sm:text-xs tracking-[0.2em] text-brand-gold/60 uppercase">Admin Portal</span>
+        <div class="w-2 h-2 rounded-full bg-brand-gold animate-pulse"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Chat Interface -->
+  <main class="pt-20 pb-4 px-4 sm:px-6 h-screen flex flex-col max-w-5xl mx-auto">
+
+    <!-- Chat Messages Container -->
+    <div id="chatContainer" class="chat-container overflow-y-auto flex flex-col gap-4 py-6">
+
+      <!-- Welcome Message -->
+      <div class="message-appear flex gap-3 sm:gap-4">
+        <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-gold/20 flex items-center justify-center">
+          <span class="text-brand-gold text-xs sm:text-sm font-serif font-bold">D</span>
+        </div>
+        <div class="flex-1 bg-brand-charcoal rounded-2xl rounded-tl-none p-4 sm:p-5 border border-white/5">
+          <p class="text-sm sm:text-base text-gray-300 leading-relaxed">
+            Welcome to the Davidson & Co. London Admin Portal. I'm your AI assistant, here to help you manage property inquiries, client information, and administrative tasks. How may I assist you today?
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Input Area -->
+    <div class="flex-shrink-0 pt-4 border-t border-white/5">
+      <form id="chatForm" class="flex gap-3 items-end">
+        <div class="flex-1 relative">
+          <textarea
+            id="messageInput"
+            rows="1"
+            placeholder="Type your message..."
+            class="w-full bg-brand-charcoal border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-brand-white placeholder-gray-500 outline-none focus:border-brand-gold/50 transition-colors resize-none overflow-hidden"
+            style="max-height: 120px;"
+          ></textarea>
+        </div>
+        <button
+          type="submit"
+          id="sendButton"
+          class="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-brand-gold text-brand-black rounded-xl flex items-center justify-center hover:bg-brand-gold/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M5 12l7-7 7 7" />
+          </svg>
+        </button>
+      </form>
+      <p class="text-[10px] sm:text-xs text-gray-600 text-center mt-3">
+        Powered by AI | Davidson & Co. London
+      </p>
+    </div>
+
+  </main>
+
+  <script>
+    // GLM-4 API Configuration
+    const API_KEY = 'b173f65bddf643859165f424036f20e8.SBNisaIvJgVEmyeh';
+    const API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+
+    // Chat history for context
+    let chatHistory = [
+      {
+        role: 'system',
+        content: `You are a professional AI assistant for Davidson & Co. London, a boutique estate agency. You help with:
+- Property management inquiries
+- Client information and scheduling
+- Valuation requests
+- Administrative tasks
+- General property market questions
+
+Be professional, concise, and helpful. Maintain a luxurious, sophisticated tone that matches the Davidson & Co. brand. Always be respectful and provide accurate information.`
+      }
+    ];
+
+    // DOM Elements
+    const chatContainer = document.getElementById('chatContainer');
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+
+    // Auto-resize textarea
+    messageInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    // Handle Enter key (Shift+Enter for new line)
+    messageInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        chatForm.dispatchEvent(new Event('submit'));
+      }
+    });
+
+    // Add message to chat
+    function addMessage(content, isUser = false) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message-appear flex gap-3 sm:gap-4';
+
+      if (isUser) {
+        messageDiv.innerHTML = `
+          <div class="flex-1 bg-brand-gold/10 rounded-2xl rounded-tr-none p-4 sm:p-5 border border-brand-gold/20 ml-8 sm:ml-12">
+            <p class="text-sm sm:text-base text-gray-200 leading-relaxed whitespace-pre-wrap">${escapeHtml(content)}</p>
+          </div>
+          <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-stone flex items-center justify-center border border-white/10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+          </div>
+        `;
+      } else {
+        messageDiv.innerHTML = `
+          <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-gold/20 flex items-center justify-center">
+            <span class="text-brand-gold text-xs sm:text-sm font-serif font-bold">D</span>
+          </div>
+          <div class="flex-1 bg-brand-charcoal rounded-2xl rounded-tl-none p-4 sm:p-5 border border-white/5 mr-8 sm:mr-12">
+            <p class="text-sm sm:text-base text-gray-300 leading-relaxed whitespace-pre-wrap">${formatResponse(content)}</p>
+          </div>
+        `;
+      }
+
+      chatContainer.appendChild(messageDiv);
+      scrollToBottom();
+    }
+
+    // Add typing indicator
+    function addTypingIndicator() {
+      const typingDiv = document.createElement('div');
+      typingDiv.id = 'typingIndicator';
+      typingDiv.className = 'message-appear flex gap-3 sm:gap-4';
+      typingDiv.innerHTML = `
+        <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-brand-gold/20 flex items-center justify-center">
+          <span class="text-brand-gold text-xs sm:text-sm font-serif font-bold">D</span>
+        </div>
+        <div class="flex-1 bg-brand-charcoal rounded-2xl rounded-tl-none p-4 sm:p-5 border border-white/5 mr-8 sm:mr-12">
+          <div class="typing-indicator flex gap-1">
+            <span class="w-2 h-2 bg-brand-gold rounded-full"></span>
+            <span class="w-2 h-2 bg-brand-gold rounded-full"></span>
+            <span class="w-2 h-2 bg-brand-gold rounded-full"></span>
+          </div>
+        </div>
+      `;
+      chatContainer.appendChild(typingDiv);
+      scrollToBottom();
+    }
+
+    // Remove typing indicator
+    function removeTypingIndicator() {
+      const typing = document.getElementById('typingIndicator');
+      if (typing) typing.remove();
+    }
+
+    // Scroll to bottom of chat
+    function scrollToBottom() {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Format response (basic markdown-like formatting)
+    function formatResponse(text) {
+      return escapeHtml(text)
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-brand-white">$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code class="bg-brand-stone px-1 rounded text-brand-gold">$1</code>');
+    }
+
+    // Send message to GLM-4 API
+    async function sendMessage(message) {
+      chatHistory.push({ role: 'user', content: message });
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'glm-4',
+            messages: chatHistory,
+            temperature: 0.7,
+            max_tokens: 1024
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const assistantMessage = data.choices[0].message.content;
+
+        chatHistory.push({ role: 'assistant', content: assistantMessage });
+
+        return assistantMessage;
+      } catch (error) {
+        console.error('Error:', error);
+        return 'I apologize, but I encountered an issue processing your request. Please try again or contact support if the problem persists.';
+      }
+    }
+
+    // Handle form submission
+    chatForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const message = messageInput.value.trim();
+      if (!message) return;
+
+      // Disable input while processing
+      messageInput.disabled = true;
+      sendButton.disabled = true;
+
+      // Add user message
+      addMessage(message, true);
+
+      // Clear input
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+
+      // Show typing indicator
+      addTypingIndicator();
+
+      // Get AI response
+      const response = await sendMessage(message);
+
+      // Remove typing indicator and add response
+      removeTypingIndicator();
+      addMessage(response, false);
+
+      // Re-enable input
+      messageInput.disabled = false;
+      sendButton.disabled = false;
+      messageInput.focus();
+    });
+
+    // Focus input on load
+    window.addEventListener('load', () => {
+      messageInput.focus();
+    });
+  </script>
+
+</body>
+
+</html>
