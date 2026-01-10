@@ -165,4 +165,162 @@
             <div class="benefit-item flex gap-6 opacity-0 transform translate-y-8">
               <div class="w-12 h-[1px] bg-brand-gold/50 flex-shrink-0 mt-4"></div>
               <div>
-                <h
+                <h4 class="text-xl font-serif mb-2">Exclusive Access</h4>
+                <p class="font-sans text-gray-400 text-sm">Access to off-market properties and prime London listings through our private network.</p>
+              </div>
+            </div>
+            <div class="benefit-item flex gap-6 opacity-0 transform translate-y-8">
+              <div class="w-12 h-[1px] bg-brand-gold/50 flex-shrink-0 mt-4"></div>
+              <div>
+                <h4 class="text-xl font-serif mb-2">Commission Structure</h4>
+                <p class="font-sans text-gray-400 text-sm">Competitive referral fees with transparent reporting and timely payments.</p>
+              </div>
+            </div>
+            <div class="benefit-item flex gap-6 opacity-0 transform translate-y-8">
+              <div class="w-12 h-[1px] bg-brand-gold/50 flex-shrink-0 mt-4"></div>
+              <div>
+                <h4 class="text-xl font-serif mb-2">Brand Association</h4>
+                <p class="font-sans text-gray-400 text-sm">Align your practice with one of London's most respected boutique estate agencies.</p>
+              </div>
+            </div>
+            <div class="benefit-item flex gap-6 opacity-0 transform translate-y-8">
+              <div class="w-12 h-[1px] bg-brand-gold/50 flex-shrink-0 mt-4"></div>
+              <div>
+                <h4 class="text-xl font-serif mb-2">Dedicated Support</h4>
+                <p class="font-sans text-gray-400 text-sm">Personal relationship manager and comprehensive marketing materials provided.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative">
+          <img src="https://images.pexels.com/photos/3769747/pexels-photo-3769747.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+            class="w-full h-[600px] object-cover grayscale opacity-40">
+          <div class="absolute inset-0 border border-brand-gold/20"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Application Form -->
+  <section class="py-32 bg-brand-charcoal">
+    <div class="max-w-3xl mx-auto px-8">
+      <div class="text-center mb-16">
+        <span class="text-xs tracking-widest text-brand-gold/50 uppercase">Start the Conversation</span>
+        <h2 class="text-4xl md:text-5xl font-serif mt-4">Partner Application</h2>
+        <p class="font-sans text-gray-400 mt-4">Tell us about yourself and how we can collaborate.</p>
+      </div>
+
+      <form id="partnerForm" class="space-y-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="group relative">
+            <input type="text" id="partnerName" required
+              class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white placeholder-gray-600"
+              placeholder="Full Name">
+          </div>
+          <div class="group relative">
+            <input type="text" id="partnerCompany" required
+              class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white placeholder-gray-600"
+              placeholder="Company Name">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="group relative">
+            <input type="email" id="partnerEmail" required
+              class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white placeholder-gray-600"
+              placeholder="Email Address">
+          </div>
+          <div class="group relative">
+            <input type="tel" id="partnerPhone"
+              class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white placeholder-gray-600"
+              placeholder="Phone Number">
+          </div>
+        </div>
+        <div class="group relative">
+          <select id="partnerType" required
+            class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-gray-500">
+            <option value="">Partnership Type</option>
+            <option value="Referral Partner">Referral Partner</option>
+            <option value="Affiliate Agent">Affiliate Agent</option>
+            <option value="Strategic Alliance">Strategic Alliance</option>
+          </select>
+        </div>
+        <div class="group relative">
+          <textarea id="partnerMessage" rows="4" required
+            class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white placeholder-gray-600 resize-none"
+            placeholder="Tell us about your business and how you envision our partnership"></textarea>
+        </div>
+        <button type="submit"
+          class="w-full px-8 py-4 border border-brand-gold/30 text-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300">
+          SUBMIT APPLICATION
+        </button>
+      </form>
+
+      <script>
+        document.getElementById('partnerForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+
+          const name = document.getElementById('partnerName').value;
+          const company = document.getElementById('partnerCompany').value;
+          const email = document.getElementById('partnerEmail').value;
+          const phone = document.getElementById('partnerPhone').value || 'Not provided';
+          const type = document.getElementById('partnerType').value;
+          const message = document.getElementById('partnerMessage').value;
+
+          const subject = encodeURIComponent(`Partner Application - ${type} - ${company}`);
+          const body = encodeURIComponent(
+            `Name: ${name}\n` +
+            `Company: ${company}\n` +
+            `Email: ${email}\n` +
+            `Phone: ${phone}\n` +
+            `Partnership Type: ${type}\n\n` +
+            `Message:\n${message}\n\n` +
+            `---\n` +
+            `This partner application was submitted via the Davidson & Co. website.`
+          );
+
+          const mailtoLink = `mailto:Info@davidsoncolondon.com?subject=${subject}&body=${body}`;
+          window.location.href = mailtoLink;
+        });
+      </script>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-black text-white/40 py-24 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start">
+      <div class="mb-12 md:mb-0">
+        <img src="../src/assets/logo.png" alt="Davidson & Co." class="h-12 mb-4">
+      </div>
+      <div class="flex gap-16 text-xs font-sans tracking-widest">
+        <div>
+          <h6 class="text-white mb-4">NAVIGATION</h6>
+          <ul class="space-y-2">
+            <li><a href="/" class="hover:text-brand-gold transition-colors">Home</a></li>
+            <li><a href="/about" class="hover:text-brand-gold transition-colors">About</a></li>
+          </ul>
+        </div>
+        <div>
+          <h6 class="text-white mb-4">CONTACT</h6>
+          <ul class="space-y-2">
+            <li>info@davidsoncolondon.com</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-24 opacity-20 font-sans">
+      © 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.
+    </div>
+  </footer>
+
+  <!-- Animations Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      gsap.registerPlugin(ScrollTrigger);
+
+      // Hero Animation
+      gsap.to("#hero-line", {
+        width: "100px",
+        duration: 1.5,
+        ease: "power2.out",
+        delay: 0.5
