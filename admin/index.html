@@ -685,6 +685,25 @@
     let thinkingInterval = null;
     let timerInterval = null;
     let startTime = null;
+    let currentAbortController = null;
+
+    // Format elapsed time as minutes and seconds (e.g., "1m30s" or "45s")
+    function formatElapsedTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = (seconds % 60).toFixed(0);
+      if (mins > 0) {
+        return `${mins}m${secs.padStart(2, '0')}s`;
+      }
+      return `${seconds.toFixed(1)}s`;
+    }
+
+    // Stop the current generation
+    function stopGeneration() {
+      if (currentAbortController) {
+        currentAbortController.abort();
+        currentAbortController = null;
+      }
+    }
 
     // Add typing indicator with timer and thinking status
     function addTypingIndicator(userMessage = '') {
@@ -704,16 +723,28 @@
             <span id="thinkingStatus" class="text-xs sm:text-sm text-gray-400 transition-opacity duration-300">${currentThinkingMessages[0]}</span>
             <span id="thinkingTimer" class="text-[10px] tracking-[0.2em] text-brand-gold/60 font-mono">0.0s</span>
           </div>
+          <button id="stopButton" class="mt-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 hover:text-red-300 text-xs font-medium rounded-lg transition-all duration-200 flex items-center gap-2 border border-red-500/30 hover:border-red-500/50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <rect x="6" y="6" width="12" height="12" rx="1" />
+            </svg>
+            Stop
+          </button>
         </div>
       `;
       chatContainer.appendChild(typingDiv);
       scrollToBottom();
 
+      // Add stop button event listener
+      const stopBtn = document.getElementById('stopButton');
+      if (stopBtn) {
+        stopBtn.addEventListener('click', stopGeneration);
+      }
+
       // Update timer every 100ms
       timerInterval = setInterval(() => {
-        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const elapsed = (Date.now() - startTime) / 1000;
         const timerEl = document.getElementById('thinkingTimer');
-        if (timerEl) timerEl.textContent = `${elapsed}s`;
+        if (timerEl) timerEl.textContent = formatElapsedTime(elapsed);
       }, 100);
 
       // Cycle through thinking messages every 2.5 seconds
@@ -765,7 +796,7 @@
     }
 
     // Send message to serverless API
-    async function sendMessage(message) {
+    async function sendMessage(message, signal) {
       chatHistory.push({ role: 'user', content: message });
 
       try {
@@ -776,7 +807,8 @@
           },
           body: JSON.stringify({
             messages: chatHistory
-          })
+          }),
+          signal: signal
         });
 
         const data = await response.json();
@@ -788,12 +820,18 @@
 
         const assistantMessage = data.message;
         chatHistory.push({ role: 'assistant', content: assistantMessage });
-        return { message: assistantMessage, madeChanges: data.madeChanges || false };
+        return { message: assistantMessage, madeChanges: data.madeChanges || false, stopped: false };
 
       } catch (error) {
         console.error('Chat error:', error);
         chatHistory.pop(); // Remove the user message we added
-        return { message: 'I apologize, but I encountered an issue connecting to the AI service. Please try again or contact support if the problem persists.', madeChanges: false };
+
+        // Check if request was aborted
+        if (error.name === 'AbortError') {
+          return { message: null, madeChanges: false, stopped: true };
+        }
+
+        return { message: 'I apologize, but I encountered an issue connecting to the AI service. Please try again or contact support if the problem persists.', madeChanges: false, stopped: false };
       }
     }
 
@@ -853,9 +891,9 @@
 
       // Update timer every 100ms
       publishTimerInterval = setInterval(() => {
-        const elapsed = ((Date.now() - publishStartTime) / 1000).toFixed(1);
+        const elapsed = (Date.now() - publishStartTime) / 1000;
         const timerEl = document.getElementById('publishingTimer');
-        if (timerEl) timerEl.textContent = `${elapsed}s`;
+        if (timerEl) timerEl.textContent = formatElapsedTime(elapsed);
       }, 100);
 
       // Cycle through publishing messages every 2 seconds
@@ -1007,18 +1045,28 @@
       uploadPreview.innerHTML = '';
       uploadPreview.classList.add('hidden');
 
+      // Create abort controller for this request
+      currentAbortController = new AbortController();
+
       // Show typing indicator with contextual messages
       addTypingIndicator(displayMessage);
 
       // Get AI response
-      const result = await sendMessage(message);
+      const result = await sendMessage(message, currentAbortController.signal);
 
-      // Remove typing indicator and add response
+      // Remove typing indicator
       removeTypingIndicator();
-      addMessage(result.message, false);
+      currentAbortController = null;
+
+      // Handle stopped vs completed
+      if (result.stopped) {
+        addMessage('Request stopped.', false);
+      } else {
+        addMessage(result.message, false);
+      }
 
       // If changes were made, show the publish button
-      if (result.madeChanges) {
+      if (result.madeChanges && !result.stopped) {
         showPublishButton();
       }
 

@@ -18,6 +18,7 @@ const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Da
 - Read and analyze website files
 - Make targeted edits to HTML, CSS, and JavaScript code
 - Create new pages and sections
+- Delete pages or files that are no longer needed
 - Fix bugs and implement new features
 - Deploy changes to the live site
 - Use uploaded images in new pages/sections
@@ -30,13 +31,18 @@ Before making changes:
 1. Brief acknowledgment (1 sentence)
 2. Ask: "Should we brainstorm this together, or shall I start and we tweak from there?"
 
-After making changes:
-- Just confirm what you did in 1-2 short sentences
-- Don't explain every detail
+After completing a task, ALWAYS include:
+1. What you accomplished (1 sentence)
+2. How to access/use it - this is CRITICAL:
+   - For new pages: "Visit /pagename to see it" or "Navigate to yoursite.com/pagename"
+   - For edits: "Refresh the page to see the changes"
+   - For deleted items: "The page/file has been removed"
+   - For features: Brief explanation of how to use it
+3. Ask if they'd like any changes
 
 RULES:
-- Maximum 2-3 sentences per response
-- No bullet lists unless absolutely necessary
+- Maximum 3-4 sentences per response
+- Always include navigation/access instructions
 - No lengthy explanations
 - Get to the point quickly
 
@@ -45,7 +51,10 @@ User: "I want a contact us page"
 You: "Great idea! Should we brainstorm this together, or shall I start and we tweak from there?"
 
 User: "Just start"
-You: "Done! I've created a contact page with a form, your address, and phone number. Take a look and let me know if you'd like any changes."
+You: "Done! I've created a contact page with a form, your address, and phone number. Visit /contact to see it. Let me know if you'd like any changes."
+
+User: "Delete the partner page"
+You: "Done! I've removed the partner page. The /partner URL will no longer be accessible after publishing. Anything else?"
 
 IMPORTANT RULES:
 1. For EDITING existing files: Use edit_file - it does safe find-and-replace edits
@@ -178,6 +187,27 @@ const tools = [
           }
         },
         required: ['path', 'content', 'message']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'delete_file',
+      description: 'Delete a file or page from the repository. Use this to remove pages, sections, or files that are no longer needed.',
+      parameters: {
+        type: 'object',
+        properties: {
+          path: {
+            type: 'string',
+            description: 'The file path to delete (e.g., "partner/index.html" to delete the partner page)'
+          },
+          message: {
+            type: 'string',
+            description: 'Commit message describing what was deleted'
+          }
+        },
+        required: ['path', 'message']
       }
     }
   },
@@ -357,6 +387,47 @@ async function executeFunction(name, args) {
         };
       }
 
+      case 'delete_file': {
+        console.log(`Deleting file: ${args.path}`);
+
+        // Get the file's SHA (required for deletion)
+        let fileSha;
+        try {
+          const { data } = await octokit.repos.getContent({
+            owner: REPO_OWNER,
+            repo: REPO_NAME,
+            path: args.path,
+            ref: 'main'
+          });
+          fileSha = data.sha;
+        } catch (err) {
+          if (err.status === 404) {
+            return {
+              error: 'File not found. Please check the path and try again.',
+              path: args.path
+            };
+          }
+          throw err;
+        }
+
+        // Delete the file
+        const commitMessage = args.message || `Delete ${args.path}`;
+        await octokit.repos.deleteFile({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: args.path,
+          message: `[Davidson AI] ${commitMessage}`,
+          sha: fileSha,
+          branch: 'main'
+        });
+
+        return {
+          success: true,
+          path: args.path,
+          message: `Successfully deleted ${args.path}`
+        };
+      }
+
       case 'deploy': {
         console.log(`Deploy triggered: ${args.message}`);
         // Vercel auto-deploys on push to main, so just confirm
@@ -512,8 +583,8 @@ export default async function handler(req, res) {
           console.log(`Executing tool: ${functionName}`, functionArgs);
           const result = await executeFunction(functionName, functionArgs);
 
-          // Track if changes were made (edit_file or create_file with success)
-          if ((functionName === 'edit_file' || functionName === 'create_file') && result.success) {
+          // Track if changes were made (edit_file, create_file, or delete_file with success)
+          if ((functionName === 'edit_file' || functionName === 'create_file' || functionName === 'delete_file') && result.success) {
             madeChanges = true;
           }
 
