@@ -1,47 +1,30 @@
-import jwt from 'jsonwebtoken';
+import OpenAI from 'openai';
 
 // Models to try in order of preference
 const MODELS = ['glm-4-flash', 'glm-4-air', 'glm-4', 'glm-4-plus'];
-const API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 
-// Generate JWT token for Zhipu AI authentication
-function generateToken(apiKey) {
-  const [apiKeyId, apiSecret] = apiKey.split('.');
+// Initialize GLM client using OpenAI SDK (GLM is OpenAI-compatible)
+const glmClient = new OpenAI({
+  apiKey: process.env.GLM_API_KEY,
+  baseURL: 'https://open.bigmodel.cn/api/paas/v4'
+});
 
-  if (!apiKeyId || !apiSecret) {
-    throw new Error('Invalid API key format. Expected: API_KEY_ID.API_SECRET');
-  }
+const SYSTEM_PROMPT = `You are Davidson, an AI development assistant for Davidson & Co. London's website. You can:
+- Read and analyze website files
+- Modify HTML, CSS, and JavaScript code
+- Fix bugs and implement new features
+- Deploy changes to the live site
 
-  const now = Date.now();
-  const payload = {
-    api_key: apiKeyId,
-    exp: now + 3600000, // 1 hour expiry
-    timestamp: now
-  };
+When users ask you to make changes, use the available tools to read files, make modifications, and deploy.
+Be professional and helpful. Explain what you're doing in a clear, concise manner.
 
-  const token = jwt.sign(payload, apiSecret, {
-    algorithm: 'HS256',
-    header: { alg: 'HS256', sign_type: 'SIGN' }
-  });
+Available files in the codebase:
+- index.html (main website)
+- admin.html (this admin portal)
+- src/assets/* (images and assets)
+- tailwind.config.js, vite.config.js (configuration)
 
-  return token;
-}
-
-const SYSTEM_PROMPT = `You are Davidson, an AI assistant for Davidson & Co. London, a boutique estate agency. You help with:
-- Property management inquiries
-- Answering questions about services
-- Providing information about the company
-- General assistance
-
-Be professional, concise, and helpful. Maintain a luxurious, sophisticated tone that matches the Davidson & Co. brand.
-
-About Davidson & Co. London:
-- Premium property services in London
-- Services: Sales, Lettings, Property Management, Finance, Legal
-- Contact: Info@davidsoncolondon.com
-- Tagline: "The Art of Property"
-
-If users ask about website changes or technical modifications, explain that this feature is coming soon and suggest they contact the team directly.`;
+IMPORTANT: Only modify files that are safe to edit. Never expose API keys or sensitive data.`;
 
 const tools = [
   {
@@ -165,45 +148,6 @@ async function executeFunction(name, args) {
   }
 }
 
-async function callGLMAPI(token, model, messages, useTools = true) {
-  const body = {
-    model: model,
-    messages: messages,
-    temperature: 0.7,
-    max_tokens: 2048
-  };
-
-  if (useTools) {
-    body.tools = tools;
-    body.tool_choice = 'auto';
-  }
-
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': token
-    },
-    body: JSON.stringify(body)
-  });
-
-  const text = await response.text();
-
-  // Check if response is HTML (error page)
-  if (text.startsWith('<!') || text.startsWith('<html')) {
-    throw new Error(`API returned HTML instead of JSON. Status: ${response.status}`);
-  }
-
-  const data = JSON.parse(text);
-
-  if (!response.ok) {
-    const errorMsg = data.error?.message || data.msg || JSON.stringify(data);
-    throw new Error(`API error ${response.status}: ${errorMsg}`);
-  }
-
-  return data;
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -222,10 +166,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Messages array required' });
     }
 
-    // Generate JWT token
-    const token = generateToken(process.env.GLM_API_KEY);
-    console.log('Generated JWT token successfully');
-
     const fullMessages = [
       { role: 'system', content: SYSTEM_PROMPT },
       ...messages
@@ -235,11 +175,18 @@ export default async function handler(req, res) {
     let lastError = null;
     let usedModel = null;
 
-    // Try each model until one works (without tools for now)
+    // Try each model until one works
     for (const model of MODELS) {
       try {
         console.log(`Trying model: ${model}`);
-        response = await callGLMAPI(token, model, fullMessages, false);
+        response = await glmClient.chat.completions.create({
+          model: model,
+          messages: fullMessages,
+          tools: tools,
+          tool_choice: 'auto',
+          temperature: 0.7,
+          max_tokens: 2048
+        });
         usedModel = model;
         console.log(`Success with model: ${model}`);
         break;
@@ -253,7 +200,37 @@ export default async function handler(req, res) {
       throw lastError || new Error('All models failed');
     }
 
-    const assistantMessage = response.choices[0].message;
+    let assistantMessage = response.choices[0].message;
+
+    // Handle tool calls
+    while (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
+      fullMessages.push(assistantMessage);
+
+      for (const toolCall of assistantMessage.tool_calls) {
+        const functionName = toolCall.function.name;
+        const functionArgs = JSON.parse(toolCall.function.arguments);
+
+        console.log(`Executing tool: ${functionName}`, functionArgs);
+        const result = await executeFunction(functionName, functionArgs);
+
+        fullMessages.push({
+          role: 'tool',
+          tool_call_id: toolCall.id,
+          content: JSON.stringify(result)
+        });
+      }
+
+      response = await glmClient.chat.completions.create({
+        model: usedModel,
+        messages: fullMessages,
+        tools: tools,
+        tool_choice: 'auto',
+        temperature: 0.7,
+        max_tokens: 2048
+      });
+
+      assistantMessage = response.choices[0].message;
+    }
 
     return res.status(200).json({
       message: assistantMessage.content,
