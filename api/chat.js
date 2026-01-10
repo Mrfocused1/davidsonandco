@@ -16,20 +16,23 @@ const glmClient = new OpenAI({
 
 const SYSTEM_PROMPT = `You are Davidson, an AI development assistant for Davidson & Co. London's website. You can:
 - Read and analyze website files
-- Modify HTML, CSS, and JavaScript code
+- Make targeted edits to HTML, CSS, and JavaScript code
 - Fix bugs and implement new features
 - Deploy changes to the live site
 
-When users ask you to make changes, use the available tools to read files, make modifications, and deploy.
-Be professional and helpful. Explain what you're doing in a clear, concise manner.
+IMPORTANT RULES:
+1. Always use edit_file for changes - it does safe find-and-replace edits
+2. First read_file to see the current content
+3. Use edit_file with the EXACT text you want to replace (old_text) and the new text (new_text)
+4. The old_text must match EXACTLY what's in the file (including whitespace)
+5. Never try to rewrite entire files - only make targeted edits
 
-Available files in the codebase:
+Available files:
 - index.html (main website)
 - admin.html (this admin portal)
 - src/assets/* (images and assets)
-- tailwind.config.js, vite.config.js (configuration)
 
-IMPORTANT: Only modify files that are safe to edit. Never expose API keys or sensitive data.`;
+Be professional and helpful. Explain what you're doing.`;
 
 const tools = [
   {
@@ -52,8 +55,8 @@ const tools = [
   {
     type: 'function',
     function: {
-      name: 'write_file',
-      description: 'Write or update a file in the repository',
+      name: 'edit_file',
+      description: 'Make a targeted find-and-replace edit to a file. This is SAFE - it only replaces specific text, not the whole file.',
       parameters: {
         type: 'object',
         properties: {
@@ -61,16 +64,20 @@ const tools = [
             type: 'string',
             description: 'The file path relative to repository root'
           },
-          content: {
+          old_text: {
             type: 'string',
-            description: 'The new content for the file'
+            description: 'The exact text to find and replace (must match exactly, including whitespace)'
+          },
+          new_text: {
+            type: 'string',
+            description: 'The new text to replace old_text with'
           },
           message: {
             type: 'string',
             description: 'Commit message describing the change'
           }
         },
-        required: ['path', 'content', 'message']
+        required: ['path', 'old_text', 'new_text', 'message']
       }
     }
   },
@@ -133,29 +140,48 @@ async function executeFunction(name, args) {
         return { path: args.path, content: content, sha: response.data.sha };
       }
 
-      case 'write_file': {
-        console.log(`Writing file: ${args.path}`);
+      case 'edit_file': {
+        console.log(`Editing file: ${args.path}`);
+        console.log(`Looking for: "${args.old_text.substring(0, 50)}..."`);
 
-        // Get existing file SHA if it exists
-        let sha;
-        try {
-          const existing = await octokit.repos.getContent({
-            owner: REPO_OWNER,
-            repo: REPO_NAME,
-            path: args.path,
-            ref: 'main'
-          });
-          sha = existing.data.sha;
-        } catch (e) {
-          if (e.status !== 404) throw e;
+        // Get existing file content
+        const existing = await octokit.repos.getContent({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: args.path,
+          ref: 'main'
+        });
+
+        if (Array.isArray(existing.data)) {
+          return { error: 'Path is a directory, not a file' };
         }
 
-        const response = await octokit.repos.createOrUpdateFileContents({
+        const currentContent = Buffer.from(existing.data.content, 'base64').toString('utf-8');
+        const sha = existing.data.sha;
+
+        // Check if old_text exists in file
+        if (!currentContent.includes(args.old_text)) {
+          return {
+            error: 'Text not found in file. Make sure old_text matches exactly (including whitespace).',
+            hint: 'Use read_file first to see the exact content.'
+          };
+        }
+
+        // Replace old_text with new_text
+        const newContent = currentContent.replace(args.old_text, args.new_text);
+
+        // Verify the change was made
+        if (newContent === currentContent) {
+          return { error: 'No changes made - old_text and new_text might be the same' };
+        }
+
+        // Commit the change
+        await octokit.repos.createOrUpdateFileContents({
           owner: REPO_OWNER,
           repo: REPO_NAME,
           path: args.path,
           message: `[Davidson AI] ${args.message}`,
-          content: Buffer.from(args.content).toString('base64'),
+          content: Buffer.from(newContent).toString('base64'),
           sha: sha,
           branch: 'main'
         });
@@ -163,7 +189,7 @@ async function executeFunction(name, args) {
         return {
           success: true,
           path: args.path,
-          message: `File ${sha ? 'updated' : 'created'} successfully`
+          message: `Successfully replaced text in ${args.path}`
         };
       }
 
