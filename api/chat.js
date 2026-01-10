@@ -1,5 +1,8 @@
 import OpenAI from 'openai';
 
+// Models to try in order of preference
+const MODELS = ['glm-4-flash', 'glm-4-air', 'glm-4', 'glm-4-plus'];
+
 const client = new OpenAI({
   apiKey: process.env.GLM_API_KEY,
   baseURL: 'https://open.bigmodel.cn/api/paas/v4'
@@ -149,6 +152,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Check for API key
+  if (!process.env.GLM_API_KEY) {
+    console.error('GLM_API_KEY environment variable not set');
+    return res.status(500).json({ error: 'API key not configured' });
+  }
+
   try {
     const { messages } = req.body;
 
@@ -161,14 +170,34 @@ export default async function handler(req, res) {
       ...messages
     ];
 
-    let response = await client.chat.completions.create({
-      model: 'glm-4-plus',
-      messages: fullMessages,
-      tools: tools,
-      tool_choice: 'auto',
-      temperature: 0.7,
-      max_tokens: 2048
-    });
+    let response = null;
+    let lastError = null;
+    let usedModel = null;
+
+    // Try each model until one works
+    for (const model of MODELS) {
+      try {
+        console.log(`Trying model: ${model}`);
+        response = await client.chat.completions.create({
+          model: model,
+          messages: fullMessages,
+          tools: tools,
+          tool_choice: 'auto',
+          temperature: 0.7,
+          max_tokens: 2048
+        });
+        usedModel = model;
+        console.log(`Success with model: ${model}`);
+        break;
+      } catch (err) {
+        console.error(`Model ${model} failed:`, err.message);
+        lastError = err;
+      }
+    }
+
+    if (!response) {
+      throw lastError || new Error('All models failed');
+    }
 
     let assistantMessage = response.choices[0].message;
 
@@ -191,7 +220,7 @@ export default async function handler(req, res) {
       }
 
       response = await client.chat.completions.create({
-        model: 'glm-4-plus',
+        model: usedModel,
         messages: fullMessages,
         tools: tools,
         tool_choice: 'auto',
