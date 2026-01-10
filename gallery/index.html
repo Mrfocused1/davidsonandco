@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gallery | Davidson & Co London</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { black: '#080808', charcoal: '#121212', gold: '#D4AF37', goldDim: '#8A7120', stone: '#1c1c1c', white: '#F5F5F5' }
+          },
+          fontFamily: { serif: ['Cinzel', 'serif'], sans: ['Manrope', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #080808; color: #F5F5F5; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+    ::-webkit-scrollbar { width: 0px; background: transparent; }
+    .grain-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E"); }
+    .property-card { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+    .property-card:hover { transform: translateY(-8px); }
+    .property-card:hover .card-border { border-color: #D4AF37; }
+    .property-card:hover img { transform: scale(1.1); }
+  </style>
+</head>
+<body class="relative">
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center p-8 mix-blend-difference pointer-events-none">
+    <a href="/" class="pointer-events-auto"><img src="../src/assets/logo.png" alt="Davidson & Co." class="h-10"></a>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative h-[60vh] flex items-center justify-center overflow-hidden bg-brand-black">
+    <div class="absolute inset-0 bg-gradient-to-b from-brand-black/50 via-brand-black/30 to-brand-black z-10"></div>
+    <div id="hero-bg" class="absolute inset-0 bg-cover bg-center opacity-40" style="background-image: url('https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg?auto=compress&cs=tinysrgb&w=1920');"></div>
+    <div class="relative z-20 text-center px-6">
+      <p class="text-brand-gold text-xs tracking-[0.3em] uppercase mb-4 opacity-0" id="hero-label">Property Portfolio</p>
+      <h1 class="text-5xl md:text-7xl font-serif mb-6 opacity-0" id="hero-title">Our Collection</h1>
+      <p class="text-gray-400 max-w-2xl mx-auto text-lg opacity-0" id="hero-desc">
+        Discover an exclusive selection of London's finest properties, curated for the discerning client.
+      </p>
+    </div>
+  </section>
+
+  <!-- Filters -->
+  <section class="sticky top-0 z-30 bg-brand-black/95 backdrop-blur-sm border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex flex-wrap items-center gap-4">
+        <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+        <div class="flex flex-wrap gap-2" id="filters">
+          <button data-filter="all" class="filter-btn active px-4 py-2 text-xs tracking-[0.2em] uppercase bg-brand-gold text-brand-black">All Properties</button>
+          <button data-filter="residential" class="filter-btn px-4 py-2 text-xs tracking-[0.2em] uppercase bg-transparent text-gray-400 border border-white/20 hover:border-white/50 hover:text-white transition-all">Residential</button>
+          <button data-filter="commercial" class="filter-btn px-4 py-2 text-xs tracking-[0.2em] uppercase bg-transparent text-gray-400 border border-white/20 hover:border-white/50 hover:text-white transition-all">Commercial</button>
+          <button data-filter="luxury" class="filter-btn px-4 py-2 text-xs tracking-[0.2em] uppercase bg-transparent text-gray-400 border border-white/20 hover:border-white/50 hover:text-white transition-all">Luxury</button>
+          <button data-filter="investment" class="filter-btn px-4 py-2 text-xs tracking-[0.2em] uppercase bg-transparent text-gray-400 border border-white/20 hover:border-white/50 hover:text-white transition-all">Investment</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery Grid -->
+  <section class="max-w-7xl mx-auto px-6 py-16">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="gallery-grid">
+      <!-- Properties will be loaded here -->
+    </div>
+  </section>
+
+  <!-- Footer CTA -->
+  <section class="py-24 bg-white/5 text-center">
+    <h2 class="text-3xl md:text-4xl font-serif mb-6">Interested in a Property?</h2>
+    <p class="text-gray-400 mb-8 max-w-xl mx-auto">
+      Our private office offers discreet consultations for qualified clients. Contact us to discuss your requirements.
+    </p>
+    <a href="mailto:info@davidsoncolondon.com" class="inline-block px-8 py-4 border border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-black transition-all duration-300 text-xs tracking-[0.2em] uppercase">
+      Schedule a Consultation
+    </a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-black text-white/40 py-16 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+      <div class="mb-8 md:mb-0"><a href="/"><img src="../src/assets/logo.png" alt="Davidson & Co." class="h-10"></a></div>
+      <div class="flex gap-12 text-xs font-sans tracking-widest">
+        <a href="/" class="hover:text-brand-gold transition-colors">Home</a>
+        <a href="/gallery" class="text-brand-gold">Gallery</a>
+        <a href="/sponsorship" class="hover:text-brand-gold transition-colors">Sponsorship</a>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-12 opacity-20 font-sans">© 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.</div>
+  </footer>
+
+  <!-- Property Modal -->
+  <div id="property-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+    <div class="bg-neutral-900 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative" id="modal-content">
+      <button onclick="closeModal()" class="absolute top-4 right-4 z-10 p-2 bg-neutral-800 hover:bg-brand-gold hover:text-brand-black transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+      <div id="modal-image" class="h-64 md:h-96 overflow-hidden bg-neutral-800"></div>
+      <div class="p-8" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    // Property data
+    const properties = [
+      { id: 1, title: 'The Mayfair Residence', location: 'Mayfair, London', type: 'luxury', price: '£8.5M', bedrooms: 5, bathrooms: 4, sqft: 4200, image: 'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&cs=tinysrgb&w=800', description: 'An exceptional townhouse offering unparalleled luxury in the heart of Mayfair. Features include a private garden, wine cellar, and rooftop terrace with panoramic views.' },
+      { id: 2, title: 'Knightsbridge Penthouse', location: 'Knightsbridge', type: 'residential', price: '£12.2M', bedrooms: 4, bathrooms: 3, sqft: 3800, image: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800', description: 'A stunning penthouse apartment with floor-to-ceiling windows and a wraparound terrace offering breathtaking views across Hyde Park.' },
+      { id: 3, title: 'Belgravia Manor', location: 'Belgravia', type: 'luxury', price: '£15.8M', bedrooms: 7, bathrooms: 6, sqft: 6500, image: 'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg?auto=compress&cs=tinysrgb&w=800', description: 'A magnificent Grade II listed mansion combining period elegance with contemporary luxury. Private courtyard and staff quarters included.' },
+      { id: 4, title: 'Chelsea Townhouse', location: 'Chelsea', type: 'residential', price: '£6.9M', bedrooms: 4, bathrooms: 3, sqft: 3200, image: 'https://images.pexels.com/photos/1029599/pexels-photo-1029599.jpeg?auto=compress&cs=tinysrgb&w=800', description: 'A beautifully renovated Victorian townhouse on a quiet Chelsea street. Features original fireplaces and a landscaped rear garden.' },
+      { id: 5, title: 'Kensington Investment', location: 'Kensington', type: 'investment', price: '£4.2M', bedrooms: 3, bathrooms: 2, sqft: 2100, image: 'https://images.pexels.com/photos/1080721/pexels-photo-1080721.jpeg?auto=compress&cs=tinysrgb&w=800', description: 'Prime investment opportunity in South Kensington. Currently tenanted with strong rental yield and excellent capital growth potential.' },
+      { id: 6, title: 'City Tower Office', location: 'City of London', type: 'commercial', price: '£22.5M', bedrooms: 0, bathrooms: 8, sqft: 15000, image: 'https://images.pexels.com/photos/1134176/pexels-photo-1134176.jpeg?auto=compress&cs=tinysrgb&w=800', description: 'Premium Grade A office space in a landmark City tower. Panoramic views, 24-hour security, and state-of-the-art facilities.' },
+      { id: 7, title: 'Hampstead Villa', location: 'Hampstead', type: 'luxury', price: '£9.8M', bedrooms: 6, bathrooms: 5, sqft: 5200, image: 'https://images.pexels.com/photos/2102587/pexels-photo-2102587.jpeg?auto=compress&cs=tinysrgb&w=800', description: 'A secluded villa backing onto Hampstead Heath. Features include an indoor pool, cinema room, and mature private gardens.' },
+      { id: 8, title: 'Marylebone Apartment', location: 'Marylebone', type: 'residential', price: '£3.4M', bedrooms: 2, bathrooms: 2, sqft: 1450, image: 'https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg?auto=compress&cs=tinysrgb&w=800', description: 'A sophisticated apartment in a boutique Marylebone development. Concierge service, residents gym, and private parking.' },
+      { id: 9, title: 'Canary Wharf Portfolio', location: 'Canary Wharf', type: 'investment', price: '£18.7M', bedrooms: 12, bathrooms: 12, sqft: 8500, image: 'https://images.pexels.com/photos/2462015/pexels-photo-2462015.jpeg?auto=compress&cs=tinysrgb&w=800', description: 'A portfolio of 6 luxury apartments in a premium Canary Wharf development. Fully let with blue-chip corporate tenants.' },
+      { id: 10, title: 'Soho Commercial', location: 'Soho', type: 'commercial', price: '£7.3M', bedrooms: 0, bathrooms: 4, sqft: 4800, image: 'https://images.pexels.com/photos/3049121/pexels-photo-3049121.jpeg?auto=compress&cs=tinysrgb&w=800', description: 'Freehold commercial property in the heart of Soho. Prime retail frontage with office space above. Strong tenant covenant.' },
+      { id: 11, title: 'Richmond Riverside', location: 'Richmond', type: 'residential', price: '£5.6M', bedrooms: 5, bathrooms: 4, sqft: 3800, image: 'https://images.pexels.com/photos/2119714/pexels-photo-2119714.jpeg?auto=compress&cs=tinysrgb&w=800', description: 'A stunning riverside property with private mooring. Open-plan living spaces with bi-fold doors opening onto manicured gardens.' },
+      { id: 12, title: 'St Johns Wood Estate', location: 'St Johns Wood', type: 'luxury', price: '£24.5M', bedrooms: 8, bathrooms: 7, sqft: 9200, image: 'https://images.pexels.com/photos/2724749/pexels-photo-2724749.jpeg?auto=compress&cs=tinysrgb&w=800', description: 'An exceptional ambassadorial residence set in 1.5 acres of private grounds. Staff accommodation, tennis court, and underground parking for 6 vehicles.' }
+    ];
+
+    let currentFilter = 'all';
+
+    // Render properties
+    function renderProperties(filter = 'all') {
+      const grid = document.getElementById('gallery-grid');
+      const filtered = filter === 'all' ? properties : properties.filter(p => p.type === filter);
+
+      grid.innerHTML = filtered.map(property => `
+        <div class="property-card group relative overflow-hidden bg-white/5 border border-white/10 card-border" data-type="${property.type}">
+          <div class="relative h-72 overflow-hidden">
+            <img src="${property.image}" alt="${property.title}" class="w-full h-full object-cover transition-transform duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500"></div>
+            <div class="absolute top-4 left-4">
+              <span class="px-3 py-1 bg-brand-gold/90 text-brand-black text-[10px] tracking-[0.2em] uppercase font-bold">${property.type}</span>
+            </div>
+            <div class="absolute top-4 right-4">
+              <span class="px-3 py-1 bg-brand-black/90 text-white text-xs font-serif">${property.price}</span>
+            </div>
+          </div>
+          <div class="p-6">
+            <div class="mb-3">
+              <h3 class="text-xl font-serif mb-1 group-hover:text-brand-gold transition-colors">${property.title}</h3>
+              <p class="text-gray-500 text-sm flex items-center gap-2">
+                <span class="text-brand-gold">●</span> ${property.location}
+              </p>
+            </div>
+            <div class="flex items-center gap-6 py-4 border-t border-b border-white/10 my-4">
+              ${property.bedrooms > 0 ? `<div class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg><span class="text-sm font-serif">${property.bedrooms} Beds</span></div>` : ''}
+              <div class="flex items-center gap-2"><svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg><span class="text-sm font-serif">${property.sqft.toLocaleString()} sqft</span></div>
+            </div>
+            <button onclick="openModal(${property.id})" class="w-full py-3 border border-white/20 hover:border-brand-gold hover:bg-brand-gold/10 transition-all duration-300 flex items-center justify-center gap-2 group/btn">
+              <span class="text-xs tracking-[0.2em] uppercase group-hover/btn:text-brand-gold">View Details</span>
+              <svg class="w-4 h-4 group-hover/btn:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      // Animate cards
+      gsap.from('.property-card', { y: 50, opacity: 0, duration: 0.8, stagger: 0.1, ease: 'power3.out' });
+    }
+
+    // Filter click handlers
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+          b.classList.remove('active', 'bg-brand-gold', 'text-brand-black');
+          b.classList.add('bg-transparent', 'text-gray-400', 'border', 'border-white/20');
+        });
+        this.classList.add('active', 'bg-brand-gold', 'text-brand-black');
+        this.classList.remove('bg-transparent', 'text-gray-400', 'border', 'border-white/20');
+        renderProperties(this.dataset.filter);
+      });
+    });
+
+    // Modal functions
+    function openModal(id) {
+      const property = properties.find(p => p.id === id);
+      if (!property) return;
+
+      document.getElementById('modal-image').innerHTML = `<img src="${property.image}" class="w-full h-full object-cover">`;
+      document.getElementById('modal-body').innerHTML = `
+        <div class="flex items-start justify-between mb-6">
+          <div>
+            <span class="text-brand-gold text-xs tracking-[0.2em] uppercase">${property.type}</span>
+            <h2 class="text-3xl font-serif mt-2">${property.title}</h2>
+            <p class="text-gray-500 flex items-center gap-2 mt-1">
+              <span class="text-brand-gold">●</span> ${property.location}
+            </p>
+          </div>
+          <div class="text-right">
+            <div class="text-2xl font-serif text-brand-gold">${property.price}</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-6 py-6 border-t border-b border-white/10 mb-6">
+          ${property.bedrooms > 0 ? `<div class="text-center"><div class="text-2xl font-serif">${property.bedrooms}</div><div class="text-xs uppercase tracking-wider text-gray-500">Bedrooms</div></div>` : '<div></div>'}
+          <div class="text-center"><div class="text-2xl font-serif">${property.bathrooms}</div><div class="text-xs uppercase tracking-wider text-gray-500">Bathrooms</div></div>
+          <div class="text-center"><div class="text-2xl font-serif">${property.sqft.toLocaleString()}</div><div class="text-xs uppercase tracking-wider text-gray-500">Sq Ft</div></div>
+        </div>
+        <p class="text-gray-400 leading-relaxed mb-8">${property.description}</p>
+        <button class="w-full py-4 bg-brand-gold text-brand-black font-bold tracking-[0.2em] uppercase hover:bg-yellow-500 transition-colors">
+          Enquire About This Property
+        </button>
+      `;
+
+      const modal = document.getElementById('property-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('property-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = 'auto';
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('property-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    // Escape key to close modal
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Hero animations
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.to('#hero-label', { opacity: 1, y: 0, duration: 1, delay: 0.3 });
+    gsap.to('#hero-title', { opacity: 1, y: 0, duration: 1, delay: 0.5 });
+    gsap.to('#hero-desc', { opacity: 1, y: 0, duration: 1, delay: 0.7 });
+
+    // Initial render
+    renderProperties();
+  </script>
+</body>
+</html>
