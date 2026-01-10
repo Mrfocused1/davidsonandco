@@ -335,42 +335,57 @@ Be professional, concise, and helpful. Maintain a luxurious, sophisticated tone 
         .replace(/`(.*?)`/g, '<code class="bg-brand-stone px-1 rounded text-brand-gold">$1</code>');
     }
 
-    // Send message to GLM-4 API
+    // Models to try in order of preference
+    const MODELS_TO_TRY = ['glm-4-air', 'glm-4-flash', 'glm-4', 'chatglm_turbo'];
+
+    // Send message to GLM-4 API with model fallback
     async function sendMessage(message) {
       chatHistory.push({ role: 'user', content: message });
 
-      try {
-        const token = generateToken();
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': token
-          },
-          body: JSON.stringify({
-            model: 'glm-4',
-            messages: chatHistory,
-            temperature: 0.7,
-            max_tokens: 1024
-          })
-        });
+      const token = generateToken();
 
-        if (!response.ok) {
-          const errorData = await response.text();
-          console.error('API Response:', errorData);
-          throw new Error(`API error: ${response.status}`);
+      for (const model of MODELS_TO_TRY) {
+        try {
+          console.log(`Trying model: ${model}`);
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': token
+            },
+            body: JSON.stringify({
+              model: model,
+              messages: chatHistory,
+              temperature: 0.7,
+              max_tokens: 1024
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            console.error(`Model ${model} failed:`, data);
+            // If it's a model error, try next model
+            if (data.error && data.error.code === '1211') {
+              continue;
+            }
+            throw new Error(`API error: ${response.status}`);
+          }
+
+          console.log(`Success with model: ${model}`);
+          const assistantMessage = data.choices[0].message.content;
+          chatHistory.push({ role: 'assistant', content: assistantMessage });
+          return assistantMessage;
+
+        } catch (error) {
+          console.error(`Error with model ${model}:`, error);
+          // Continue to next model
         }
-
-        const data = await response.json();
-        const assistantMessage = data.choices[0].message.content;
-
-        chatHistory.push({ role: 'assistant', content: assistantMessage });
-
-        return assistantMessage;
-      } catch (error) {
-        console.error('Error:', error);
-        return 'I apologize, but I encountered an issue processing your request. Please try again or contact support if the problem persists.';
       }
+
+      // All models failed
+      chatHistory.pop(); // Remove the user message we added
+      return 'I apologize, but I encountered an issue connecting to the AI service. Please check your API key and try again, or contact support if the problem persists.';
     }
 
     // Handle form submission
