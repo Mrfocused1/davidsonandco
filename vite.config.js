@@ -9,8 +9,13 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: Object.fromEntries(
-        glob.sync(['*.html', 'admin/*.html', 'pages/**/*.html']).map(file => [
-          file.replace(/\.html$/, '').replace(/\//g, '-'),
+        glob.sync([
+          'index.html',
+          '*/index.html',
+          'admin/index.html',
+          'pages/**/index.html'
+        ]).map(file => [
+          file.replace(/\/index\.html$/, '').replace(/\//g, '-') || 'main',
           resolve(__dirname, file)
         ])
       ),

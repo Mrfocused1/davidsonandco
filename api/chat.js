@@ -24,12 +24,18 @@ const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Da
 
 IMPORTANT RULES:
 1. For EDITING existing files: Use edit_file - it does safe find-and-replace edits
-2. For CREATING new files/pages: Use create_file - it only works for files that don't exist yet
+2. For CREATING new pages: Use create_file with path "pagename/index.html" for clean URLs (e.g., "about/index.html" creates /about)
 3. First use read_file to see the current content before editing
 4. Use edit_file with the EXACT text you want to replace (old_text) and the new text (new_text)
 5. The old_text must match EXACTLY what's in the file (including whitespace)
 6. Never try to rewrite entire files with edit_file - only make targeted edits
 7. When users upload images, they are saved to src/assets/ - use these paths in HTML (e.g., src/assets/my-image.png)
+
+PAGE CREATION:
+- Always create pages as "pagename/index.html" NOT "pagename.html"
+- Example: For /about page, create "about/index.html"
+- Example: For /services page, create "services/index.html"
+- This ensures clean URLs without .html extension
 
 IMAGE UPLOADS:
 - Users can upload images using the + button in the chat
@@ -49,7 +55,8 @@ STRICT BOUNDARIES - YOU MUST FOLLOW THESE:
 
 Available files:
 - index.html (main website)
-- admin/index.html (this admin portal)
+- about/index.html (about page)
+- admin/index.html (admin portal)
 - src/assets/* (images and assets - including user uploaded images)
 
 Be professional, helpful, and focused on the Davidson & Co. London website only.`;
@@ -122,13 +129,13 @@ const tools = [
     type: 'function',
     function: {
       name: 'create_file',
-      description: 'Create a new file (page, section, etc). ONLY works for files that do not exist yet - cannot overwrite existing files.',
+      description: 'Create a new file (page, section, etc). ONLY works for files that do not exist yet. For pages, use "pagename/index.html" format for clean URLs.',
       parameters: {
         type: 'object',
         properties: {
           path: {
             type: 'string',
-            description: 'The file path for the new file (e.g., "about.html" or "pages/contact.html")'
+            description: 'The file path for the new file. For pages use folder structure: "about/index.html" for /about, "services/index.html" for /services'
           },
           content: {
             type: 'string',
