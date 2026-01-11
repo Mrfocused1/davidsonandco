@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": 1768158081774,
+    "timestamp": "2026-01-11T19:01:21.774Z",
+    "action": "delete",
+    "description": "Deleted help page",
+    "files": [
+      "help/index.html"
+    ],
+    "status": "completed"
+  }
+]
