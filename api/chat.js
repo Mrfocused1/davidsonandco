@@ -24,7 +24,12 @@ const REPO_NAME = 'davidsonandco';
 // Initialize GLM client using OpenAI SDK (GLM is OpenAI-compatible)
 const glmClient = new OpenAI({
   apiKey: process.env.GLM_API_KEY,
-  baseURL: 'https://open.bigmodel.cn/api/paas/v4'
+  baseURL: 'https://open.bigmodel.cn/api/paas/v4',
+  timeout: 110000,        // 110 seconds (10s safety margin from 120s limit)
+  maxRetries: 1,          // Reduce retries, rely on our custom retry logic instead
+  defaultHeaders: {
+    'Connection': 'keep-alive'
+  }
 });
 
 const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Davidson & Co London website. You can:
@@ -745,43 +750,57 @@ async function executeFunction(name, args) {
       case 'fetch_url': {
         console.log(`Fetching URL: ${args.url}`);
         try {
-          const response = await fetch(args.url, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (compatible; DavidsonBot/1.0)',
-              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+          // Add 8-second timeout to prevent indefinite hangs
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 8000);
+
+          try {
+            const response = await fetch(args.url, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (compatible; DavidsonBot/1.0)',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+              },
+              signal: controller.signal
+            });
+            clearTimeout(timeout);
+
+            if (!response.ok) {
+              return { error: `Failed to fetch URL: ${response.status} ${response.statusText}` };
             }
-          });
 
-          if (!response.ok) {
-            return { error: `Failed to fetch URL: ${response.status} ${response.statusText}` };
+            const contentType = response.headers.get('content-type') || '';
+            let content = await response.text();
+
+            // Truncate very long content to avoid token limits
+            const maxLength = 10000;
+            if (content.length > maxLength) {
+              content = content.substring(0, maxLength) + '\n\n[Content truncated...]';
+            }
+
+            // Basic HTML to text conversion for readability
+            if (contentType.includes('text/html')) {
+              // Remove script and style tags and their content
+              content = content.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+              content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+              // Remove HTML tags but keep text
+              content = content.replace(/<[^>]+>/g, ' ');
+              // Clean up whitespace
+              content = content.replace(/\s+/g, ' ').trim();
+            }
+
+            return {
+              success: true,
+              url: args.url,
+              contentType: contentType,
+              content: content
+            };
+          } catch (fetchError) {
+            clearTimeout(timeout);
+            if (fetchError.name === 'AbortError') {
+              return { error: 'URL fetch timeout after 8 seconds. Try a different URL or check if the site is responsive.' };
+            }
+            throw fetchError;
           }
-
-          const contentType = response.headers.get('content-type') || '';
-          let content = await response.text();
-
-          // Truncate very long content to avoid token limits
-          const maxLength = 10000;
-          if (content.length > maxLength) {
-            content = content.substring(0, maxLength) + '\n\n[Content truncated...]';
-          }
-
-          // Basic HTML to text conversion for readability
-          if (contentType.includes('text/html')) {
-            // Remove script and style tags and their content
-            content = content.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
-            content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-            // Remove HTML tags but keep text
-            content = content.replace(/<[^>]+>/g, ' ');
-            // Clean up whitespace
-            content = content.replace(/\s+/g, ' ').trim();
-          }
-
-          return {
-            success: true,
-            url: args.url,
-            contentType: contentType,
-            content: content
-          };
         } catch (fetchError) {
           return { error: `Failed to fetch URL: ${fetchError.message}` };
         }
@@ -918,6 +937,20 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Track request start time for timeout management
+  const REQUEST_START_TIME = Date.now();
+  const MAX_REQUEST_TIME = 290000; // 290 seconds (10s safety margin from 300s limit)
+  const TIMEOUT_WARNING_TIME = 270000; // 270 seconds (30s before timeout)
+
+  // Helper function to check if approaching timeout
+  const isApproachingTimeout = () => {
+    return (Date.now() - REQUEST_START_TIME) > TIMEOUT_WARNING_TIME;
+  };
+
+  const hasTimeRemaining = () => {
+    return (Date.now() - REQUEST_START_TIME) < MAX_REQUEST_TIME;
+  };
+
   // Check for required environment variables
   if (!process.env.GLM_API_KEY) {
     console.error('GLM_API_KEY environment variable not set');
@@ -986,8 +1019,29 @@ export default async function handler(req, res) {
     let usedModel = null;
     let toolsEnabled = true;
 
+    // Detect if this is a complex task based on message content
+    const isComplexTask = (messages) => {
+      const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
+      const complexKeywords = ['create', 'generate', 'build', 'design', 'develop', 'implement', 'refactor'];
+      return complexKeywords.some(keyword => lastUserMessage.toLowerCase().includes(keyword));
+    };
+
+    const isComplex = isComplexTask(fullMessages);
+    if (isComplex) {
+      console.log('🧠 Complex task detected, will enable thinking mode for GLM-4.7');
+    }
+
     // Use vision models if images are present, otherwise use regular models
     const modelsToTry = hasImages ? VISION_MODELS : MODELS;
+
+    // Check if we have time remaining before making API call
+    if (!hasTimeRemaining()) {
+      return res.status(200).json({
+        message: "Request is taking longer than expected. Please try breaking this into smaller tasks.",
+        error: 'Timeout prevention',
+        madeChanges: false
+      });
+    }
 
     // Try each model with tools first (with retry)
     // Note: GLM-4V supports native multimodal function calling
@@ -1001,7 +1055,9 @@ export default async function handler(req, res) {
             tools: tools,
             tool_choice: 'auto',
             temperature: 0.7,
-            max_tokens: 4096
+            max_tokens: 4096,
+            // Enable thinking mode for complex tasks (GLM-4.7 feature)
+            ...(isComplex && model === 'glm-4.7' ? { thinking: { enabled: true } } : {})
           });
         });
         usedModel = model;
@@ -1033,7 +1089,9 @@ export default async function handler(req, res) {
               model: model,
               messages: fullMessages,
               temperature: 0.7,
-              max_tokens: 4096
+              max_tokens: 4096,
+              // Enable thinking mode for complex tasks (GLM-4.7 feature)
+              ...(isComplex && model === 'glm-4.7' ? { thinking: { enabled: true } } : {})
             });
           });
           usedModel = model;
@@ -1065,7 +1123,9 @@ export default async function handler(req, res) {
               model: model,
               messages: textOnlyMessages,
               temperature: 0.7,
-              max_tokens: 4096
+              max_tokens: 4096,
+              // Enable thinking mode for complex tasks (GLM-4.7 feature)
+              ...(isComplex && model === 'glm-4.7' ? { thinking: { enabled: true } } : {})
             });
           });
           usedModel = model;
@@ -1113,6 +1173,31 @@ export default async function handler(req, res) {
         for (const toolCall of assistantMessage.tool_calls) {
           const functionName = toolCall.function.name;
 
+          // Check timeout before each tool execution
+          if (!hasTimeRemaining()) {
+            console.error(`⚠️ Timeout approaching, skipping remaining tools`);
+
+            fullMessages.push({
+              role: 'tool',
+              tool_call_id: toolCall.id,
+              content: JSON.stringify({
+                error: 'Request timeout - operation aborted to prevent function timeout',
+                hint: 'Try breaking this request into smaller tasks'
+              })
+            });
+            break; // Exit tool loop
+          }
+
+          // Log if approaching timeout
+          if (isApproachingTimeout()) {
+            console.warn('⚠️ Approaching timeout limit, may need to abort soon');
+          }
+
+          // Log tool execution with time tracking
+          const toolStartTime = Date.now();
+          const elapsedMs = toolStartTime - REQUEST_START_TIME;
+          console.log(`🔧 Executing tool: ${functionName} (${elapsedMs}ms elapsed since request start)`);
+
           // Parse function arguments with detailed error handling
           let functionArgs;
           try {
@@ -1153,8 +1238,11 @@ export default async function handler(req, res) {
             }
           }
 
-          console.log(`Executing tool: ${functionName}`, functionArgs);
           const result = await executeToolWithRetry(functionName, functionArgs);
+
+          // Log tool completion time
+          const toolDuration = Date.now() - toolStartTime;
+          console.log(`✅ Tool ${functionName} completed in ${toolDuration}ms`);
 
           // Track if changes were made (edit_file, create_file, or delete_file with success)
           if ((functionName === 'edit_file' || functionName === 'create_file' || functionName === 'delete_file') && result.success) {
@@ -1175,7 +1263,9 @@ export default async function handler(req, res) {
             tools: tools,
             tool_choice: 'auto',
             temperature: 0.7,
-            max_tokens: 4096
+            max_tokens: 4096,
+            // Enable thinking mode for complex tasks (GLM-4.7 feature)
+            ...(isComplex && usedModel === 'glm-4.7' ? { thinking: { enabled: true } } : {})
           });
         });
 
