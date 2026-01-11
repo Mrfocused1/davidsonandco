@@ -981,6 +981,12 @@ export default async function handler(req, res) {
       }
     }
 
+    // Sanitize message to ensure valid JSON encoding
+    // Remove problematic control characters but keep newlines, tabs, and carriage returns
+    if (finalMessage) {
+      finalMessage = finalMessage.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+    }
+
     // Check if AI is requesting deletion confirmation
     let requestsDelete = null;
     const deleteMarker = 'DELETE_REQUEST:';
