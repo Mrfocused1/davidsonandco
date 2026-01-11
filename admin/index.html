@@ -226,6 +226,42 @@
         transform: scale(0.8);
       }
     }
+
+    /* Deployment status indicator animations */
+    .deployment-fade-in {
+      animation: deploymentFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .deployment-fade-out {
+      animation: deploymentFadeOut 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes deploymentFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes deploymentFadeOut {
+      from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+      }
+    }
+
+    #deploymentStatus {
+      backdrop-filter: blur(10px);
+      background: rgba(17, 24, 39, 0.95);
+    }
   </style>
 </head>
 
@@ -973,6 +1009,89 @@
         .replace(/`(.*?)`/g, '<code class="bg-brand-stone px-1 rounded text-brand-gold">$1</code>');
     }
 
+    // Show deployment status indicator with visual feedback
+    function showDeploymentStatus(status, message) {
+      // Remove any existing status indicator
+      const existing = document.getElementById('deploymentStatus');
+      if (existing) {
+        existing.remove();
+      }
+
+      const statusDiv = document.createElement('div');
+      statusDiv.id = 'deploymentStatus';
+      statusDiv.className = 'fixed bottom-24 right-8 z-50 bg-gray-900 border rounded-lg shadow-2xl p-4 flex items-center gap-3 deployment-fade-in';
+
+      let icon = '';
+      let colorClass = '';
+      let borderColor = '';
+
+      switch (status) {
+        case 'deploying':
+          icon = `<svg class="animate-spin h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>`;
+          colorClass = 'text-yellow-400';
+          borderColor = 'border-yellow-400/30';
+          break;
+
+        case 'verifying':
+          icon = `<svg class="animate-spin h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>`;
+          colorClass = 'text-blue-400';
+          borderColor = 'border-blue-400/30';
+          break;
+
+        case 'success':
+          icon = `<svg class="h-6 w-6 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>`;
+          colorClass = 'text-green-400';
+          borderColor = 'border-green-400/30';
+
+          // Auto-hide success message after 5 seconds
+          setTimeout(() => {
+            statusDiv.classList.remove('deployment-fade-in');
+            statusDiv.classList.add('deployment-fade-out');
+            setTimeout(() => statusDiv.remove(), 500);
+          }, 5000);
+          break;
+
+        case 'error':
+          icon = `<svg class="h-6 w-6 text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>`;
+          colorClass = 'text-red-400';
+          borderColor = 'border-red-400/30';
+
+          // Auto-hide error after 8 seconds
+          setTimeout(() => {
+            statusDiv.classList.remove('deployment-fade-in');
+            statusDiv.classList.add('deployment-fade-out');
+            setTimeout(() => statusDiv.remove(), 500);
+          }, 8000);
+          break;
+
+        default:
+          return; // Unknown status, don't show anything
+      }
+
+      statusDiv.classList.add(borderColor);
+      statusDiv.innerHTML = `
+        ${icon}
+        <div>
+          <div class="${colorClass} font-semibold text-sm">${message}</div>
+          ${status === 'deploying' ? '<div class="text-gray-400 text-xs mt-0.5">Typically 2-5 minutes</div>' : ''}
+          ${status === 'verifying' ? '<div class="text-gray-400 text-xs mt-0.5">Checking live content...</div>' : ''}
+        </div>
+      `;
+
+      document.body.appendChild(statusDiv);
+      console.log(`[Deployment Status] ${status}: ${message}`);
+    }
+
     // Send message to serverless API
     async function sendMessage(message, signal) {
       chatHistory.push({ role: 'user', content: message });
@@ -1011,6 +1130,38 @@
         const assistantMessage = data.message;
         chatHistory.push({ role: 'assistant', content: assistantMessage });
         saveChatHistory(); // Save to localStorage
+
+        // Detect deployment stages and show progress indicators
+        const messageLower = assistantMessage.toLowerCase();
+
+        // Detect deployment stage
+        if (messageLower.includes('deploying') ||
+            messageLower.includes('deployment initiated') ||
+            messageLower.includes('pushing to github') ||
+            messageLower.includes('changes pushed')) {
+          showDeploymentStatus('deploying', 'Deploying to Vercel...');
+        }
+
+        // Detect verification stage
+        if (messageLower.includes('verifying') ||
+            messageLower.includes('checking live content') ||
+            messageLower.includes('confirming content')) {
+          showDeploymentStatus('verifying', 'Verifying live content...');
+        }
+
+        // Detect success
+        if ((messageLower.includes('deployed!') && messageLower.includes('confirmed')) ||
+            messageLower.includes('content is live') ||
+            (messageLower.includes('deployed') && messageLower.includes('verified'))) {
+          showDeploymentStatus('success', '✓ Deployed and Verified!');
+        }
+
+        // Detect error
+        if (messageLower.includes('deployment failed') ||
+            messageLower.includes('deployment error')) {
+          showDeploymentStatus('error', 'Deployment failed');
+        }
+
         return {
           message: assistantMessage,
           madeChanges: data.madeChanges || false,
