@@ -4,11 +4,10 @@ import { Octokit } from '@octokit/rest';
 // Models to try in order of preference (glm-4.7 is the newest, used by EastD)
 const MODELS = ['glm-4.7', 'glm-4-flash', 'glm-4-air', 'glm-4', 'glm-4-plus'];
 
-// Vision models for handling image inputs
-// glm-4v-flash: FREE, unlimited access (no subscription required)
-// glm-4v: Standard model (may require paid tier)
+// Vision model for handling image inputs
+// Confirmed model name from bigmodel.cn API docs: "glm-4v" (lowercase)
 // Supports: jpg/png/jpeg, <5MB, <6000x6000px, base64 encoding
-const VISION_MODELS = ['glm-4v-flash', 'glm-4v'];
+const VISION_MODELS = ['glm-4v'];
 
 // GitHub config
 const REPO_OWNER = 'Mrfocused1';
@@ -134,161 +133,6 @@ BRANDING ASSETS - CRITICAL - ALWAYS INCLUDE IN NEW PAGES:
 - The logo MUST be visible and properly placed in every page's header
 - For footer logos, use: <img src="/logo.png" alt="Davidson & Co." class="h-12">
 
-DESIGN AESTHETIC - CRITICAL FOR ALL NEW PAGES:
-BEFORE creating any new page, you MUST read index.html or about/index.html to see the current design patterns and copy the style exactly.
-
-Color Palette (ALWAYS use these):
-- Primary background: #080808 or #0a0a0a (deep black) - for luxury/mystery sections
-- Light background: #f4f4f0 (off-white) - for about/services sections
-- Gold accent: #D4AF37 or #C5A059 - for headings, hover states, links
-- Text on dark: #F5F5F5 (off-white)
-- Text on light: #171717 (dark gray)
-- Borders: border-white/5 or border-white/10 (very subtle on dark backgrounds)
-
-Typography (ALWAYS follow this hierarchy):
-- Font families: Use Google Fonts - Cinzel (serif, for headings), Manrope or Inter (sans, for body)
-- Large headings: text-7xl md:text-9xl font-serif text-brand-gold
-- Section titles: text-4xl md:text-7xl font-serif
-- Body text: font-sans text-lg leading-relaxed
-- Small labels: text-xs tracking-[0.2em] uppercase text-neutral-400
-
-Spacing Standards (ALWAYS use these):
-- Section padding: py-32 or py-48 (128px-192px vertical padding)
-- Container padding: px-6 md:px-24 (horizontal padding)
-- Between sections: space-y-16 or space-y-32
-- Grid gaps: gap-12 (48px between items)
-
-Layout Patterns (copy from existing pages):
-1. Hero sections: Full viewport height (min-h-screen), centered content, large display text
-2. About/Info sections: Light background (#f4f4f0), two-column grid, good whitespace
-3. Services: Vertical list or grid on light background, large readable text
-4. Features/Benefits: Grid layout (3+ columns) with icons or images
-5. Call-to-action: Centered, button with hover effects
-
-GSAP ANIMATIONS - CRITICAL - ALWAYS INCLUDE:
-Davidson & Co uses GSAP extensively. EVERY new page MUST include GSAP animations.
-
-Required Libraries (include in <head>):
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
-Common Animation Patterns (use these on every page):
-
-1. Fade-in on scroll (for sections):
-gsap.from(".section-class", {
-  y: 50,
-  opacity: 0,
-  duration: 1,
-  scrollTrigger: {
-    trigger: ".section-class",
-    start: "top 80%",
-    end: "top 50%",
-    scrub: 1
-  }
-});
-
-2. Heading animations (for all h1, h2):
-gsap.from("h1, h2", {
-  y: 40,
-  opacity: 0,
-  duration: 1.2,
-  ease: "power3.out",
-  scrollTrigger: {
-    trigger: "h1",
-    start: "top 85%"
-  }
-});
-
-3. Parallax backgrounds (for hero sections):
-gsap.to(".hero-bg", {
-  yPercent: 30,
-  ease: "none",
-  scrollTrigger: {
-    trigger: ".hero",
-    start: "top top",
-    end: "bottom top",
-    scrub: true
-  }
-});
-
-4. Stagger animations (for lists/grids):
-gsap.from(".grid-item", {
-  y: 50,
-  opacity: 0,
-  stagger: 0.2,
-  duration: 0.8,
-  ease: "power2.out",
-  scrollTrigger: {
-    trigger: ".grid",
-    start: "top 75%"
-  }
-});
-
-Animation Guidelines:
-- ALWAYS register ScrollTrigger: gsap.registerPlugin(ScrollTrigger);
-- Use scrub: 1 for smooth scroll-linked animations
-- Use stagger: 0.1 to 0.2 for multiple elements
-- Prefer power2.out or power3.out easing for natural motion
-- Animate headings, sections, images, cards - make the page dynamic
-- Keep animations subtle and professional (luxury aesthetic)
-
-Tailwind Classes (common patterns to use):
-- Transitions: transition-all duration-500 ease-in-out
-- Hover effects: hover:scale-105 hover:text-brand-gold
-- Responsive: Always use md: and lg: prefixes for tablet/desktop
-- Opacity: text-white/70, bg-black/50 for subtle overlays
-- Backdrop: backdrop-blur-sm for glassmorphism effects
-
-Button Styles (use this exact pattern):
-<button class="group relative px-12 py-5 border border-neutral-900 overflow-hidden transition-colors">
-  <span class="relative z-10 group-hover:text-white transition-colors">Button Text</span>
-  <div class="absolute inset-0 bg-neutral-900 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
-</button>
-
-CRITICAL WORKFLOW FOR NEW PAGES:
-1. FIRST: Use read_file to read index.html or about/index.html
-2. COPY the exact structure, color scheme, fonts, and GSAP animations
-3. Adapt the content but keep the design aesthetic identical
-4. ALWAYS include GSAP ScrollTrigger animations
-5. ALWAYS use the color palette (#080808, #f4f4f0, #D4AF37)
-6. ALWAYS use the typography hierarchy (Cinzel serif + Manrope/Inter sans)
-7. ALWAYS include proper spacing (py-32, gap-12, etc.)
-8. Test the page matches the existing luxury aesthetic before responding
-
-If you create a page without GSAP animations or without matching the design aesthetic, you have FAILED the task.
-
-COMMUNICATION WITH USERS - CRITICAL RULES:
-NEVER mention technical implementation details in your responses to users. They don't need to know HOW things work.
-
-FORBIDDEN TERMS (never say these to users):
-- Vercel, GitHub, git, repository, branch, commit, push, pull, merge
-- API, endpoint, webhook, deploy hook, build process
-- npm, node, vite, React, GSAP, Tailwind, JavaScript, HTML, CSS
-- Database, server, hosting, deployment pipeline
-- Code, codebase, functions, components, modules
-
-ALLOWED TERMS (speak in user-friendly language):
-- "your website", "the live site", "the page"
-- "changes", "updates", "edits"
-- "publishing", "updating", "going live"
-- "images", "content", "design"
-
-After making changes, NEVER auto-publish. Instead say:
-"I've made the changes you requested. They're ready to publish whenever you like!"
-
-Examples of correct communication:
-✅ "I've created the new contact page. Ready to publish?"
-✅ "The about page has been updated with the new content. Shall I prepare it for publishing?"
-✅ "Changes complete! Click Publish when you're ready to update the live site."
-
-Examples of INCORRECT communication (NEVER do this):
-❌ "Changes committed to the repository. Vercel will deploy."
-❌ "I've pushed to main branch. The build is starting."
-❌ "Updated the React component with new GSAP animations."
-❌ "Deployed to production via the webhook."
-
-Remember: You are a friendly assistant helping with their website, not a technical developer discussing implementation.
-
 Be professional, warm, and consultative. Always engage in conversation before making changes.`;
 
 const tools = [
@@ -398,6 +242,23 @@ const tools = [
           }
         },
         required: ['path', 'message']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'deploy',
+      description: 'Deploy the current changes to the live website',
+      parameters: {
+        type: 'object',
+        properties: {
+          message: {
+            type: 'string',
+            description: 'Description of what was deployed'
+          }
+        },
+        required: ['message']
       }
     }
   },
@@ -669,6 +530,16 @@ async function executeFunction(name, args) {
         };
       }
 
+      case 'deploy': {
+        console.log(`Deploy triggered: ${args.message}`);
+        // Vercel auto-deploys on push to main, so just confirm
+        return {
+          success: true,
+          message: 'Changes pushed to main. Vercel will auto-deploy.',
+          description: args.message
+        };
+      }
+
       case 'fetch_url': {
         console.log(`Fetching URL: ${args.url}`);
         try {
@@ -809,17 +680,9 @@ async function convertToVisionMessage(message, octokit) {
       console.log(`  - Approx size: ${approxSizeMB}MB`);
       console.log(`  - Base64 length: ${base64Content.length} chars`);
 
-      // Hard limit: Reject if image exceeds 5MB (GLM-4V strict limit)
+      // Warn if image might be too large (GLM-4V limit is 5MB)
       if (approxSizeBytes > 5 * 1024 * 1024) {
-        console.error(`❌ Image exceeds 5MB limit for GLM-4V (${approxSizeMB}MB): ${imagePath}`);
-        console.error(`   Image will not be processed. Please compress the image before uploading.`);
-
-        // Add error message to content instead of the image
-        contentArray.push({
-          type: 'text',
-          text: `[Error: Image "${imagePath.split('/').pop()}" is too large (${approxSizeMB}MB). GLM-4V has a strict 5MB limit. Please compress the image and try again.]`
-        });
-        continue; // Skip this image, process next one if any
+        console.warn(`⚠️  Image may exceed 5MB limit for GLM-4V (${approxSizeMB}MB)`);
       }
 
       // Add image in OpenAI-compatible vision format
@@ -1019,17 +882,6 @@ export default async function handler(req, res) {
 
     let assistantMessage = response.choices[0].message;
     let madeChanges = false; // Track if file changes were made
-    let filesChanged = []; // Track detailed file change information
-
-    // Helper function to extract URL from file path
-    function extractUrlFromPath(filePath) {
-      // "contact/index.html" → "/contact"
-      // "index.html" → "/"
-      // "about/team/index.html" → "/about/team"
-      if (filePath === 'index.html') return '/';
-      let path = filePath.replace('/index.html', '').replace('.html', '');
-      return '/' + path;
-    }
 
     // Handle tool calls (only if tools are enabled)
     if (toolsEnabled) {
@@ -1046,17 +898,6 @@ export default async function handler(req, res) {
           // Track if changes were made (edit_file, create_file, or delete_file with success)
           if ((functionName === 'edit_file' || functionName === 'create_file' || functionName === 'delete_file') && result.success) {
             madeChanges = true;
-
-            // Track detailed file information
-            const filePath = functionArgs.path;
-            const isHtml = filePath.endsWith('.html') || filePath.includes('/index.html');
-
-            filesChanged.push({
-              path: filePath,
-              type: functionName.replace('_file', ''), // 'create', 'edit', or 'delete'
-              isHtml: isHtml,
-              url: isHtml ? extractUrlFromPath(filePath) : null
-            });
           }
 
           fullMessages.push({
@@ -1095,9 +936,7 @@ export default async function handler(req, res) {
       message: finalMessage,
       usage: response.usage,
       toolsEnabled: toolsEnabled,
-      madeChanges: madeChanges,
-      filesChanged: filesChanged.length > 0 ? filesChanged : undefined,
-      lastHtmlPageChanged: filesChanged.find(f => f.isHtml)?.url || undefined
+      madeChanges: madeChanges
     });
 
   } catch (error) {
