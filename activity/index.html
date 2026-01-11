@@ -250,6 +250,29 @@
       }
     }
 
+    // Clear activity log
+    async function clearActivityLog() {
+      if (!confirm('Are you sure you want to clear all activity log entries?')) return;
+
+      try {
+        const response = await fetch('/api/activity', { method: 'DELETE' });
+        const data = await response.json();
+
+        if (data.success) {
+          // Show empty state
+          activityList.classList.add('hidden');
+          activityList.innerHTML = '';
+          emptyState.classList.remove('hidden');
+        } else {
+          alert('Failed to clear activity log: ' + (data.error || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error clearing activity log:', error);
+        alert('Failed to clear activity log. Please try again.');
+      }
+    }
+    window.clearActivityLog = clearActivityLog;
+
     // Load on page ready
     document.addEventListener('DOMContentLoaded', loadActivities);
   </script>
