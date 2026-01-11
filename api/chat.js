@@ -797,7 +797,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // If tools failed OR using vision mode, try without tools (with retry)
+    // If tools failed, try without tools (with retry)
     if (!response) {
       console.log(`Trying without tools... ${hasImages ? '(VISION MODE)' : ''}`);
       toolsEnabled = false;
@@ -817,6 +817,38 @@ export default async function handler(req, res) {
           break;
         } catch (err) {
           console.error(`Model ${model} without tools failed:`, err.message);
+          lastError = err;
+        }
+      }
+    }
+
+    // If vision models all failed and images were present, try with regular models as fallback
+    if (!response && hasImages) {
+      console.log('All vision models failed, falling back to text-only models...');
+      toolsEnabled = false;
+
+      // Convert image messages back to text-only by removing image content
+      const textOnlyMessages = [
+        { role: 'system', content: SYSTEM_PROMPT + '\n\nNOTE: Vision processing failed. User uploaded images but you cannot see them. Acknowledge this limitation and work with text only.' },
+        ...messages
+      ];
+
+      for (const model of MODELS) {
+        try {
+          console.log(`Trying text model fallback: ${model}`);
+          response = await retryWithBackoff(async () => {
+            return await glmClient.chat.completions.create({
+              model: model,
+              messages: textOnlyMessages,
+              temperature: 0.7,
+              max_tokens: 2048
+            });
+          });
+          usedModel = model;
+          console.log(`Success with text fallback model: ${model}`);
+          break;
+        } catch (err) {
+          console.error(`Text fallback model ${model} failed:`, err.message);
           lastError = err;
         }
       }
