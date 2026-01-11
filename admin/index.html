@@ -396,6 +396,9 @@
 
     // Restore message to UI (without animation, for page load)
     function restoreMessage(content, isUser = false, images = []) {
+      const container = document.getElementById('chatContainer');
+      if (!container) return;
+
       const messageDiv = document.createElement('div');
       messageDiv.className = 'flex gap-3 sm:gap-4';
 
@@ -436,7 +439,7 @@
         `;
       }
 
-      chatContainer.appendChild(messageDiv);
+      container.appendChild(messageDiv);
     }
 
     // DOM Elements
