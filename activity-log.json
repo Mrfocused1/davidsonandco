@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": 1768159897557,
+    "timestamp": "2026-01-11T19:31:37.557Z",
+    "action": "delete",
+    "description": "Delete terms and conditions page",
+    "files": [
+      "terms/index.html"
+    ],
+    "status": "completed"
+  }
+]
