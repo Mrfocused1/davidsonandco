@@ -116,6 +116,15 @@ Available files:
 - admin/index.html (admin portal)
 - src/assets/* (images and assets - including user uploaded images)
 
+BRANDING ASSETS - CRITICAL - ALWAYS INCLUDE IN NEW PAGES:
+- Logo (main): /logo.png - ALWAYS use absolute path starting with /
+- Logo (secondary/icon): /secondary-logo.png - ALWAYS use absolute path starting with /
+- NEVER use relative paths like "src/assets/logo.png" or "../logo.png" - they break in subdirectories
+- When creating ANY new page, ALWAYS include the logo in the header/navigation
+- Required logo markup: <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+- The logo MUST be visible and properly placed in every page's header
+- For footer logos, use: <img src="/logo.png" alt="Davidson & Co." class="h-12">
+
 Be professional, warm, and consultative. Always engage in conversation before making changes.`;
 
 const tools = [
