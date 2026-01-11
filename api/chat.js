@@ -363,6 +363,70 @@ function validateHTMLContent(content, filePath) {
   return { valid: true };
 }
 
+// Determine if an error is retryable (network/timeout/rate limit errors)
+function isRetryableError(errorMessage) {
+  const retryablePatterns = [
+    /network/i,
+    /timeout/i,
+    /ECONNREFUSED/i,
+    /ETIMEDOUT/i,
+    /rate limit/i,
+    /429/,
+    /502/,
+    /503/,
+    /504/
+  ];
+
+  return retryablePatterns.some(pattern => pattern.test(errorMessage));
+}
+
+// Retry wrapper for tool execution with exponential backoff + jitter
+async function executeToolWithRetry(name, args, maxRetries = 2) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await executeFunction(name, args);
+
+      // If result contains error, check if it's retryable
+      if (result.error) {
+        const isRetryable = isRetryableError(result.error);
+
+        if (isRetryable && attempt < maxRetries) {
+          // Calculate backoff with jitter: base * (2^attempt) + random(0-1000ms)
+          const backoffMs = (1000 * Math.pow(2, attempt)) + Math.random() * 1000;
+          console.log(`⚠️ Retryable error on attempt ${attempt + 1}/${maxRetries + 1}. Retrying in ${backoffMs.toFixed(0)}ms...`);
+          await new Promise(resolve => setTimeout(resolve, backoffMs));
+          lastError = result.error;
+          continue;
+        } else {
+          // Non-retryable error or max retries reached
+          return result;
+        }
+      }
+
+      // Success - return result
+      return result;
+
+    } catch (error) {
+      lastError = error.message;
+
+      if (attempt < maxRetries) {
+        const backoffMs = (1000 * Math.pow(2, attempt)) + Math.random() * 1000;
+        console.log(`⚠️ Exception on attempt ${attempt + 1}/${maxRetries + 1}. Retrying in ${backoffMs.toFixed(0)}ms...`);
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+      }
+    }
+  }
+
+  // All retries failed
+  return {
+    error: lastError,
+    retried: true,
+    suggestion: 'The operation failed after multiple attempts. Please try again later or simplify your request.'
+  };
+}
+
 // Call GitHub directly instead of through internal APIs
 async function executeFunction(name, args) {
   const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
@@ -1037,7 +1101,7 @@ export default async function handler(req, res) {
           const functionArgs = JSON.parse(toolCall.function.arguments);
 
           console.log(`Executing tool: ${functionName}`, functionArgs);
-          const result = await executeFunction(functionName, functionArgs);
+          const result = await executeToolWithRetry(functionName, functionArgs);
 
           // Track if changes were made (edit_file, create_file, or delete_file with success)
           if ((functionName === 'edit_file' || functionName === 'create_file' || functionName === 'delete_file') && result.success) {

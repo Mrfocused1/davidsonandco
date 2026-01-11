@@ -464,10 +464,34 @@
       const files = Array.from(e.target.files);
       if (files.length === 0) return;
 
+      // Validate files before upload
+      const validFiles = [];
+      const maxSizeMB = 5; // 5MB limit
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+      for (const file of files) {
+        // Check file type
+        if (!allowedTypes.includes(file.type)) {
+          addMessage(`⚠️ "${file.name}" is not a supported image format. Please use JPG, PNG, GIF, or WebP.`, false);
+          continue;
+        }
+
+        // Check file size
+        const fileSizeMB = file.size / (1024 * 1024);
+        if (fileSizeMB > maxSizeMB) {
+          addMessage(`⚠️ "${file.name}" is too large (${fileSizeMB.toFixed(1)}MB). Maximum size is ${maxSizeMB}MB.`, false);
+          continue;
+        }
+
+        validFiles.push(file);
+      }
+
+      if (validFiles.length === 0) return;
+
       uploadButton.disabled = true;
       uploadButton.classList.add('opacity-50');
 
-      for (const file of files) {
+      for (const file of validFiles) {
         await uploadImage(file);
       }
 
@@ -987,7 +1011,12 @@
         const assistantMessage = data.message;
         chatHistory.push({ role: 'assistant', content: assistantMessage });
         saveChatHistory(); // Save to localStorage
-        return { message: assistantMessage, madeChanges: data.madeChanges || false, stopped: false };
+        return {
+          message: assistantMessage,
+          madeChanges: data.madeChanges || false,
+          requestsDelete: data.requestsDelete || null,
+          stopped: false
+        };
 
       } catch (error) {
         console.error('Chat error:', error);
@@ -1316,6 +1345,12 @@
       uploadPreview.innerHTML = '';
       uploadPreview.classList.add('hidden');
 
+      // Abort any existing request before creating new controller
+      if (currentAbortController) {
+        console.log('Aborting previous request...');
+        currentAbortController.abort();
+      }
+
       // Create abort controller for this request
       currentAbortController = new AbortController();
 
@@ -1338,11 +1373,15 @@
 
       // If deletion is requested, show the delete button
       if (result.requestsDelete && !result.stopped) {
+        // Remove any existing delete confirmation button before showing new one
+        document.getElementById('deleteConfirm')?.remove();
         showDeleteButton(result.requestsDelete.path, result.requestsDelete.displayName);
       }
 
       // If changes were made, show the publish button
       if (result.madeChanges && !result.stopped) {
+        // Remove any existing publish button before showing new one
+        document.getElementById('publishConfirm')?.remove();
         showPublishButton();
       }
 
