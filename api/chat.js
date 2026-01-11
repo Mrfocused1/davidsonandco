@@ -4,8 +4,10 @@ import { Octokit } from '@octokit/rest';
 // Models to try in order of preference (glm-4.7 is the newest, used by EastD)
 const MODELS = ['glm-4.7', 'glm-4-flash', 'glm-4-air', 'glm-4', 'glm-4-plus'];
 
-// Vision models for handling image inputs (try in order - GLM-4.6V supports function calling!)
-const VISION_MODELS = ['glm-4v-plus', 'glm-4v', 'glm-4-vision'];
+// Vision model for handling image inputs
+// Confirmed model name from bigmodel.cn API docs: "glm-4v" (lowercase)
+// Supports: jpg/png/jpeg, <5MB, <6000x6000px, base64 encoding
+const VISION_MODELS = ['glm-4v'];
 
 // GitHub config
 const REPO_OWNER = 'Mrfocused1';
@@ -668,9 +670,22 @@ async function convertToVisionMessage(message, octokit) {
       // Get base64 content (GitHub API returns base64)
       const base64Content = response.data.content.replace(/\n/g, '');
       const mimeType = getImageMimeType(imagePath);
-      console.log(`Image loaded: ${imagePath}, type: ${mimeType}, size: ${base64Content.length} chars`);
 
-      // Add image in OpenAI vision format
+      // Calculate approximate file size (base64 is ~4/3 original size)
+      const approxSizeBytes = (base64Content.length * 3) / 4;
+      const approxSizeMB = (approxSizeBytes / (1024 * 1024)).toFixed(2);
+
+      console.log(`Image loaded: ${imagePath}`);
+      console.log(`  - MIME type: ${mimeType}`);
+      console.log(`  - Approx size: ${approxSizeMB}MB`);
+      console.log(`  - Base64 length: ${base64Content.length} chars`);
+
+      // Warn if image might be too large (GLM-4V limit is 5MB)
+      if (approxSizeBytes > 5 * 1024 * 1024) {
+        console.warn(`⚠️  Image may exceed 5MB limit for GLM-4V (${approxSizeMB}MB)`);
+      }
+
+      // Add image in OpenAI-compatible vision format
       contentArray.push({
         type: 'image_url',
         image_url: {
@@ -773,7 +788,7 @@ export default async function handler(req, res) {
     const modelsToTry = hasImages ? VISION_MODELS : MODELS;
 
     // Try each model with tools first (with retry)
-    // Note: GLM-4V-Plus and newer GLM vision models support native multimodal function calling
+    // Note: GLM-4V supports native multimodal function calling
     for (const model of modelsToTry) {
       try {
         console.log(`Trying model: ${model} with tools ${hasImages ? '(VISION MODE)' : ''}`);
@@ -788,11 +803,18 @@ export default async function handler(req, res) {
           });
         });
         usedModel = model;
-        console.log(`Success with model: ${model}`);
+        console.log(`✅ Success with model: ${model}${hasImages ? ' (VISION)' : ''}`);
         break;
       } catch (err) {
-        console.error(`Model ${model} with tools failed:`, err.message);
-        console.error(`Full error:`, err);
+        console.error(`❌ Model ${model} with tools failed:`, err.message);
+        // Log detailed error for debugging
+        if (err.response) {
+          console.error(`API Response Status:`, err.response.status);
+          console.error(`API Response Data:`, JSON.stringify(err.response.data, null, 2));
+        }
+        if (err.error) {
+          console.error(`API Error Details:`, JSON.stringify(err.error, null, 2));
+        }
         lastError = err;
       }
     }
