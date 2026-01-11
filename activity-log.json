@@ -1,5 +1,15 @@
 [
   {
+    "id": 1768147086963,
+    "timestamp": "2026-01-11T15:58:06.963Z",
+    "action": "edit",
+    "description": "Remove mix-blend-difference from nav to make logo visible on dark background",
+    "files": [
+      "help/index.html"
+    ],
+    "status": "completed"
+  },
+  {
     "id": 1768146967876,
     "timestamp": "2026-01-11T15:56:07.876Z",
     "action": "edit",
