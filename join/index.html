@@ -269,20 +269,154 @@
   <section class="py-32 bg-brand-white text-brand-black relative">
     <div class="max-w-2xl mx-auto px-8">
       <div class="text-center mb-16">
-        <span class="text group">
-          <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center mb-6 group-hover:bg-brand-gold/10 transition-colors">
-            <span class="text-brand-gold text-xl">01</span>
-          </div>
-          <h3 class="text-xl font-serif mb-3">Prestigious Environment</h3>
-          <p class="text-sm font-sans text-gray-500 leading-relaxed">Work alongside industry experts in London's most exclusive property market.</p>
-        </div>
+        <span class="text-xs tracking-widest text-brand-gold/60 uppercase mb-4 block">Submit Your Application</span>
+        <h2 class="text-4xl md:text-5xl font-serif">Join Our Team</h2>
+        <p class="font-sans text-gray-500 mt-4">Tell us about yourself and why you'd be a great fit.</p>
+      </div>
 
-        <div class="benefit-card p-8 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group">
-          <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center mb-6 group-hover:bg-brand-gold/10 transition-colors">
-            <span class="text-brand-gold text-xl">02</span>
-          </div>
-          <h3 class="text-xl font-serif mb-3">Growth Opportunities</h3>
-          <p class="text-sm font-sans text-gray-500 leading-relaxed">Continuous professional development with clear career progression pathways.</p>
+      <form id="applicationForm" class="space-y-8">
+        <div class="group relative">
+          <input type="text" id="appName" required
+            class="w-full bg-transparent border-b border-gray-300 py-4 outline-none focus:border-brand-black transition-colors"
+            placeholder="Full Name">
         </div>
+        <div class="group relative">
+          <input type="email" id="appEmail" required
+            class="w-full bg-transparent border-b border-gray-300 py-4 outline-none focus:border-brand-black transition-colors"
+            placeholder="Email Address">
+        </div>
+        <div class="group relative">
+          <input type="tel" id="appPhone"
+            class="w-full bg-transparent border-b border-gray-300 py-4 outline-none focus:border-brand-black transition-colors"
+            placeholder="Phone Number">
+        </div>
+        <div class="group relative">
+          <select id="appPosition"
+            class="w-full bg-transparent border-b border-gray-300 py-4 outline-none focus:border-brand-black transition-colors text-gray-500">
+            <option value="">Position of Interest</option>
+            <option value="Senior Property Consultant">Senior Property Consultant</option>
+            <option value="Property Manager">Property Manager</option>
+            <option value="Lettings Negotiator">Lettings Negotiator</option>
+            <option value="Marketing Coordinator">Marketing Coordinator</option>
+            <option value="General Application">General Application</option>
+          </select>
+        </div>
+        <div class="group relative">
+          <textarea id="appMessage" rows="4"
+            class="w-full bg-transparent border-b border-gray-300 py-4 outline-none focus:border-brand-black transition-colors resize-none"
+            placeholder="Tell us about your experience and why you want to join Davidson & Co"></textarea>
+        </div>
+        <div class="group relative">
+          <label class="block text-xs tracking-widest text-gray-500 mb-3">UPLOAD CV (PDF)</label>
+          <input type="file" id="appCV" accept=".pdf"
+            class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-semibold file:bg-brand-black file:text-white hover:file:bg-brand-gold transition-colors">
+        </div>
+        <button type="submit"
+          class="w-full px-8 py-4 bg-brand-black text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-colors duration-300">
+          SUBMIT APPLICATION
+        </button>
+      </form>
 
-        <div class="benefit-card p-8 border border-white/5 hover:border-brand-gold/30 transition-all duration-500
+      <script>
+        document.getElementById('applicationForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+
+          const name = document.getElementById('appName').value;
+          const email = document.getElementById('appEmail').value;
+          const phone = document.getElementById('appPhone').value;
+          const position = document.getElementById('appPosition').value || 'General Application';
+          const message = document.getElementById('appMessage').value;
+
+          const subject = encodeURIComponent(`Career Application - ${position} - ${name}`);
+          const body = encodeURIComponent(
+            `Name: ${name}\n` +
+            `Email: ${email}\n` +
+            `Phone: ${phone}\n` +
+            `Position: ${position}\n\n` +
+            `Message:\n${message}\n\n` +
+            `---\n` +
+            `This career application was submitted via the Davidson & Co. website.`
+          );
+
+          const mailtoLink = `mailto:Info@davidsoncolondon.com?subject=${subject}&body=${body}`;
+          window.location.href = mailtoLink;
+        });
+      </script>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="bg-black text-white/40 py-24 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start">
+      <div class="mb-12 md:mb-0">
+        <a href="/">
+          <img src="../src/assets/logo.png" alt="Davidson & Co." class="h-12 mb-4">
+        </a>
+      </div>
+      <div class="flex gap-16 text-xs font-sans tracking-widest">
+        <div>
+          <h6 class="text-white mb-4">NAVIGATION</h6>
+          <ul class="space-y-2">
+            <li><a href="/" class="hover:text-brand-gold transition-colors">Home</a></li>
+            <li><a href="/about" class="hover:text-brand-gold transition-colors">About</a></li>
+            <li><a href="/join" class="text-brand-gold">Careers</a></li>
+          </ul>
+        </div>
+        <div>
+          <h6 class="text-white mb-4">CONTACT</h6>
+          <ul class="space-y-2">
+            <li>info@davidsoncolondon.com</li>
+            <li>London, United Kingdom</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-24 opacity-20 font-sans">
+      © 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.
+    </div>
+  </footer>
+
+  <!-- ANIMATION SCRIPT -->
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+      // Hero Animation
+      const heroTl = gsap.timeline();
+      heroTl.to("#hero-subtitle", { opacity: 1, duration: 1, delay: 0.3 })
+        .to("#hero-title", { opacity: 1, duration: 1 }, "-=0.5")
+        .to("#hero-line", { width: "100px", duration: 1, ease: "power2.out" }, "<")
+        .to("#hero-text", { opacity: 1, duration: 1 }, "-=0.5");
+
+      // Benefit Cards Animation
+      gsap.utils.toArray(".benefit-card").forEach((card, i) => {
+        gsap.from(card, {
+          y: 50,
+          opacity: 0,
+          duration: 1,
+          delay: i * 0.1,
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+
+      // Position Cards Animation
+      gsap.utils.toArray(".position-card").forEach((card, i) => {
+        gsap.from(card, {
+          x: -30,
+          opacity: 0,
+          duration: 0.8,
+          delay: i * 0.15,
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+    });
+  </script>
+</body>
