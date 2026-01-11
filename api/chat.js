@@ -335,6 +335,34 @@ async function logActivity(octokit, action, description, files = []) {
   }
 }
 
+// HTML validation helper - prevents corrupted/incomplete HTML files
+function validateHTMLContent(content, filePath) {
+  if (!filePath.endsWith('.html')) return { valid: true };
+
+  const requiredTags = ['<!DOCTYPE', '<html', '<head>', '</head>', '<body', '</body>', '</html>'];
+  const missingTags = requiredTags.filter(tag => !content.includes(tag));
+
+  if (missingTags.length > 0) {
+    return {
+      valid: false,
+      error: `HTML file incomplete. Missing: ${missingTags.join(', ')}`,
+      hint: 'File may be truncated. Check if content generation was cut off.'
+    };
+  }
+
+  // Check for truncation markers
+  const lastLine = content.trim().split('\n').pop();
+  if (lastLine.length < 10 && !lastLine.includes('>')) {
+    return {
+      valid: false,
+      error: 'HTML file appears truncated (last line is incomplete)',
+      hint: `Last line: "${lastLine}"`
+    };
+  }
+
+  return { valid: true };
+}
+
 // Call GitHub directly instead of through internal APIs
 async function executeFunction(name, args) {
   const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
@@ -385,12 +413,46 @@ async function executeFunction(name, args) {
           };
         }
 
-        // Replace old_text with new_text
-        const newContent = currentContent.replace(args.old_text, args.new_text);
+        // Replace old_text with new_text (replaceAll for global replacement)
+        const newContent = currentContent.replaceAll(args.old_text, args.new_text);
 
         // Verify the change was made
-        if (newContent === currentContent) {
-          return { error: 'No changes made - old_text and new_text might be the same' };
+        if (newContent === currentContent && args.old_text !== args.new_text) {
+          console.warn('⚠️ Warning: Replacement did not modify content');
+          console.warn('Old text not found. Trying fuzzy match...');
+
+          // Try to find similar text with normalized whitespace
+          const normalizedOld = args.old_text.trim().replace(/\s+/g, ' ');
+          const normalizedContent = currentContent.trim().replace(/\s+/g, ' ');
+
+          if (!normalizedContent.includes(normalizedOld)) {
+            return {
+              error: 'Text not found in file after normalization. Content may have changed.',
+              hint: `Searched for: "${args.old_text.substring(0, 50)}..."`,
+              suggestion: 'Use read_file first to see current exact content.'
+            };
+          }
+        }
+
+        // Validate HTML content after edit
+        const validation = validateHTMLContent(newContent, args.path);
+        if (!validation.valid) {
+          console.error(`❌ HTML validation failed for ${args.path} after edit`);
+          return {
+            error: validation.error,
+            hint: validation.hint,
+            path: args.path,
+            suggestion: 'Try a smaller edit or regenerate the full file.'
+          };
+        }
+
+        // Validate content size
+        const contentSizeKB = Buffer.byteLength(newContent, 'utf8') / 1024;
+        if (contentSizeKB > 1000) { // 1MB limit
+          return {
+            error: `Generated content too large: ${contentSizeKB.toFixed(2)}KB (max 1000KB)`,
+            hint: 'Break this into smaller edits or use create_file for new large files.'
+          };
         }
 
         // Commit the change to GitHub
@@ -470,6 +532,27 @@ async function executeFunction(name, args) {
           if (err.status !== 404) {
             throw err;
           }
+        }
+
+        // Validate HTML content before creating
+        const validation = validateHTMLContent(args.content, args.path);
+        if (!validation.valid) {
+          console.error(`❌ HTML validation failed for ${args.path}`);
+          return {
+            error: validation.error,
+            hint: validation.hint,
+            path: args.path
+          };
+        }
+
+        // Validate content size
+        const contentSizeKB = Buffer.byteLength(args.content, 'utf8') / 1024;
+        console.log(`📝 Creating file: ${args.path} (${contentSizeKB.toFixed(2)}KB)`);
+        if (contentSizeKB > 1000) { // 1MB limit
+          return {
+            error: `Generated content too large: ${contentSizeKB.toFixed(2)}KB (max 1000KB)`,
+            hint: 'Break this into smaller files or reduce content size.'
+          };
         }
 
         // Create the new file on GitHub
@@ -848,7 +931,7 @@ export default async function handler(req, res) {
             tools: tools,
             tool_choice: 'auto',
             temperature: 0.7,
-            max_tokens: 2048
+            max_tokens: 4096
           });
         });
         usedModel = model;
@@ -880,7 +963,7 @@ export default async function handler(req, res) {
               model: model,
               messages: fullMessages,
               temperature: 0.7,
-              max_tokens: 2048
+              max_tokens: 4096
             });
           });
           usedModel = model;
@@ -912,7 +995,7 @@ export default async function handler(req, res) {
               model: model,
               messages: textOnlyMessages,
               temperature: 0.7,
-              max_tokens: 2048
+              max_tokens: 4096
             });
           });
           usedModel = model;
@@ -931,6 +1014,18 @@ export default async function handler(req, res) {
 
     let assistantMessage = response.choices[0].message;
     let madeChanges = false; // Track if file changes were made
+
+    // Check if response was truncated due to token limit
+    if (response.choices[0].finish_reason === 'length') {
+      console.error('⚠️ CRITICAL: AI response was truncated due to max_tokens limit!');
+      console.error(`Model: ${usedModel}, Max tokens: 4096`);
+
+      return res.status(500).json({
+        message: 'I ran out of space while generating content. Let me try with a shorter response.',
+        error: 'Response truncated - content not written to prevent corruption',
+        madeChanges: false
+      });
+    }
 
     // Handle tool calls (only if tools are enabled)
     if (toolsEnabled) {
@@ -963,11 +1058,21 @@ export default async function handler(req, res) {
             tools: tools,
             tool_choice: 'auto',
             temperature: 0.7,
-            max_tokens: 2048
+            max_tokens: 4096
           });
         });
 
         assistantMessage = response.choices[0].message;
+
+        // Check if response was truncated in tool execution loop
+        if (response.choices[0].finish_reason === 'length') {
+          console.error('⚠️ CRITICAL: AI response truncated during tool execution!');
+          return res.status(500).json({
+            message: 'I ran out of space while processing. Let me try a simpler approach.',
+            error: 'Response truncated during tool execution',
+            madeChanges: madeChanges
+          });
+        }
       }
     }
 
