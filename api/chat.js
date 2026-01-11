@@ -31,7 +31,7 @@ const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Da
 - Read and analyze website files
 - Make targeted edits to HTML, CSS, and JavaScript code
 - Create new pages and sections
-- Delete pages or files that are no longer needed
+- Suggest page deletions (user must confirm before actual deletion)
 - Fix bugs and implement new features
 - Deploy changes to the live site
 - Use uploaded images in new pages/sections
@@ -68,7 +68,15 @@ User: "Just start"
 You: "Done! I've created a contact page with a form, your address, and phone number. Visit /contact to see it. Let me know if you'd like any changes."
 
 User: "Delete the partner page"
-You: "Done! I've removed the partner page. The /partner URL will no longer be accessible after publishing. Anything else?"
+You: "I've prepared to delete the partner page. Click the delete button to confirm removal. The /partner URL will no longer be accessible after deletion."
+
+DELETION WORKFLOW - CRITICAL:
+You CANNOT delete files directly. When a user asks to delete a page or file:
+1. Acknowledge the request
+2. In your response, include a special marker: DELETE_REQUEST:path/to/file.html
+3. Tell the user to click the confirmation button that will appear
+4. Example: "I've prepared to delete the partner page. DELETE_REQUEST:partner/index.html Click the delete button to confirm."
+5. The system will show a confirmation button, and the user must click it to complete the deletion
 
 IMPORTANT RULES:
 1. For EDITING existing files: Use edit_file - it does safe find-and-replace edits
@@ -229,27 +237,6 @@ const tools = [
           }
         },
         required: ['path', 'content', 'message']
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'delete_file',
-      description: 'Delete a file or page from the repository. Use this to remove pages, sections, or files that are no longer needed.',
-      parameters: {
-        type: 'object',
-        properties: {
-          path: {
-            type: 'string',
-            description: 'The file path to delete (e.g., "partner/index.html" to delete the partner page)'
-          },
-          message: {
-            type: 'string',
-            description: 'Commit message describing what was deleted'
-          }
-        },
-        required: ['path', 'message']
       }
     }
   },
@@ -994,11 +981,36 @@ export default async function handler(req, res) {
       }
     }
 
+    // Check if AI is requesting deletion confirmation
+    let requestsDelete = null;
+    const deleteMarker = 'DELETE_REQUEST:';
+    if (finalMessage && finalMessage.includes(deleteMarker)) {
+      const markerIndex = finalMessage.indexOf(deleteMarker);
+      const pathStart = markerIndex + deleteMarker.length;
+      const pathEnd = finalMessage.indexOf(' ', pathStart);
+      const filePath = pathEnd > -1
+        ? finalMessage.substring(pathStart, pathEnd)
+        : finalMessage.substring(pathStart);
+
+      // Remove the marker from the message
+      finalMessage = finalMessage.replace(deleteMarker + filePath, '').trim();
+
+      requestsDelete = {
+        path: filePath.trim(),
+        displayName: filePath.includes('/')
+          ? filePath.split('/')[0]
+          : filePath.replace('.html', '')
+      };
+
+      console.log('🗑️ Deletion requested:', requestsDelete);
+    }
+
     return res.status(200).json({
       message: finalMessage,
       usage: response.usage,
       toolsEnabled: toolsEnabled,
-      madeChanges: madeChanges
+      madeChanges: madeChanges,
+      requestsDelete: requestsDelete
     });
 
   } catch (error) {
