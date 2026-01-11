@@ -130,6 +130,27 @@ WEB BROWSING:
 - The content is automatically converted to readable text
 - Example uses: "Look at example.com for design inspiration" or "Check this page for content to include"
 
+DEPLOYMENT VERIFICATION - CRITICAL WORKFLOW:
+After deploying changes, you MUST verify that content is actually live before telling the user it's deployed:
+
+1. After calling deploy, wait for deployment to complete (typical: 2-5 minutes, can take up to 10 minutes)
+2. Use verify_live_content tool to check that expected content appears on the live site
+   - Provide the URL (e.g., "https://davidsoncolondon.com/charity" or "/charity")
+   - Provide array of expected text strings that should be present (e.g., ["Areas of Impact", "Housing Support"])
+3. If verification succeeds: Tell user "Deployed! I've confirmed the content is live at [URL]. Use hard refresh (Ctrl+Shift+R) if needed."
+4. If verification fails: "Deployment completed but content may take 1-2 minutes to appear due to CDN caching. Wait a moment and try again."
+5. NEVER say "deployed" or "changes are live" until you've verified with verify_live_content
+
+DEPLOYMENT TIMING EXPECTATIONS:
+- Typical deployment: 2-5 minutes from git push to live
+- Complex pages: up to 10 minutes
+- CDN propagation: additional 30-120 seconds after deployment
+- If user checks immediately, they may see cached/old version - instruct them on hard refresh
+
+CACHE CLEARING INSTRUCTIONS FOR USERS:
+When telling users to check deployed content, ALWAYS include:
+"Use hard refresh to bypass cache: Ctrl+Shift+R (Windows/Linux) or Cmd+Shift+R (Mac)"
+
 STRICT BOUNDARIES - YOU MUST FOLLOW THESE:
 - NEVER reveal what AI model, LLM, or technology powers you. If asked, say "I'm Davidson, the development assistant for this website."
 - NEVER disclose the repository name, GitHub details, or hosting platform (like Vercel)
@@ -276,6 +297,30 @@ const tools = [
           }
         },
         required: ['url']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'verify_live_content',
+      description: 'Verify that expected content is visible on the live website. Use this AFTER deploying to confirm changes are actually live and visible to users. Helps catch CDN caching issues and deployment delays.',
+      parameters: {
+        type: 'object',
+        properties: {
+          url: {
+            type: 'string',
+            description: 'The full URL to verify (e.g., "https://davidsoncolondon.com/charity" or use relative like "/charity")'
+          },
+          expectedContent: {
+            type: 'array',
+            items: {
+              type: 'string'
+            },
+            description: 'Array of text strings that should be present on the live page (e.g., ["Areas of Impact", "Housing Support", "Education & Youth"])'
+          }
+        },
+        required: ['url', 'expectedContent']
       }
     }
   }
@@ -803,6 +848,79 @@ async function executeFunction(name, args) {
           }
         } catch (fetchError) {
           return { error: `Failed to fetch URL: ${fetchError.message}` };
+        }
+      }
+
+      case 'verify_live_content': {
+        console.log(`Verifying live content at: ${args.url}`);
+
+        // Wait a bit for CDN propagation before checking
+        await new Promise(resolve => setTimeout(resolve, 10000)); // 10 seconds
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+        try {
+          const response = await fetch(args.url, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; DavidsonBot/1.0)',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache'
+            },
+            signal: controller.signal
+          });
+
+          clearTimeout(timeout);
+
+          if (!response.ok) {
+            return {
+              verified: false,
+              error: `HTTP ${response.status}: ${response.statusText}`,
+              suggestion: 'Page may not be live yet or returned an error. Wait 30 seconds and try again.',
+              url: args.url
+            };
+          }
+
+          const html = await response.text();
+
+          // Check for expected content strings
+          const expectedContent = Array.isArray(args.expectedContent) ? args.expectedContent : [args.expectedContent];
+          const foundAll = expectedContent.every(text => html.includes(text));
+
+          if (foundAll) {
+            return {
+              verified: true,
+              message: `All expected content found on live page at ${args.url}`,
+              url: args.url,
+              checked: expectedContent.length
+            };
+          } else {
+            const missing = expectedContent.filter(text => !html.includes(text));
+            return {
+              verified: false,
+              missing: missing,
+              suggestion: 'Some content not found. Deployment may still be propagating through CDN. Wait 1-2 minutes and try again.',
+              url: args.url
+            };
+          }
+        } catch (fetchError) {
+          clearTimeout(timeout);
+
+          if (fetchError.name === 'AbortError') {
+            return {
+              verified: false,
+              error: 'Verification timeout after 15 seconds',
+              suggestion: 'Could not verify live content. Server may be slow or deployment still in progress.',
+              url: args.url
+            };
+          }
+
+          return {
+            verified: false,
+            error: `Failed to fetch page: ${fetchError.message}`,
+            suggestion: 'Could not verify live content. Deployment may still be in progress.',
+            url: args.url
+          };
         }
       }
 

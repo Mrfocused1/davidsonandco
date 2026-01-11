@@ -16,15 +16,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get latest deployment from Vercel API
+    // Get latest deployment from Vercel API with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     const response = await fetch(
       `https://api.vercel.com/v6/deployments?projectId=${projectId}&limit=1`,
       {
         headers: {
           Authorization: `Bearer ${vercelToken}`
-        }
+        },
+        signal: controller.signal
       }
     );
+
+    clearTimeout(timeout);
 
     if (!response.ok) {
       throw new Error('Failed to fetch deployment status');
@@ -78,7 +84,16 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Deployment status error:', error);
-    // Return ready on error to not block the user
+
+    // Handle timeout specifically
+    if (error.name === 'AbortError') {
+      return res.status(200).json({
+        status: 'building',
+        message: 'Deployment status check timed out - deployment may still be in progress'
+      });
+    }
+
+    // Return ready on other errors to not block the user
     return res.status(200).json({
       status: 'ready',
       message: 'Deployment status unavailable'
