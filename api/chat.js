@@ -293,7 +293,13 @@ async function logActivity(octokit, action, description, files = []) {
         ref: 'main'
       });
       const content = Buffer.from(existing.data.content, 'base64').toString('utf-8');
-      activities = JSON.parse(content);
+      try {
+        activities = JSON.parse(content);
+      } catch (jsonError) {
+        console.error('Failed to parse activity log JSON:', jsonError.message);
+        // Use default empty activities if corrupted
+        activities = { activities: [] };
+      }
       sha = existing.data.sha;
     } catch (e) {
       if (e.status !== 404) throw e;
@@ -1093,12 +1099,59 @@ export default async function handler(req, res) {
 
     // Handle tool calls (only if tools are enabled)
     if (toolsEnabled) {
+      // Log tool calls for debugging
+      if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
+        console.log(`🔧 AI requested ${assistantMessage.tool_calls.length} tool call(s)`);
+        assistantMessage.tool_calls.forEach((tc, idx) => {
+          console.log(`  ${idx + 1}. ${tc.function.name} (args length: ${tc.function.arguments.length} chars)`);
+        });
+      }
+
       while (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
         fullMessages.push(assistantMessage);
 
         for (const toolCall of assistantMessage.tool_calls) {
           const functionName = toolCall.function.name;
-          const functionArgs = JSON.parse(toolCall.function.arguments);
+
+          // Parse function arguments with detailed error handling
+          let functionArgs;
+          try {
+            functionArgs = JSON.parse(toolCall.function.arguments);
+          } catch (parseError) {
+            console.error(`❌ JSON Parse Error for tool: ${functionName}`);
+            console.error('Raw arguments string (first 500 chars):', toolCall.function.arguments.substring(0, 500));
+            console.error('Parse error:', parseError.message);
+
+            // Try to recover by cleaning common JSON issues
+            try {
+              // Remove control characters and fix common escaping issues
+              const cleaned = toolCall.function.arguments
+                .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '') // Remove control chars
+                .replace(/\\/g, '\\\\') // Escape backslashes
+                .replace(/\n/g, '\\n') // Escape newlines
+                .replace(/\r/g, '\\r') // Escape carriage returns
+                .replace(/\t/g, '\\t'); // Escape tabs
+
+              functionArgs = JSON.parse(cleaned);
+              console.log('✅ Recovered with cleaned JSON');
+            } catch (recoveryError) {
+              // If recovery fails, return error to LLM so it can retry
+              const errorResult = {
+                error: `Invalid JSON in tool arguments for ${functionName}. Please ensure all JSON is properly formatted and escaped.`,
+                hint: `Parse error: ${parseError.message}`,
+                suggestion: 'Try simplifying the content or breaking it into smaller sections.'
+              };
+
+              fullMessages.push({
+                role: 'tool',
+                tool_call_id: toolCall.id,
+                content: JSON.stringify(errorResult)
+              });
+
+              // Continue to next tool call instead of crashing
+              continue;
+            }
+          }
 
           console.log(`Executing tool: ${functionName}`, functionArgs);
           const result = await executeToolWithRetry(functionName, functionArgs);
