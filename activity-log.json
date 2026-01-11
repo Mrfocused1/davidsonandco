@@ -1,12 +1,1 @@
-[
-  {
-    "id": 1768162720151,
-    "timestamp": "2026-01-11T20:18:40.151Z",
-    "action": "delete",
-    "description": "Delete the join our team page",
-    "files": [
-      "join-the-team/index.html"
-    ],
-    "status": "completed"
-  }
-]
+[]
