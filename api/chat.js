@@ -582,10 +582,21 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Check for API key
+  // Check for required environment variables
   if (!process.env.GLM_API_KEY) {
     console.error('GLM_API_KEY environment variable not set');
-    return res.status(500).json({ error: 'API key not configured' });
+    return res.status(500).json({
+      error: 'API key not configured',
+      message: 'The AI service is not properly configured. Please contact support.'
+    });
+  }
+
+  if (!process.env.GITHUB_TOKEN) {
+    console.error('GITHUB_TOKEN environment variable not set');
+    return res.status(500).json({
+      error: 'GitHub token not configured',
+      message: 'The file system is not properly configured. Please contact support.'
+    });
   }
 
   try {
@@ -736,27 +747,37 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Chat API error:', error);
+    console.error('Error stack:', error.stack);
 
     // Provide more specific error messages
     let errorMessage = 'Failed to process request';
     let userFriendlyMessage = 'I encountered an issue. Please try again.';
 
-    if (error.message?.includes('timeout') || error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
+    const errMsg = error.message?.toLowerCase() || '';
+    const errCode = error.code || '';
+
+    if (errMsg.includes('timeout') || errCode === 'ETIMEDOUT' || errCode === 'ECONNABORTED') {
       userFriendlyMessage = 'The request took too long. Please try again with a simpler request.';
-    } else if (error.message?.includes('rate') || error.status === 429) {
+    } else if (errMsg.includes('rate') || error.status === 429) {
       userFriendlyMessage = 'Too many requests. Please wait a moment and try again.';
-    } else if (error.message?.includes('network') || error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+    } else if (errMsg.includes('network') || errCode === 'ECONNREFUSED' || errCode === 'ENOTFOUND') {
       userFriendlyMessage = 'Network connection issue. Please check your connection and try again.';
-    } else if (error.status === 401 || error.status === 403) {
-      userFriendlyMessage = 'Authentication issue. Please contact support.';
-    } else if (error.status >= 500) {
+    } else if (error.status === 401 || error.status === 403 || errMsg.includes('unauthorized') || errMsg.includes('forbidden')) {
+      userFriendlyMessage = 'Authentication issue with AI service. Please contact support.';
+    } else if (error.status >= 500 || errMsg.includes('internal server error')) {
       userFriendlyMessage = 'The AI service is temporarily unavailable. Please try again in a moment.';
+    } else if (errMsg.includes('invalid') || errMsg.includes('bad request')) {
+      userFriendlyMessage = 'There was an issue processing your request. Please try rephrasing.';
+    } else if (errMsg.includes('model') || errMsg.includes('not found')) {
+      userFriendlyMessage = 'The AI model is currently unavailable. Please try again later.';
+    } else if (errMsg.includes('json') || errMsg.includes('parse')) {
+      userFriendlyMessage = 'There was an issue understanding the response. Please try again.';
     }
 
     return res.status(500).json({
       error: errorMessage,
       message: userFriendlyMessage,
-      details: error.message
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 }
