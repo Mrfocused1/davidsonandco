@@ -1,5 +1,15 @@
 [
   {
+    "id": 1768158621055,
+    "timestamp": "2026-01-11T19:10:21.055Z",
+    "action": "delete",
+    "description": "Delete terms & conditions page",
+    "files": [
+      "terms/index.html"
+    ],
+    "status": "completed"
+  },
+  {
     "id": 1768158216212,
     "timestamp": "2026-01-11T19:03:36.212Z",
     "action": "edit",
