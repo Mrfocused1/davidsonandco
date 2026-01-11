@@ -1,5 +1,13 @@
 import OpenAI from 'openai';
 import { Octokit } from '@octokit/rest';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get directory name in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, '..');
 
 // Models to try in order of preference (glm-4.7 is the newest, used by EastD)
 const MODELS = ['glm-4.7', 'glm-4-flash', 'glm-4-air', 'glm-4', 'glm-4-plus'];
@@ -398,7 +406,7 @@ async function executeFunction(name, args) {
           return { error: 'No changes made - old_text and new_text might be the same' };
         }
 
-        // Commit the change
+        // Commit the change to GitHub
         const commitMessage = args.message || `Edit ${args.path}`;
         await octokit.repos.createOrUpdateFileContents({
           owner: REPO_OWNER,
@@ -409,6 +417,18 @@ async function executeFunction(name, args) {
           sha: sha,
           branch: 'main'
         });
+
+        // Also update the file locally (for development)
+        try {
+          const localPath = path.join(PROJECT_ROOT, args.path);
+          if (fs.existsSync(localPath)) {
+            fs.writeFileSync(localPath, newContent, 'utf-8');
+            console.log(`✓ Updated local file: ${localPath}`);
+          }
+        } catch (fsError) {
+          console.warn(`Warning: Could not update local file: ${fsError.message}`);
+          // Don't fail the operation if local update fails
+        }
 
         // Log activity
         await logActivity(octokit, 'edit', args.message || `Edited ${args.path}`, [args.path]);
@@ -465,7 +485,7 @@ async function executeFunction(name, args) {
           }
         }
 
-        // Create the new file
+        // Create the new file on GitHub
         const commitMessage = args.message || `Create ${args.path}`;
         await octokit.repos.createOrUpdateFileContents({
           owner: REPO_OWNER,
@@ -475,6 +495,25 @@ async function executeFunction(name, args) {
           content: Buffer.from(args.content).toString('base64'),
           branch: 'main'
         });
+
+        // Also create the file locally (for development)
+        try {
+          const localPath = path.join(PROJECT_ROOT, args.path);
+          const localDir = path.dirname(localPath);
+
+          // Create directory if it doesn't exist
+          if (!fs.existsSync(localDir)) {
+            fs.mkdirSync(localDir, { recursive: true });
+            console.log(`✓ Created directory: ${localDir}`);
+          }
+
+          // Write the file
+          fs.writeFileSync(localPath, args.content, 'utf-8');
+          console.log(`✓ Created local file: ${localPath}`);
+        } catch (fsError) {
+          console.warn(`Warning: Could not create local file: ${fsError.message}`);
+          // Don't fail the operation if local create fails
+        }
 
         // Log activity
         await logActivity(octokit, 'create', args.message || `Created ${args.path}`, [args.path]);
@@ -509,7 +548,7 @@ async function executeFunction(name, args) {
           throw err;
         }
 
-        // Delete the file
+        // Delete the file from GitHub
         const commitMessage = args.message || `Delete ${args.path}`;
         await octokit.repos.deleteFile({
           owner: REPO_OWNER,
@@ -519,6 +558,29 @@ async function executeFunction(name, args) {
           sha: fileSha,
           branch: 'main'
         });
+
+        // Also delete from local filesystem (for development)
+        try {
+          const localPath = path.join(PROJECT_ROOT, args.path);
+          if (fs.existsSync(localPath)) {
+            fs.unlinkSync(localPath);
+            console.log(`✓ Deleted local file: ${localPath}`);
+
+            // Try to remove empty parent directory if it exists
+            const parentDir = path.dirname(localPath);
+            try {
+              if (fs.readdirSync(parentDir).length === 0) {
+                fs.rmdirSync(parentDir);
+                console.log(`✓ Removed empty directory: ${parentDir}`);
+              }
+            } catch (e) {
+              // Ignore errors removing directory (may not be empty or may not exist)
+            }
+          }
+        } catch (fsError) {
+          console.warn(`Warning: Could not delete local file: ${fsError.message}`);
+          // Don't fail the operation if local delete fails
+        }
 
         // Log activity
         await logActivity(octokit, 'delete', args.message || `Deleted ${args.path}`, [args.path]);
