@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms & Conditions | Davidson & Co London</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP & Plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Hide scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #121212;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D4AF37;
+      border-radius: 4px;
+    }
+
+    .text-gold-gradient {
+      background: linear-gradient(to right, #D4AF37, #FEE180, #D4AF37);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shine 5s linear infinite;
+    }
+
+    @keyframes shine {
+      to {
+        background-position: 200% center;
+      }
+    }
+
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    .term-section {
+      border-left: 1px solid rgba(212, 175, 55, 0.1);
+      transition: all 0.5s ease;
+    }
+
+    .term-section:hover {
+      border-left-color: #D4AF37;
+      background: linear-gradient(90deg, rgba(212, 175, 55, 0.02) 0%, transparent 100%);
+    }
+
+    .term-number {
+      font-family: 'Cinzel', serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      opacity: 0.4;
+      transition: all 0.3s ease;
+    }
+
+    .term-section:hover .term-number {
+      opacity: 1;
+      color: #D4AF37;
+    }
+  </style>
+</head>
+
+<body class="relative">
+
+  <!-- Cinematic Grain Overlay -->
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center p-8 mix-blend-difference">
+    <a href="/" class="pointer-events-auto">
+      <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+    </a>
+    <a href="/" class="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors duration-300 pointer-events-auto">
+      RETURN
+    </a>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="relative min-h-[60vh] flex items-center justify-center bg-brand-black pt-24 pb-16">
+    <div class="text-center max-w-4xl px-8">
+      <div class="w-[1px] h-16 bg-brand-gold mx-auto mb-8 opacity-0" id="hero-line"></div>
+      <h1 class="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight mb-6 opacity-0" id="hero-title">
+        Terms & <span class="text-gold-gradient">Conditions</span>
+      </h1>
+      <p class="font-sans text-sm md:text-base text-gray-500 tracking-wider opacity-0" id="hero-subtitle">
+        LAST UPDATED: JANUARY 2026
+      </p>
+    </div>
+
+    <!-- Decorative Elements -->
+    <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-gold/20 to-transparent"></div>
+  </section>
+
+  <!-- Terms Content -->
+  <section class="relative bg-brand-charcoal py-24 px-4 md:px-8">
+    <div class="max-w-4xl mx-auto space-y-0">
+
+      <!-- Introduction -->
+      <div class="mb-16 pb-8 border-b border-white/5">
+        <p class="font-sans text-gray-400 leading-relaxed text-sm md:text-base">
+          Welcome to Davidson & Co. London. By accessing our services and website, you agree to comply with and be bound by the following terms and conditions of use. Please read them carefully.
+        </p>
+      </div>
+
+      <!-- Term 1 -->
+      <div class="term-section pl-8 py-8 md:pl-12">
+        <div class="flex items-start gap-6">
+          <span class="term-number mt-1">01</span>
+          <div class="flex-1">
+            <h3 class="text-xl md:text-2xl font-serif mb-4 text-brand-white">Acceptance of Terms</h3>
+            <p class="font-sans text-gray-400 leading-relaxed text-sm md:text-base mb-4">
+              By accessing and using the Davidson & Co. London website and services, you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to abide by these terms, please do not use our services.
+            </p>
+            <p class="font-sans text-gray-500 leading-relaxed text-sm md:text-base">
+              We reserve the right to modify these terms at any time. Your continued use of the site following any changes constitutes acceptance of the revised terms.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Term 2 -->
+      <div class="term-section pl-8 py-8 md:pl-12">
+        <div class="flex items-start gap-6">
+          <span class="term-number mt-1">02</span>
+          <div class="flex-1">
+            <h3 class="text-xl md:text-2xl font-serif mb-4 text-brand-white">Privacy Policy</h3>
+            <p class="font-sans text-gray-400 leading-relaxed text-sm md:text-base mb-4">
+              Your privacy is of paramount importance to us. Our
