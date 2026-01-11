@@ -4,8 +4,8 @@ import { Octokit } from '@octokit/rest';
 // Models to try in order of preference (glm-4.7 is the newest, used by EastD)
 const MODELS = ['glm-4.7', 'glm-4-flash', 'glm-4-air', 'glm-4', 'glm-4-plus'];
 
-// Vision model for handling image inputs
-const VISION_MODEL = 'glm-4v';
+// Vision models for handling image inputs (try in order - GLM-4.6V supports function calling!)
+const VISION_MODELS = ['glm-4v-plus', 'glm-4v', 'glm-4-vision'];
 
 // GitHub config
 const REPO_OWNER = 'Mrfocused1';
@@ -769,32 +769,31 @@ export default async function handler(req, res) {
     let usedModel = null;
     let toolsEnabled = true;
 
-    // Use vision model if images are present, otherwise use regular models
-    const modelsToTry = hasImages ? [VISION_MODEL] : MODELS;
+    // Use vision models if images are present, otherwise use regular models
+    const modelsToTry = hasImages ? VISION_MODELS : MODELS;
 
-    // Vision models don't support tools, so skip tool calling for vision
-    if (!hasImages) {
-      // Try each model with tools first (with retry)
-      for (const model of modelsToTry) {
-        try {
-          console.log(`Trying model: ${model} with tools`);
-          response = await retryWithBackoff(async () => {
-            return await glmClient.chat.completions.create({
-              model: model,
-              messages: fullMessages,
-              tools: tools,
-              tool_choice: 'auto',
-              temperature: 0.7,
-              max_tokens: 2048
-            });
+    // Try each model with tools first (with retry)
+    // Note: GLM-4V-Plus and newer GLM vision models support native multimodal function calling
+    for (const model of modelsToTry) {
+      try {
+        console.log(`Trying model: ${model} with tools ${hasImages ? '(VISION MODE)' : ''}`);
+        response = await retryWithBackoff(async () => {
+          return await glmClient.chat.completions.create({
+            model: model,
+            messages: fullMessages,
+            tools: tools,
+            tool_choice: 'auto',
+            temperature: 0.7,
+            max_tokens: 2048
           });
-          usedModel = model;
-          console.log(`Success with model: ${model}`);
-          break;
-        } catch (err) {
-          console.error(`Model ${model} with tools failed:`, err.message);
-          lastError = err;
-        }
+        });
+        usedModel = model;
+        console.log(`Success with model: ${model}`);
+        break;
+      } catch (err) {
+        console.error(`Model ${model} with tools failed:`, err.message);
+        console.error(`Full error:`, err);
+        lastError = err;
       }
     }
 
