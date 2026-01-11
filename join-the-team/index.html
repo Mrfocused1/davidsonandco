@@ -84,4 +84,6 @@
     </div>
     <div class="text-[10px] text-center mt-24 opacity-20 font-sans">© 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.</div>
   </footer>
-  <script>document.addEventListener("DOMContentLoaded",(e)=>{gsap.registerPlugin(ScrollTrigger,TextPlugin);const t=gsap.timeline();t.to("#hero-label",{opacity:1,duration:1,ease:"power2.out"}).to("#hero-title",{opacity:1,y:0,duration:1.2,ease:"power3.out"},"-=0.5").to("#hero-line",{width:"100px",duration:1
+  <script>document.addEventListener("DOMContentLoaded",(e)=>{gsap.registerPlugin(ScrollTrigger,TextPlugin);const t=gsap.timeline();t.to("#hero-label",{opacity:1,duration:1,ease:"power2.out"}).to("#hero-title",{opacity:1,y:0,duration:1.2,ease:"power3.out"},"-=0.5").to("#hero-line",{width:"100px",duration:1,ease:"power2.out"},"-=0.7").to("#hero-subtitle",{opacity:1,y:0,duration:1,ease:"power2.out"},"-=0.5").to("#scroll-indicator",{opacity:1,duration:1,ease:"power2.out"},"-=0.3");gsap.from(".why-content",{y:60,opacity:0,duration:1,ease:"power3.out",scrollTrigger:{trigger:".why-content",start:"top 80%"}});gsap.from(".benefit-item",{y:40,opacity:0,stagger:0.15,duration:0.8,ease:"power2.out",scrollTrigger:{trigger:".benefits-grid",start:"top 75%"}});gsap.from(".position-item",{x:-30,opacity:0,stagger:0.1,duration:0.8,ease:"power2.out",scrollTrigger:{trigger:".position-item",start:"top 80%"}});gsap.from("#application-form form > *",{y:30,opacity:0,stagger:0.08,duration:0.8,ease:"power2.out",scrollTrigger:{trigger:"#application-form",start:"top 75%"}});});</script>
+</body>
+</html>
