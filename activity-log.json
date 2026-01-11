@@ -1,5 +1,15 @@
 [
   {
+    "id": 1768128168311,
+    "timestamp": "2026-01-11T10:42:48.311Z",
+    "action": "delete",
+    "description": "Removed the join the team page",
+    "files": [
+      "join/index.html"
+    ],
+    "status": "completed"
+  },
+  {
     "id": 1768127799924,
     "timestamp": "2026-01-11T10:36:39.924Z",
     "action": "edit",
