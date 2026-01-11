@@ -628,7 +628,10 @@ async function convertToVisionMessage(message, octokit) {
     return message; // No images, return as-is
   }
 
+  console.log(`Converting message with images to vision format...`);
   const imagePaths = extractImagePaths(message.content);
+  console.log(`Found ${imagePaths.length} image(s):`, imagePaths);
+
   let textContent = message.content;
 
   // Remove image markers from text
@@ -648,6 +651,7 @@ async function convertToVisionMessage(message, octokit) {
   // Fetch and add each image
   for (const imagePath of imagePaths) {
     try {
+      console.log(`Fetching image from GitHub: ${imagePath}`);
       // Fetch image from GitHub
       const response = await octokit.repos.getContent({
         owner: REPO_OWNER,
@@ -664,6 +668,7 @@ async function convertToVisionMessage(message, octokit) {
       // Get base64 content (GitHub API returns base64)
       const base64Content = response.data.content.replace(/\n/g, '');
       const mimeType = getImageMimeType(imagePath);
+      console.log(`Image loaded: ${imagePath}, type: ${mimeType}, size: ${base64Content.length} chars`);
 
       // Add image in OpenAI vision format
       contentArray.push({
@@ -681,6 +686,8 @@ async function convertToVisionMessage(message, octokit) {
       });
     }
   }
+
+  console.log(`Vision message created with ${contentArray.length} content parts`);
 
   // Return message in vision format
   return {
@@ -765,32 +772,35 @@ export default async function handler(req, res) {
     // Use vision model if images are present, otherwise use regular models
     const modelsToTry = hasImages ? [VISION_MODEL] : MODELS;
 
-    // Try each model with tools first (with retry)
-    for (const model of modelsToTry) {
-      try {
-        console.log(`Trying model: ${model} with tools ${hasImages ? '(VISION MODE)' : ''}`);
-        response = await retryWithBackoff(async () => {
-          return await glmClient.chat.completions.create({
-            model: model,
-            messages: fullMessages,
-            tools: tools,
-            tool_choice: 'auto',
-            temperature: 0.7,
-            max_tokens: 2048
+    // Vision models don't support tools, so skip tool calling for vision
+    if (!hasImages) {
+      // Try each model with tools first (with retry)
+      for (const model of modelsToTry) {
+        try {
+          console.log(`Trying model: ${model} with tools`);
+          response = await retryWithBackoff(async () => {
+            return await glmClient.chat.completions.create({
+              model: model,
+              messages: fullMessages,
+              tools: tools,
+              tool_choice: 'auto',
+              temperature: 0.7,
+              max_tokens: 2048
+            });
           });
-        });
-        usedModel = model;
-        console.log(`Success with model: ${model}`);
-        break;
-      } catch (err) {
-        console.error(`Model ${model} with tools failed:`, err.message);
-        lastError = err;
+          usedModel = model;
+          console.log(`Success with model: ${model}`);
+          break;
+        } catch (err) {
+          console.error(`Model ${model} with tools failed:`, err.message);
+          lastError = err;
+        }
       }
     }
 
-    // If tools failed, try without tools (with retry)
+    // If tools failed OR using vision mode, try without tools (with retry)
     if (!response) {
-      console.log('Trying without tools...');
+      console.log(`Trying without tools... ${hasImages ? '(VISION MODE)' : ''}`);
       toolsEnabled = false;
       for (const model of modelsToTry) {
         try {
