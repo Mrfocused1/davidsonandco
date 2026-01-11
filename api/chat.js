@@ -4,6 +4,9 @@ import { Octokit } from '@octokit/rest';
 // Models to try in order of preference (glm-4.7 is the newest, used by EastD)
 const MODELS = ['glm-4.7', 'glm-4-flash', 'glm-4-air', 'glm-4', 'glm-4-plus'];
 
+// Vision model for handling image inputs
+const VISION_MODEL = 'glm-4v';
+
 // GitHub config
 const REPO_OWNER = 'Mrfocused1';
 const REPO_NAME = 'davidsonandco';
@@ -22,6 +25,7 @@ const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Da
 - Fix bugs and implement new features
 - Deploy changes to the live site
 - Use uploaded images in new pages/sections
+- SEE and ANALYZE uploaded images (you have vision capabilities - describe what you see in images)
 - Browse the web to research designs, gather content, or find inspiration
 
 CONVERSATION STYLE - BE PRECISE AND CONCISE:
@@ -73,10 +77,12 @@ PAGE CREATION:
 
 IMAGE UPLOADS:
 - Users can upload images using the + button in the chat
+- YOU CAN SEE IMAGES - you have vision capabilities, so analyze what's in the image
+- When users upload images, first DESCRIBE what you see, then ask how they want to use it
 - Uploaded images are saved to src/assets/ with sanitized filenames
-- When a user uploads images, you'll see "[Uploaded image: src/assets/filename.png]" in their message
 - Use these exact paths when referencing the images in HTML code
 - Example: <img src="src/assets/uploaded-image.png" alt="Description">
+- When you see an image, comment on its content (colors, design, subject matter, etc.)
 
 WHEN USER WANTS TO ADD IMAGES/VIDEO - ALWAYS provide this guidance:
 Before they upload, give them recommendations:
@@ -586,6 +592,103 @@ async function executeFunction(name, args) {
   }
 }
 
+// Helper function to detect if message contains uploaded images
+function hasUploadedImages(content) {
+  return /\[Uploaded image: ([^\]]+)\]/.test(content);
+}
+
+// Helper function to extract image paths from message
+function extractImagePaths(content) {
+  const regex = /\[Uploaded image: ([^\]]+)\]/g;
+  const paths = [];
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    paths.push(match[1]);
+  }
+  return paths;
+}
+
+// Helper function to get image extension and determine mime type
+function getImageMimeType(filename) {
+  const ext = filename.toLowerCase().split('.').pop();
+  const mimeTypes = {
+    'png': 'image/png',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'gif': 'image/gif',
+    'webp': 'image/webp',
+    'svg': 'image/svg+xml'
+  };
+  return mimeTypes[ext] || 'image/jpeg';
+}
+
+// Convert message with image markers to vision API format
+async function convertToVisionMessage(message, octokit) {
+  if (!hasUploadedImages(message.content)) {
+    return message; // No images, return as-is
+  }
+
+  const imagePaths = extractImagePaths(message.content);
+  let textContent = message.content;
+
+  // Remove image markers from text
+  textContent = textContent.replace(/\[Uploaded image: ([^\]]+)\]/g, '').trim();
+
+  // Build content array with text and images
+  const contentArray = [];
+
+  // Add text part if there's any text
+  if (textContent) {
+    contentArray.push({
+      type: 'text',
+      text: textContent
+    });
+  }
+
+  // Fetch and add each image
+  for (const imagePath of imagePaths) {
+    try {
+      // Fetch image from GitHub
+      const response = await octokit.repos.getContent({
+        owner: REPO_OWNER,
+        repo: REPO_NAME,
+        path: imagePath,
+        ref: 'main'
+      });
+
+      if (Array.isArray(response.data)) {
+        console.warn(`Skipping ${imagePath} - it's a directory`);
+        continue;
+      }
+
+      // Get base64 content (GitHub API returns base64)
+      const base64Content = response.data.content.replace(/\n/g, '');
+      const mimeType = getImageMimeType(imagePath);
+
+      // Add image in OpenAI vision format
+      contentArray.push({
+        type: 'image_url',
+        image_url: {
+          url: `data:${mimeType};base64,${base64Content}`
+        }
+      });
+    } catch (error) {
+      console.error(`Failed to fetch image ${imagePath}:`, error.message);
+      // Add error note to text instead
+      contentArray.push({
+        type: 'text',
+        text: `[Note: Could not load image ${imagePath}]`
+      });
+    }
+  }
+
+  // Return message in vision format
+  return {
+    role: message.role,
+    content: contentArray
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -615,9 +718,25 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Messages array required' });
     }
 
+    // Check if any message contains images
+    const hasImages = messages.some(msg =>
+      typeof msg.content === 'string' && hasUploadedImages(msg.content)
+    );
+
+    // Convert messages to vision format if images are present
+    const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+    let processedMessages = messages;
+
+    if (hasImages) {
+      console.log('Images detected, converting to vision format...');
+      processedMessages = await Promise.all(
+        messages.map(msg => convertToVisionMessage(msg, octokit))
+      );
+    }
+
     const fullMessages = [
       { role: 'system', content: SYSTEM_PROMPT },
-      ...messages
+      ...processedMessages
     ];
 
     // Helper function to retry API calls with exponential backoff
@@ -643,10 +762,13 @@ export default async function handler(req, res) {
     let usedModel = null;
     let toolsEnabled = true;
 
+    // Use vision model if images are present, otherwise use regular models
+    const modelsToTry = hasImages ? [VISION_MODEL] : MODELS;
+
     // Try each model with tools first (with retry)
-    for (const model of MODELS) {
+    for (const model of modelsToTry) {
       try {
-        console.log(`Trying model: ${model} with tools`);
+        console.log(`Trying model: ${model} with tools ${hasImages ? '(VISION MODE)' : ''}`);
         response = await retryWithBackoff(async () => {
           return await glmClient.chat.completions.create({
             model: model,
@@ -670,9 +792,9 @@ export default async function handler(req, res) {
     if (!response) {
       console.log('Trying without tools...');
       toolsEnabled = false;
-      for (const model of MODELS) {
+      for (const model of modelsToTry) {
         try {
-          console.log(`Trying model: ${model} without tools`);
+          console.log(`Trying model: ${model} without tools ${hasImages ? '(VISION MODE)' : ''}`);
           response = await retryWithBackoff(async () => {
             return await glmClient.chat.completions.create({
               model: model,
