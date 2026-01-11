@@ -100,5 +100,44 @@ export default async function handler(req, res) {
     }
   }
 
+  // DELETE - Clear all activities
+  if (req.method === 'DELETE') {
+    try {
+      // Get current file to get SHA
+      let sha = null;
+      try {
+        const existing = await octokit.repos.getContent({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: ACTIVITY_FILE,
+          ref: 'main'
+        });
+        sha = existing.data.sha;
+      } catch (e) {
+        if (e.status === 404) {
+          // File doesn't exist, nothing to clear
+          return res.status(200).json({ success: true, message: 'Activity log already empty' });
+        }
+        throw e;
+      }
+
+      // Update file with empty array
+      await octokit.repos.createOrUpdateFileContents({
+        owner: REPO_OWNER,
+        repo: REPO_NAME,
+        path: ACTIVITY_FILE,
+        message: '[Activity Log] Cleared all activity entries',
+        content: Buffer.from(JSON.stringify([], null, 2)).toString('base64'),
+        sha: sha,
+        branch: 'main'
+      });
+
+      return res.status(200).json({ success: true, message: 'Activity log cleared' });
+    } catch (error) {
+      console.error('Error clearing activity log:', error);
+      return res.status(500).json({ error: 'Failed to clear activity log' });
+    }
+  }
+
   return res.status(405).json({ error: 'Method not allowed' });
 }
