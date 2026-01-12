@@ -56,16 +56,26 @@
     }
 
     ::-webkit-scrollbar-track {
-      background: #121212;
+      background: transparent;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: #D4AF37;
+      background: transparent;
       border-radius: 3px;
+      transition: background-color 0.3s ease;
     }
 
     ::-webkit-scrollbar-thumb:hover {
       background: #8A7120;
+    }
+
+    /* Scrollbar visible state */
+    .scrollbar-visible::-webkit-scrollbar-thumb {
+      background: #D4AF37;
+    }
+
+    .scrollbar-visible::-webkit-scrollbar-track {
+      background: #121212;
     }
 
     .chat-container {
@@ -675,6 +685,25 @@
       if (welcomeText) {
         const text = welcomeText.getAttribute('data-text');
         animateTextBlur(welcomeText, text, 300);
+      }
+
+      // Auto-hide scrollbar with fade in/out on scroll
+      const chatContainer = document.getElementById('chatContainer');
+      let scrollTimeout;
+
+      if (chatContainer) {
+        chatContainer.addEventListener('scroll', () => {
+          // Show scrollbar
+          chatContainer.classList.add('scrollbar-visible');
+
+          // Clear existing timeout
+          clearTimeout(scrollTimeout);
+
+          // Hide scrollbar after 1 second of no scrolling
+          scrollTimeout = setTimeout(() => {
+            chatContainer.classList.remove('scrollbar-visible');
+          }, 1000);
+        });
       }
     });
 
