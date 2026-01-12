@@ -25,7 +25,7 @@ const REPO_NAME = 'davidsonandco';
 const glmClient = new OpenAI({
   apiKey: process.env.GLM_API_KEY,
   baseURL: 'https://open.bigmodel.cn/api/paas/v4',
-  timeout: 110000,        // 110 seconds (10s safety margin from 120s limit)
+  timeout: 280000,        // 280 seconds (20s safety margin from 300s Vercel limit)
   maxRetries: 1,          // Reduce retries, rely on our custom retry logic instead
   defaultHeaders: {
     'Connection': 'keep-alive'
@@ -855,7 +855,7 @@ async function executeFunction(name, args) {
         console.log(`Verifying live content at: ${args.url}`);
 
         // Wait a bit for CDN propagation before checking
-        await new Promise(resolve => setTimeout(resolve, 10000)); // 10 seconds
+        await new Promise(resolve => setTimeout(resolve, 3000)); // 3 seconds
 
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 15000); // 15 second timeout
@@ -1060,6 +1060,8 @@ export default async function handler(req, res) {
   const MAX_REQUEST_TIME = 290000; // 290 seconds (10s safety margin from 300s limit)
   const TIMEOUT_WARNING_TIME = 270000; // 270 seconds (30s before timeout)
 
+  console.log(`[TIMING] Request started at ${new Date().toISOString()}`);
+
   // Helper function to check if approaching timeout
   const isApproachingTimeout = () => {
     return (Date.now() - REQUEST_START_TIME) > TIMEOUT_WARNING_TIME;
@@ -1165,6 +1167,8 @@ export default async function handler(req, res) {
     // Note: GLM-4V supports native multimodal function calling
     for (const model of modelsToTry) {
       try {
+        const llmStartTime = Date.now();
+        console.log(`[TIMING] LLM API call started at ${llmStartTime - REQUEST_START_TIME}ms`);
         console.log(`Trying model: ${model} with tools ${hasImages ? '(VISION MODE)' : ''}`);
         response = await retryWithBackoff(async () => {
           return await glmClient.chat.completions.create({
@@ -1179,6 +1183,8 @@ export default async function handler(req, res) {
           });
         });
         usedModel = model;
+        const llmDuration = Date.now() - llmStartTime;
+        console.log(`[TIMING] LLM API call completed in ${llmDuration}ms`);
         console.log(`✅ Success with model: ${model}${hasImages ? ' (VISION)' : ''}`);
         break;
       } catch (err) {
@@ -1374,6 +1380,8 @@ export default async function handler(req, res) {
           });
         }
 
+        const llmStartTime2 = Date.now();
+        console.log(`[TIMING] Second LLM API call started at ${llmStartTime2 - REQUEST_START_TIME}ms`);
         response = await retryWithBackoff(async () => {
           return await glmClient.chat.completions.create({
             model: usedModel,
@@ -1386,6 +1394,9 @@ export default async function handler(req, res) {
             ...(isComplex && usedModel === 'glm-4.7' ? { thinking: { enabled: true } } : {})
           });
         });
+
+        const llmDuration2 = Date.now() - llmStartTime2;
+        console.log(`[TIMING] Second LLM API call completed in ${llmDuration2}ms`);
 
         assistantMessage = response.choices[0].message;
 
@@ -1440,6 +1451,9 @@ export default async function handler(req, res) {
 
       console.log('🗑️ Deletion requested:', requestsDelete);
     }
+
+    const totalRequestTime = Date.now() - REQUEST_START_TIME;
+    console.log(`[TIMING] Total request time: ${totalRequestTime}ms (${(totalRequestTime / 1000).toFixed(2)}s)`);
 
     return res.status(200).json({
       message: finalMessage,

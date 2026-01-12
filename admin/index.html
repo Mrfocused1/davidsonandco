@@ -1097,6 +1097,27 @@
       chatHistory.push({ role: 'user', content: message });
       saveChatHistory(); // Save to localStorage
 
+      // Add client-side timeout (290 seconds - slightly less than server timeout)
+      const timeoutMs = 290000;
+      const timeoutController = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.warn('[TIMEOUT] Client-side timeout triggered at 290 seconds');
+        timeoutController.abort();
+      }, timeoutMs);
+
+      // Combine with existing signal if provided
+      let combinedSignal;
+      if (signal && typeof AbortSignal.any === 'function') {
+        // Modern browsers support AbortSignal.any
+        combinedSignal = AbortSignal.any([signal, timeoutController.signal]);
+      } else if (signal) {
+        // Fallback: just use the provided signal
+        combinedSignal = signal;
+      } else {
+        // No signal provided, use timeout controller only
+        combinedSignal = timeoutController.signal;
+      }
+
       try {
         const response = await fetch(CHAT_API_URL, {
           method: 'POST',
@@ -1106,8 +1127,10 @@
           body: JSON.stringify({
             messages: chatHistory
           }),
-          signal: signal
+          signal: combinedSignal
         });
+
+        clearTimeout(timeoutId);
 
         // Get response text first for better error handling
         const responseText = await response.text();
@@ -1170,11 +1193,22 @@
         };
 
       } catch (error) {
+        clearTimeout(timeoutId);
         console.error('Chat error:', error);
         chatHistory.pop(); // Remove the user message we added
 
-        // Check if request was aborted
+        // Check if request was aborted (either by user or timeout)
         if (error.name === 'AbortError') {
+          // Check if it was a timeout
+          if (timeoutController.signal.aborted) {
+            console.error('Request timed out after 290 seconds');
+            return {
+              message: 'The request took over 4 minutes and was stopped to prevent errors.\n\nTips to avoid timeouts:\n• Break large requests into smaller steps\n• Create page structure first, then add content\n• Edit sections individually instead of entire pages\n\nWould you like to try a simplified version?',
+              madeChanges: false,
+              stopped: false
+            };
+          }
+          // Regular abort (user clicked stop)
           return { message: null, madeChanges: false, stopped: true };
         }
 
