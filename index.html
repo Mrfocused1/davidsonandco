@@ -756,6 +756,54 @@
         }
       });
 
+
+      // --- CUSTOM SCROLL INDICATOR ---
+      const scrollIndicator = document.getElementById("scroll-indicator");
+      const scrollProgress = document.getElementById("scroll-progress");
+      let scrollTimeout;
+      let isScrolling = false;
+
+      // Update scroll progress
+      function updateScrollProgress() {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = (scrollTop / docHeight) * 100;
+        scrollProgress.style.height = `${scrollPercent}%`;
+      }
+
+      // Show indicator when scrolling starts
+      function onScrollStart() {
+        if (!isScrolling) {
+          isScrolling = true;
+          gsap.to(scrollIndicator, {
+            opacity: 1,
+            filter: "blur(0px)",
+            duration: 0.3,
+            ease: "power2.out"
+          });
+        }
+        updateScrollProgress();
+
+        // Clear existing timeout
+        clearTimeout(scrollTimeout);
+
+        // Set timeout to hide after scrolling stops
+        scrollTimeout = setTimeout(() => {
+          if (isScrolling) {
+            isScrolling = false;
+            gsap.to(scrollIndicator, {
+              opacity: 0,
+              filter: "blur(4px)",
+              duration: 0.5,
+              ease: "power2.in"
+            });
+          }
+        }, 1500); // Hide after 1.5 seconds of no scrolling
+      }
+
+      // Listen for scroll events
+      window.addEventListener("scroll", onScrollStart);
+
     });
   </script>
 </body>
