@@ -1120,7 +1120,7 @@
     let countdownTotal = 0;
 
     // Show countdown timer
-    function showCountdownTimer(durationSeconds) {
+    function showCountdownTimer(durationSeconds, label = 'Processing') {
       // Remove existing timer
       hideCountdownTimer();
 
@@ -1165,8 +1165,8 @@
           </div>
         </div>
         <div>
-          <div class="text-brand-gold font-semibold text-sm">~${durationSeconds}s estimate</div>
-          <div class="text-gray-400 text-xs mt-0.5">Processing your request...</div>
+          <div class="text-brand-gold font-semibold text-sm">${label}</div>
+          <div class="text-gray-400 text-xs mt-0.5">~${durationSeconds}s remaining</div>
         </div>
       `;
 
@@ -1591,6 +1591,9 @@
       const publishConfirm = document.getElementById('publishConfirm');
       if (publishConfirm) publishConfirm.remove();
 
+      // Show countdown timer for deployment (typically 120-180 seconds)
+      showCountdownTimer(150, 'Deploying to Vercel'); // 2.5 minutes estimate
+
       // Show publishing indicator
       publishStartTime = Date.now();
       let messageIndex = 0;
@@ -1686,6 +1689,9 @@
       }
       const indicator = document.getElementById('publishingIndicator');
       if (indicator) indicator.remove();
+
+      // Hide countdown timer when publishing completes
+      hideCountdownTimer();
     }
 
     // Show success animation
@@ -1778,7 +1784,18 @@
 
       // Estimate duration and show countdown timer
       const estimatedDuration = estimateRequestDuration(message);
-      showCountdownTimer(estimatedDuration);
+      const lowerMsg = message.toLowerCase();
+      let timerLabel = 'Processing request';
+
+      if (lowerMsg.includes('create') && lowerMsg.includes('page')) {
+        timerLabel = 'Creating page';
+      } else if (lowerMsg.includes('edit') || lowerMsg.includes('update')) {
+        timerLabel = 'Updating content';
+      } else if (lowerMsg.includes('read') || lowerMsg.includes('list')) {
+        timerLabel = 'Reading files';
+      }
+
+      showCountdownTimer(estimatedDuration, timerLabel);
 
       // Show typing indicator with contextual messages
       addTypingIndicator(displayMessage);
