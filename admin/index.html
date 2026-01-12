@@ -272,6 +272,51 @@
       backdrop-filter: blur(10px);
       background: rgba(17, 24, 39, 0.95);
     }
+
+    /* Countdown timer styles */
+    #countdownTimer {
+      backdrop-filter: blur(10px);
+      background: rgba(17, 24, 39, 0.95);
+    }
+
+    .countdown-fade-in {
+      animation: countdownFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .countdown-fade-out {
+      animation: countdownFadeOut 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes countdownFadeIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    @keyframes countdownFadeOut {
+      from {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(20px) scale(0.95);
+      }
+    }
+
+    .progress-ring {
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+
+    .progress-ring-circle {
+      transition: stroke-dashoffset 1s linear;
+    }
   </style>
 </head>
 
@@ -1018,6 +1063,132 @@
       if (typing) typing.remove();
     }
 
+    // Estimate request duration based on message content
+    function estimateRequestDuration(message) {
+      const lowerMessage = message.toLowerCase();
+      let estimatedSeconds = 15; // Base time for simple requests
+
+      // Keywords that indicate longer operations
+      if (lowerMessage.includes('create')) estimatedSeconds += 30;
+      if (lowerMessage.includes('page')) estimatedSeconds += 20;
+      if (lowerMessage.includes('comprehensive') || lowerMessage.includes('detailed')) estimatedSeconds += 40;
+      if (lowerMessage.includes('multiple') || lowerMessage.includes('several')) estimatedSeconds += 20;
+      if (lowerMessage.includes('deploy')) estimatedSeconds += 15;
+      if (lowerMessage.includes('verify')) estimatedSeconds += 10;
+
+      // Specific page types
+      if (lowerMessage.includes('services') || lowerMessage.includes('portfolio')) estimatedSeconds += 25;
+      if (lowerMessage.includes('contact') || lowerMessage.includes('about')) estimatedSeconds += 15;
+
+      // Reading/listing is fast
+      if (lowerMessage.includes('read') || lowerMessage.includes('list') || lowerMessage.includes('show')) {
+        estimatedSeconds = Math.max(10, estimatedSeconds - 20);
+      }
+
+      // Cap at reasonable max
+      return Math.min(estimatedSeconds, 180); // Max 3 minutes
+    }
+
+    // Countdown timer variables
+    let countdownInterval = null;
+    let countdownRemaining = 0;
+    let countdownTotal = 0;
+
+    // Show countdown timer
+    function showCountdownTimer(durationSeconds) {
+      // Remove existing timer
+      hideCountdownTimer();
+
+      countdownRemaining = durationSeconds;
+      countdownTotal = durationSeconds;
+
+      const timerDiv = document.createElement('div');
+      timerDiv.id = 'countdownTimer';
+      timerDiv.className = 'fixed top-24 right-8 z-50 bg-gray-900 border border-brand-gold/30 rounded-lg shadow-2xl p-4 flex items-center gap-3 countdown-fade-in';
+
+      // SVG circle progress indicator
+      const radius = 18;
+      const circumference = 2 * Math.PI * radius;
+
+      timerDiv.innerHTML = `
+        <div class="relative">
+          <svg class="progress-ring w-12 h-12">
+            <circle
+              class="text-gray-700"
+              stroke-width="3"
+              stroke="currentColor"
+              fill="transparent"
+              r="${radius}"
+              cx="24"
+              cy="24"
+            />
+            <circle
+              id="countdownCircle"
+              class="progress-ring-circle text-brand-gold"
+              stroke-width="3"
+              stroke="currentColor"
+              fill="transparent"
+              r="${radius}"
+              cx="24"
+              cy="24"
+              stroke-dasharray="${circumference} ${circumference}"
+              stroke-dashoffset="0"
+            />
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span id="countdownSeconds" class="text-brand-gold font-mono text-sm font-bold">${durationSeconds}</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-brand-gold font-semibold text-sm">Estimated time</div>
+          <div class="text-gray-400 text-xs mt-0.5">Processing request...</div>
+        </div>
+      `;
+
+      document.body.appendChild(timerDiv);
+
+      // Update countdown every second
+      countdownInterval = setInterval(() => {
+        countdownRemaining--;
+
+        const secondsEl = document.getElementById('countdownSeconds');
+        const circleEl = document.getElementById('countdownCircle');
+
+        if (secondsEl) {
+          secondsEl.textContent = Math.max(0, countdownRemaining);
+        }
+
+        if (circleEl) {
+          const progress = (countdownTotal - countdownRemaining) / countdownTotal;
+          const offset = circumference * (1 - progress);
+          circleEl.style.strokeDashoffset = offset;
+        }
+
+        // If countdown reaches 0, show "Taking longer than expected"
+        if (countdownRemaining <= 0) {
+          clearInterval(countdownInterval);
+          if (timerDiv.querySelector('.text-gray-400')) {
+            timerDiv.querySelector('.text-gray-400').textContent = 'Taking longer than expected...';
+          }
+        }
+      }, 1000);
+    }
+
+    // Hide countdown timer
+    function hideCountdownTimer() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+
+      const timer = document.getElementById('countdownTimer');
+      if (timer) {
+        timer.classList.remove('countdown-fade-in');
+        timer.classList.add('countdown-fade-out');
+        setTimeout(() => timer.remove(), 400);
+      }
+    }
+
     // Scroll to bottom of chat
     function scrollToBottom() {
       chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -1568,14 +1739,19 @@
       // Create abort controller for this request
       currentAbortController = new AbortController();
 
+      // Estimate duration and show countdown timer
+      const estimatedDuration = estimateRequestDuration(message);
+      showCountdownTimer(estimatedDuration);
+
       // Show typing indicator with contextual messages
       addTypingIndicator(displayMessage);
 
       // Get AI response
       const result = await sendMessage(message, currentAbortController.signal);
 
-      // Remove typing indicator
+      // Remove typing indicator and countdown timer
       removeTypingIndicator();
+      hideCountdownTimer();
       currentAbortController = null;
 
       // Handle stopped vs completed
