@@ -1066,27 +1066,52 @@
     // Estimate request duration based on message content
     function estimateRequestDuration(message) {
       const lowerMessage = message.toLowerCase();
-      let estimatedSeconds = 15; // Base time for simple requests
 
-      // Keywords that indicate longer operations
-      if (lowerMessage.includes('create')) estimatedSeconds += 30;
-      if (lowerMessage.includes('page')) estimatedSeconds += 20;
-      if (lowerMessage.includes('comprehensive') || lowerMessage.includes('detailed')) estimatedSeconds += 40;
-      if (lowerMessage.includes('multiple') || lowerMessage.includes('several')) estimatedSeconds += 20;
-      if (lowerMessage.includes('deploy')) estimatedSeconds += 15;
-      if (lowerMessage.includes('verify')) estimatedSeconds += 10;
-
-      // Specific page types
-      if (lowerMessage.includes('services') || lowerMessage.includes('portfolio')) estimatedSeconds += 25;
-      if (lowerMessage.includes('contact') || lowerMessage.includes('about')) estimatedSeconds += 15;
-
-      // Reading/listing is fast
+      // Check for quick operations first
       if (lowerMessage.includes('read') || lowerMessage.includes('list') || lowerMessage.includes('show')) {
-        estimatedSeconds = Math.max(10, estimatedSeconds - 20);
+        return 10; // Fast read operations
       }
 
-      // Cap at reasonable max
-      return Math.min(estimatedSeconds, 180); // Max 3 minutes
+      // Simple conversational queries
+      if (lowerMessage.length < 20 && !lowerMessage.includes('create') && !lowerMessage.includes('edit')) {
+        return 8; // Quick responses
+      }
+
+      // Base time for operations that modify files
+      let estimatedSeconds = 30;
+
+      // Page creation is always substantial
+      if (lowerMessage.includes('create') && lowerMessage.includes('page')) {
+        estimatedSeconds = 75; // Realistic base for page creation
+
+        // Add time for complexity indicators
+        if (lowerMessage.includes('comprehensive') || lowerMessage.includes('detailed')) estimatedSeconds += 45;
+        if (lowerMessage.includes('multiple') || lowerMessage.includes('several')) estimatedSeconds += 30;
+
+        // Specific complex page types
+        if (lowerMessage.includes('services') || lowerMessage.includes('portfolio')) estimatedSeconds += 25;
+        if (lowerMessage.includes('team') || lowerMessage.includes('about')) estimatedSeconds += 20;
+      }
+      // Just "create" without "page" (might be creating a section or component)
+      else if (lowerMessage.includes('create')) {
+        estimatedSeconds = 45;
+      }
+      // Editing existing content
+      else if (lowerMessage.includes('edit') || lowerMessage.includes('update') || lowerMessage.includes('change')) {
+        estimatedSeconds = 35;
+      }
+
+      // Deployment adds significant time
+      if (lowerMessage.includes('deploy')) estimatedSeconds += 20;
+
+      // Verification adds time
+      if (lowerMessage.includes('verify')) estimatedSeconds += 12;
+
+      // Add buffer for AI processing (15%)
+      estimatedSeconds = Math.ceil(estimatedSeconds * 1.15);
+
+      // Cap at reasonable max (4 minutes)
+      return Math.min(estimatedSeconds, 240);
     }
 
     // Countdown timer variables
@@ -1140,8 +1165,8 @@
           </div>
         </div>
         <div>
-          <div class="text-brand-gold font-semibold text-sm">Estimated time</div>
-          <div class="text-gray-400 text-xs mt-0.5">Processing request...</div>
+          <div class="text-brand-gold font-semibold text-sm">~${durationSeconds}s estimate</div>
+          <div class="text-gray-400 text-xs mt-0.5">Processing your request...</div>
         </div>
       `;
 
@@ -1153,23 +1178,35 @@
 
         const secondsEl = document.getElementById('countdownSeconds');
         const circleEl = document.getElementById('countdownCircle');
+        const messageEl = timerDiv.querySelector('.text-gray-400');
+
+        // After countdown, continue counting up from 0
+        const displaySeconds = Math.abs(countdownRemaining);
 
         if (secondsEl) {
-          secondsEl.textContent = Math.max(0, countdownRemaining);
+          secondsEl.textContent = displaySeconds;
         }
 
         if (circleEl) {
-          const progress = (countdownTotal - countdownRemaining) / countdownTotal;
-          const offset = circumference * (1 - progress);
-          circleEl.style.strokeDashoffset = offset;
+          if (countdownRemaining > 0) {
+            // Normal countdown - fill the ring
+            const progress = (countdownTotal - countdownRemaining) / countdownTotal;
+            const offset = circumference * (1 - progress);
+            circleEl.style.strokeDashoffset = offset;
+          } else {
+            // After countdown - keep ring full and pulse slightly
+            circleEl.style.strokeDashoffset = 0;
+            if (countdownRemaining === 0 && messageEl) {
+              // Change message to be reassuring
+              messageEl.textContent = 'Almost there...';
+              messageEl.classList.add('animate-pulse');
+            }
+          }
         }
 
-        // If countdown reaches 0, show "Taking longer than expected"
-        if (countdownRemaining <= 0) {
-          clearInterval(countdownInterval);
-          if (timerDiv.querySelector('.text-gray-400')) {
-            timerDiv.querySelector('.text-gray-400').textContent = 'Taking longer than expected...';
-          }
+        // After 60 seconds beyond estimate, show "wrapping up"
+        if (countdownRemaining === -60 && messageEl) {
+          messageEl.textContent = 'Wrapping up...';
         }
       }, 1000);
     }
