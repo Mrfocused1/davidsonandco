@@ -1,5 +1,5 @@
 import React from 'react';
-import { Instagram, Linkedin, Twitter, Mail } from 'lucide-react';
+import { Instagram, Linkedin, Twitter, Mail, Phone } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 const Footer = () => {
@@ -37,8 +37,18 @@ const Footer = () => {
                     <div>
                         <h4 className="font-serif text-lg mb-6">Contact</h4>
                         <ul className="space-y-4 text-slate-500 text-sm">
-                            <li>+44 (0) 20 7123 4567</li>
-                            <li>advisory@davidson.co</li>
+                            <li>
+                                <a href="tel:+442080544065" className="flex items-center gap-2 hover:text-[#C5A059] transition-colors">
+                                    <Phone size={14} />
+                                    020 8054 4065
+                                </a>
+                            </li>
+                            <li>
+                                <a href="mailto:advisory@davidson.co" className="flex items-center gap-2 hover:text-[#C5A059] transition-colors">
+                                    <Mail size={14} />
+                                    advisory@davidson.co
+                                </a>
+                            </li>
                         </ul>
                         <div className="flex gap-4 mt-8">
                             <a href="#" className="p-2 bg-slate-50 rounded-full hover:bg-slate-100 transition-colors"><Instagram size={18} /></a>
