@@ -623,140 +623,122 @@ Be professional, warm, and consultative. Always engage in conversation before ma
 
 const tools = [
   {
-    type: 'function',
-    function: {
-      name: 'read_file',
-      description: 'Read the contents of a file from the repository',
-      parameters: {
-        type: 'object',
-        properties: {
-          path: {
-            type: 'string',
-            description: 'The file path relative to repository root (e.g., "index.html" or "src/styles.css")'
-          }
-        },
-        required: ['path']
-      }
+    name: 'read_file',
+    description: 'Read the contents of a file from the repository',
+    input_schema: {
+      type: 'object',
+      properties: {
+        path: {
+          type: 'string',
+          description: 'The file path relative to repository root (e.g., "index.html" or "src/styles.css")'
+        }
+      },
+      required: ['path']
     }
   },
   {
-    type: 'function',
-    function: {
-      name: 'edit_file',
-      description: 'Make a targeted find-and-replace edit to a file. This is SAFE - it only replaces specific text, not the whole file.',
-      parameters: {
-        type: 'object',
-        properties: {
-          path: {
-            type: 'string',
-            description: 'The file path relative to repository root'
-          },
-          old_text: {
-            type: 'string',
-            description: 'The exact text to find and replace (must match exactly, including whitespace)'
-          },
-          new_text: {
-            type: 'string',
-            description: 'The new text to replace old_text with'
-          },
-          message: {
-            type: 'string',
-            description: 'Commit message describing the change'
-          },
-          replace_all: {
-            type: 'boolean',
-            description: 'If true, replace ALL occurrences of old_text. If false (default), replace only the first occurrence for safety.'
-          }
+    name: 'edit_file',
+    description: 'Make a targeted find-and-replace edit to a file. This is SAFE - it only replaces specific text, not the whole file.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        path: {
+          type: 'string',
+          description: 'The file path relative to repository root'
         },
-        required: ['path', 'old_text', 'new_text', 'message']
-      }
+        old_text: {
+          type: 'string',
+          description: 'The exact text to find and replace (must match exactly, including whitespace)'
+        },
+        new_text: {
+          type: 'string',
+          description: 'The new text to replace old_text with'
+        },
+        message: {
+          type: 'string',
+          description: 'Commit message describing the change'
+        },
+        replace_all: {
+          type: 'boolean',
+          description: 'If true, replace ALL occurrences of old_text. If false (default), replace only the first occurrence for safety.'
+        }
+      },
+      required: ['path', 'old_text', 'new_text', 'message']
     }
   },
   {
-    type: 'function',
-    function: {
-      name: 'list_files',
-      description: 'List files in a directory of the repository',
-      parameters: {
-        type: 'object',
-        properties: {
-          path: {
-            type: 'string',
-            description: 'The directory path relative to repository root (use "" for root)'
-          }
-        },
-        required: ['path']
-      }
+    name: 'list_files',
+    description: 'List files in a directory of the repository',
+    input_schema: {
+      type: 'object',
+      properties: {
+        path: {
+          type: 'string',
+          description: 'The directory path relative to repository root (use "" for root)'
+        }
+      },
+      required: ['path']
     }
   },
   {
-    type: 'function',
-    function: {
-      name: 'create_file',
-      description: 'Create a new file (page, section, etc). By default, will NOT overwrite existing files. For pages, use "pagename/index.html" format for clean URLs.',
-      parameters: {
-        type: 'object',
-        properties: {
-          path: {
-            type: 'string',
-            description: 'The file path for the new file. For pages use folder structure: "about/index.html" for /about, "services/index.html" for /services'
-          },
-          content: {
-            type: 'string',
-            description: 'The full content of the new file'
-          },
-          message: {
-            type: 'string',
-            description: 'Commit message describing what was created'
-          },
-          overwrite: {
-            type: 'boolean',
-            description: 'If true, overwrite existing file. If false (default), return error if file exists. Use with caution.'
-          }
+    name: 'create_file',
+    description: 'Create a new file (page, section, etc). By default, will NOT overwrite existing files. For pages, use "pagename/index.html" format for clean URLs.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        path: {
+          type: 'string',
+          description: 'The file path for the new file. For pages use folder structure: "about/index.html" for /about, "services/index.html" for /services'
         },
-        required: ['path', 'content', 'message']
-      }
+        content: {
+          type: 'string',
+          description: 'The full content of the new file'
+        },
+        message: {
+          type: 'string',
+          description: 'Commit message describing what was created'
+        },
+        overwrite: {
+          type: 'boolean',
+          description: 'If true, overwrite existing file. If false (default), return error if file exists. Use with caution.'
+        }
+      },
+      required: ['path', 'content', 'message']
     }
   },
   {
-    type: 'function',
-    function: {
-      name: 'fetch_url',
-      description: 'Fetch content from a URL to gather information, research designs, or get content for the website. Use this to browse the web for inspiration or information.',
-      parameters: {
-        type: 'object',
-        properties: {
-          url: {
-            type: 'string',
-            description: 'The URL to fetch content from'
-          }
-        },
-        required: ['url']
-      }
+    name: 'fetch_url',
+    description: 'Fetch content from a URL to gather information, research designs, or get content for the website. Use this to browse the web for inspiration or information.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          description: 'The URL to fetch content from'
+        }
+      },
+      required: ['url']
     }
   },
   {
-    type: 'function',
-    function: {
-      name: 'verify_live_content',
-      description: 'Verify that expected content is visible on the live website. Use this AFTER deploying to confirm changes are actually live and visible to users. Helps catch CDN caching issues and deployment delays.',
-      parameters: {
-        type: 'object',
-        properties: {
-          url: {
-            type: 'string',
-            description: 'The full URL to verify (e.g., "${SITE_URL}/charity" or use relative like "/charity")'
-          },
-          expectedContent: {
-            type: 'array',
-            items: {
-              type: 'string'
-            },
-            description: 'Array of text strings that should be present on the live page (e.g., ["Areas of Impact", "Housing Support", "Education & Youth"])'
-          }
+    name: 'verify_live_content',
+    description: 'Verify that expected content is visible on the live website. Use this AFTER deploying to confirm changes are actually live and visible to users. Helps catch CDN caching issues and deployment delays.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          description: 'The full URL to verify (e.g., "${SITE_URL}/charity" or use relative like "/charity")'
         },
-        required: ['url', 'expectedContent']
-      }
+        expectedContent: {
+          type: 'array',
+          items: {
+            type: 'string'
+          },
+          description: 'Array of text strings that should be present on the live page (e.g., ["Areas of Impact", "Housing Support", "Education & Youth"])'
+        }
+      },
+      required: ['url', 'expectedContent']
     }
   }
 ];
@@ -1523,16 +1505,18 @@ async function convertToVisionMessage(message, octokit) {
       console.log(`  - Approx size: ${approxSizeMB}MB`);
       console.log(`  - Base64 length: ${base64Content.length} chars`);
 
-      // Warn if image might be too large (OpenAI Vision API limit is 20MB)
+      // Warn if image might be too large (Anthropic Vision API limit is 20MB)
       if (approxSizeBytes > 20 * 1024 * 1024) {
-        console.warn(`⚠️  Image may exceed 20MB limit for OpenAI Vision API (${approxSizeMB}MB)`);
+        console.warn(`⚠️  Image may exceed 20MB limit for Anthropic Vision API (${approxSizeMB}MB)`);
       }
 
-      // Add image in OpenAI-compatible vision format
+      // Add image in Anthropic vision format
       contentArray.push({
-        type: 'image_url',
-        image_url: {
-          url: `data:${mimeType};base64,${base64Content}`
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: mimeType,
+          data: base64Content
         }
       });
     } catch (error) {
@@ -1684,7 +1668,24 @@ export default async function handler(req, res) {
         throw new Error('No valid messages to send to Anthropic');
       }
 
-      return result;
+      // Anthropic requires strictly alternating user/assistant messages.
+      // Merge consecutive messages with the same role.
+      const merged = [];
+      for (const msg of result) {
+        if (merged.length > 0 && merged[merged.length - 1].role === msg.role) {
+          // Merge content into the previous message of the same role
+          const prev = merged[merged.length - 1];
+          const prevContent = Array.isArray(prev.content) ? prev.content :
+            (typeof prev.content === 'string' ? [{ type: 'text', text: prev.content }] : []);
+          const msgContent = Array.isArray(msg.content) ? msg.content :
+            (typeof msg.content === 'string' ? [{ type: 'text', text: msg.content }] : []);
+          prev.content = [...prevContent, ...msgContent];
+        } else {
+          merged.push({ ...msg });
+        }
+      }
+
+      return merged;
     };
 
     // Convert Anthropic response format to OpenAI format for compatibility
