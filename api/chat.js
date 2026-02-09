@@ -10,19 +10,18 @@ const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 
 // Models to try in order of preference
-const MODELS = ['kimi-k2.5'];
+const MODELS = ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'];
 
 // Vision model for handling image inputs
-const VISION_MODELS = ['kimi-k2.5'];
+const VISION_MODELS = ['gpt-4o', 'gpt-4-turbo'];
 
 // GitHub config
 const REPO_OWNER = 'Mrfocused1';
 const REPO_NAME = 'davidsonandco';
 
-// Initialize Kimi client using OpenAI SDK (Kimi is OpenAI-compatible)
-const kimiClient = new OpenAI({
-  apiKey: process.env.KIMI_API_KEY,
-  baseURL: 'https://api.moonshot.ai/v1',
+// Initialize OpenAI client
+const openaiClient = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
   timeout: 280000,        // 280 seconds (20s safety margin from 300s Vercel limit)
   maxRetries: 1,          // Reduce retries, rely on our custom retry logic instead
   defaultHeaders: {
@@ -1070,8 +1069,8 @@ export default async function handler(req, res) {
   };
 
   // Check for required environment variables
-  if (!process.env.KIMI_API_KEY) {
-    console.error('KIMI_API_KEY environment variable not set');
+  if (!process.env.OPENAI_API_KEY) {
+    console.error('OPENAI_API_KEY environment variable not set');
     return res.status(500).json({
       error: 'API key not configured',
       message: 'The AI service is not properly configured. Please contact support.'
@@ -1135,7 +1134,7 @@ export default async function handler(req, res) {
     let response = null;
     let lastError = null;
     let usedModel = null;
-    let toolsEnabled = false; // Moonshot API doesn't support tools in the same way
+    let toolsEnabled = true;
 
 
     // Use vision models if images are present, otherwise use regular models
@@ -1150,17 +1149,18 @@ export default async function handler(req, res) {
       });
     }
 
-    // Moonshot API doesn't support tools, so use text-only mode directly
-    console.log(`Using Moonshot API (no tools support)`);
+    // Try each model with tools first (with retry)
     for (const model of modelsToTry) {
       try {
         const llmStartTime = Date.now();
         console.log(`[TIMING] LLM API call started at ${llmStartTime - REQUEST_START_TIME}ms`);
-        console.log(`Trying model: ${model} ${hasImages ? '(VISION MODE)' : ''}`);
+        console.log(`Trying model: ${model} with tools ${hasImages ? '(VISION MODE)' : ''}`);
         response = await retryWithBackoff(async () => {
-          return await kimiClient.chat.completions.create({
+          return await openaiClient.chat.completions.create({
             model: model,
             messages: fullMessages,
+            tools: tools,
+            tool_choice: 'auto',
             temperature: 0.7,
             max_tokens: 4096
           });
@@ -1171,7 +1171,7 @@ export default async function handler(req, res) {
         console.log(`✅ Success with model: ${model}${hasImages ? ' (VISION)' : ''}`);
         break;
       } catch (err) {
-        console.error(`❌ Model ${model} failed:`, err.message);
+        console.error(`❌ Model ${model} with tools failed:`, err.message);
         // Log detailed error for debugging
         if (err.response) {
           console.error(`API Response Status:`, err.response.status);
@@ -1181,6 +1181,31 @@ export default async function handler(req, res) {
           console.error(`API Error Details:`, JSON.stringify(err.error, null, 2));
         }
         lastError = err;
+      }
+    }
+
+    // If tools failed, try without tools (with retry)
+    if (!response) {
+      console.log(`Trying without tools... ${hasImages ? '(VISION MODE)' : ''}`);
+      toolsEnabled = false;
+      for (const model of modelsToTry) {
+        try {
+          console.log(`Trying model: ${model} without tools ${hasImages ? '(VISION MODE)' : ''}`);
+          response = await retryWithBackoff(async () => {
+            return await openaiClient.chat.completions.create({
+              model: model,
+              messages: fullMessages,
+              temperature: 0.7,
+              max_tokens: 4096
+            });
+          });
+          usedModel = model;
+          console.log(`Success with model: ${model} (no tools)`);
+          break;
+        } catch (err) {
+          console.error(`Model ${model} without tools failed:`, err.message);
+          lastError = err;
+        }
       }
     }
 
@@ -1199,7 +1224,7 @@ export default async function handler(req, res) {
         try {
           console.log(`Trying text model fallback: ${model}`);
           response = await retryWithBackoff(async () => {
-            return await kimiClient.chat.completions.create({
+            return await openaiClient.chat.completions.create({
               model: model,
               messages: textOnlyMessages,
               temperature: 0.7,
@@ -1235,8 +1260,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // Handle tool calls (disabled for Moonshot API)
-    if (false && toolsEnabled) {
+    // Handle tool calls
+    if (toolsEnabled) {
       // Log tool calls for debugging
       if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
         console.log(`🔧 AI requested ${assistantMessage.tool_calls.length} tool call(s)`);
@@ -1337,7 +1362,7 @@ export default async function handler(req, res) {
         const llmStartTime2 = Date.now();
         console.log(`[TIMING] Second LLM API call started at ${llmStartTime2 - REQUEST_START_TIME}ms`);
         response = await retryWithBackoff(async () => {
-          return await kimiClient.chat.completions.create({
+          return await openaiClient.chat.completions.create({
             model: usedModel,
             messages: fullMessages,
             tools: tools,
