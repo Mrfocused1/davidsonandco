@@ -1721,9 +1721,12 @@ export default async function handler(req, res) {
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
           const result = await fn();
+          console.log('✅ Anthropic API response received:', JSON.stringify(result, null, 2).substring(0, 500));
           // Convert Anthropic response to OpenAI format
           return convertAnthropicToOpenAI(result);
         } catch (err) {
+          console.error('❌ Anthropic API error:', err.message);
+          console.error('Error details:', JSON.stringify(err, null, 2).substring(0, 1000));
           lastErr = err;
           if (attempt < maxRetries) {
             const delay = Math.pow(2, attempt) * 1000; // 1s, 2s
@@ -1732,6 +1735,7 @@ export default async function handler(req, res) {
           }
         }
       }
+      console.error('❌ All retry attempts failed. Last error:', lastErr);
       throw lastErr;
     };
 
@@ -1764,6 +1768,12 @@ export default async function handler(req, res) {
         console.log(`Trying model: ${model} with tools ${hasImages ? '(VISION MODE)' : ''}`);
         response = await retryWithBackoff(async () => {
           const anthropicMessages = convertMessagesToAnthropic(fullMessages);
+          console.log('📤 Sending to Anthropic:', {
+            model,
+            messageCount: anthropicMessages.length,
+            systemPromptLength: systemMessage.content.length,
+            firstMessage: anthropicMessages[0] ? JSON.stringify(anthropicMessages[0]).substring(0, 200) : 'none'
+          });
           return await anthropic.messages.create({
             model: model,
             max_tokens: 16384,
