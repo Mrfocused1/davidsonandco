@@ -4,32 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Who We Are - Davidson & Co London</title>
-    <link rel="stylesheet" href="/styles.css">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            black: '#080808',
+                            charcoal: '#121212',
+                            gold: '#D4AF37',
+                            goldDim: '#8A7120',
+                            stone: '#1c1c1c',
+                            white: '#F5F5F5'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Cinzel', 'serif'],
+                        sans: ['Manrope', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #080808;
+            color: #F5F5F5;
+        }
+    </style>
 </head>
-<body>
-    <header>
-        <nav>
-            <a href="/">
+<body class="bg-brand-black text-brand-white font-sans">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-brand-black/90 backdrop-blur-sm border-b border-brand-gold/20">
+        <nav class="container mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="/" class="flex items-center">
                 <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
             </a>
-            <ul>
-                <li><a href="/about">About</a></li>
-                <li><a href="/services">Services</a></li>
-                <li><a href="/who-we-are">Who We Are</a></li>
-                <li><a href="/contact">Contact</a></li>
+            <ul class="flex gap-8 items-center">
+                <li><a href="/about" class="text-brand-white hover:text-brand-gold transition-colors">About</a></li>
+                <li><a href="/services" class="text-brand-white hover:text-brand-gold transition-colors">Services</a></li>
+                <li><a href="/who-we-are" class="text-brand-gold font-semibold">Who We Are</a></li>
+                <li><a href="/contact" class="text-brand-white hover:text-brand-gold transition-colors">Contact</a></li>
             </ul>
         </nav>
     </header>
-    <main>
-        <section>
-            <h1>Who We Are</h1>
-            <p>Welcome to Davidson & Co London. We are a team of dedicated professionals committed to delivering exceptional services to our clients.</p>
-            <p>Our mission is to provide innovative solutions and unparalleled client service that helps our clients achieve their goals.</p>
-        </section>
+
+    <!-- Main Content -->
+    <main class="pt-32 pb-20 px-6">
+        <div class="container mx-auto max-w-4xl">
+            <section class="text-center mb-16">
+                <h1 class="font-serif text-5xl md:text-6xl text-brand-gold mb-8">Who We Are</h1>
+                <div class="space-y-6 text-lg text-brand-white/90 leading-relaxed">
+                    <p>Welcome to Davidson & Co London. We are a team of dedicated professionals committed to delivering exceptional services to our clients.</p>
+                    <p>Our mission is to provide innovative solutions and unparalleled client service that helps our clients achieve their goals.</p>
+                </div>
+            </section>
+        </div>
     </main>
-    <footer>
-        <p>&copy; 2023 Davidson & Co London. All rights reserved.</p>
-        <img src="/logo.png" alt="Davidson & Co." class="h-12">
+
+    <!-- Footer -->
+    <footer class="bg-brand-charcoal border-t border-brand-gold/20 py-12 px-6">
+        <div class="container mx-auto text-center">
+            <img src="/logo.png" alt="Davidson & Co." class="h-12 mx-auto mb-6">
+            <p class="text-brand-white/60">&copy; 2023 Davidson & Co London. All rights reserved.</p>
+        </div>
     </footer>
 </body>
 </html>

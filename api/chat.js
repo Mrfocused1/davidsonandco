@@ -115,11 +115,26 @@ IMPORTANT RULES:
 6. Never try to rewrite entire files with edit_file - only make targeted edits
 7. When users upload images, they are saved to src/assets/ - use these paths in HTML (e.g., src/assets/my-image.png)
 
-PAGE CREATION:
+PAGE CREATION - CRITICAL:
 - Always create pages as "pagename/index.html" NOT "pagename.html"
 - Example: For /about page, create "about/index.html"
 - Example: For /services page, create "services/index.html"
 - This ensures clean URLs without .html extension
+
+REQUIRED STYLING FOR ALL NEW PAGES:
+When creating ANY new page, you MUST include these in the <head> section:
+
+1. Google Fonts:
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+2. Tailwind CSS:
+   <script src="https://cdn.tailwindcss.com"></script>
+
+3. NEVER use <link rel="stylesheet" href="/styles.css"> as this file doesn't exist
+4. Use Tailwind CSS classes for all styling (e.g., class="bg-black text-white p-4")
+5. Match the styling and design of the main website (black background, gold accents, luxury feel)
 
 IMAGE UPLOADS:
 - Users can upload images using the + button in the chat
