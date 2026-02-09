@@ -16,8 +16,9 @@ const REPO_NAME = 'davidsonandco';
 const SITE_URL = process.env.SITE_URL || 'https://davidsoncolondon.com';
 
 // Initialize Anthropic client (Claude Sonnet)
+// Trim API key to handle potential whitespace/newline characters from env vars
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: (process.env.ANTHROPIC_API_KEY || '').trim(),
   timeout: 280000,        // 280 seconds (20s safety margin from 300s Vercel limit)
   maxRetries: 1           // Reduce retries, rely on our custom retry logic instead
 });
@@ -1668,6 +1669,13 @@ export default async function handler(req, res) {
         throw new Error('No valid messages to send to Anthropic');
       }
 
+      // Anthropic requires the first message to have role 'user'.
+      // If the first message is 'assistant', prepend a placeholder user message.
+      if (result.length > 0 && result[0].role !== 'user') {
+        console.warn('⚠️ First message is not user role, prepending placeholder user message');
+        result.unshift({ role: 'user', content: 'Continue the conversation.' });
+      }
+
       // Anthropic requires strictly alternating user/assistant messages.
       // Merge consecutive messages with the same role.
       const merged = [];
@@ -1685,17 +1693,25 @@ export default async function handler(req, res) {
         }
       }
 
+      // Anthropic requires the last message to have role 'user' (for the model to respond to).
+      // This should always be the case, but add a safeguard.
+      if (merged.length > 0 && merged[merged.length - 1].role !== 'user') {
+        console.warn('⚠️ Last message is not user role, appending placeholder user message');
+        merged.push({ role: 'user', content: 'Please continue.' });
+      }
+
       return merged;
     };
 
     // Convert Anthropic response format to OpenAI format for compatibility
     const convertAnthropicToOpenAI = (anthropicResponse) => {
-      const textContent = anthropicResponse.content
+      const contentBlocks = anthropicResponse.content || [];
+      const textContent = contentBlocks
         .filter(block => block.type === 'text')
         .map(block => block.text)
         .join('');
 
-      const toolUses = anthropicResponse.content.filter(block => block.type === 'tool_use');
+      const toolUses = contentBlocks.filter(block => block.type === 'tool_use');
 
       const message = {
         role: 'assistant',
@@ -1741,8 +1757,25 @@ export default async function handler(req, res) {
           return convertAnthropicToOpenAI(result);
         } catch (err) {
           console.error('❌ Anthropic API error:', err.message);
+          console.error('Error status:', err.status);
+          if (err.error?.error?.message) {
+            console.error('Anthropic error message:', err.error.error.message);
+          }
           console.error('Error details:', JSON.stringify(err, null, 2).substring(0, 1000));
           lastErr = err;
+
+          // Don't retry billing/credit errors - they won't resolve on retry
+          const errMsgLower = (err.message || '').toLowerCase();
+          if (errMsgLower.includes('credit') || errMsgLower.includes('billing') || errMsgLower.includes('balance is too low')) {
+            console.error('❌ Billing/credit error detected - skipping retries');
+            throw err;
+          }
+          // Don't retry authentication errors
+          if (err.status === 401 || err.status === 403) {
+            console.error('❌ Authentication error detected - skipping retries');
+            throw err;
+          }
+
           if (attempt < maxRetries) {
             const delay = Math.pow(2, attempt) * 1000; // 1s, 2s
             console.log(`Retry attempt ${attempt + 1} after ${delay}ms...`);
@@ -2141,26 +2174,35 @@ export default async function handler(req, res) {
 
     const errMsg = error.message?.toLowerCase() || '';
     const errCode = error.code || '';
+    let statusCode = 500;
 
-    if (errMsg.includes('timeout') || errCode === 'ETIMEDOUT' || errCode === 'ECONNABORTED') {
+    if (errMsg.includes('credit') || errMsg.includes('billing') || errMsg.includes('balance is too low')) {
+      userFriendlyMessage = 'The AI service has run out of credits. Please contact your admin to top up the Anthropic API credits so I can get back to work.';
+      errorMessage = 'Anthropic API credit balance too low';
+      statusCode = 402;
+    } else if (errMsg.includes('timeout') || errCode === 'ETIMEDOUT' || errCode === 'ECONNABORTED') {
       userFriendlyMessage = 'That task took longer than expected, so I had to stop. Please take a screenshot and send it to your admin so they can help.';
     } else if (errMsg.includes('rate') || error.status === 429) {
       userFriendlyMessage = 'I\'m getting too many requests right now. Please wait a minute and try again. If this keeps happening, take a screenshot and send it to your admin.';
+      statusCode = 429;
     } else if (errMsg.includes('network') || errCode === 'ECONNREFUSED' || errCode === 'ENOTFOUND') {
       userFriendlyMessage = 'I\'m having trouble connecting. Please check your internet connection and try again. If it still doesn\'t work, take a screenshot and send it to your admin.';
+      statusCode = 503;
     } else if (error.status === 401 || error.status === 403 || errMsg.includes('unauthorized') || errMsg.includes('forbidden')) {
       userFriendlyMessage = 'I don\'t have permission to do that right now. Please take a screenshot of this conversation and send it to your admin - they\'ll need to fix the permissions.';
+      statusCode = error.status || 403;
     } else if (error.status >= 500 || errMsg.includes('internal server error')) {
       userFriendlyMessage = 'The system is having a temporary issue. Please wait a moment and try again. If it still doesn\'t work, take a screenshot and send it to your admin.';
     } else if (errMsg.includes('invalid') || errMsg.includes('bad request')) {
       userFriendlyMessage = 'I didn\'t quite understand that request. Try saying it differently. If you keep seeing this message, take a screenshot and send it to your admin.';
+      statusCode = 400;
     } else if (errMsg.includes('model') || errMsg.includes('not found')) {
       userFriendlyMessage = 'The system isn\'t available right now. Please try again in a few minutes. If it still doesn\'t work, take a screenshot and send it to your admin.';
     } else if (errMsg.includes('json') || errMsg.includes('parse')) {
       userFriendlyMessage = 'I had trouble understanding the response. Please try again. If this keeps happening, take a screenshot and send it to your admin.';
     }
 
-    return res.status(500).json({
+    return res.status(statusCode).json({
       error: errorMessage,
       message: userFriendlyMessage,
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
