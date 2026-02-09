@@ -201,7 +201,6 @@ If ANY fail, DO NOT tell user page is complete. Fix issues first.
 REQUIRED STYLING FOR ALL NEW PAGES - MANDATORY ANIMATION REQUIREMENTS:
 
 STEP 1: LIBRARY IMPORTS - COPY THESE EXACT LINES INTO <head>:
-```html
 <!-- GSAP - ALL THREE ARE REQUIRED -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
@@ -214,10 +213,8 @@ STEP 1: LIBRARY IMPORTS - COPY THESE EXACT LINES INTO <head>:
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
-```
 
 STEP 2: TAILWIND CONFIG - COPY THIS AFTER TAILWIND SCRIPT:
-```html
 <script>
   tailwind.config = {
     theme: {
@@ -240,10 +237,8 @@ STEP 2: TAILWIND CONFIG - COPY THIS AFTER TAILWIND SCRIPT:
     }
   }
 </script>
-```
 
 STEP 3: LUXURY STYLING - COPY THIS <style> BLOCK:
-```html
 <style>
   body {
     background-color: #080808;
@@ -276,20 +271,16 @@ STEP 3: LUXURY STYLING - COPY THIS <style> BLOCK:
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
   }
 </style>
-```
 
 STEP 4: ADD GRAIN OVERLAY - FIRST ELEMENT IN <body>:
-```html
 <body class="relative">
   <div class="grain-overlay"></div>
   <!-- Rest of content -->
 </body>
-```
 
 STEP 5: GSAP ANIMATIONS - MANDATORY 3+ PATTERNS:
 
 EXAMPLE 1 - Hero Title Fade In:
-```html
 <h1 class="hero-title text-5xl md:text-7xl font-serif text-gold-gradient opacity-0">Your Title</h1>
 
 <script>
@@ -305,10 +296,8 @@ EXAMPLE 1 - Hero Title Fade In:
     });
   });
 </script>
-```
 
 EXAMPLE 2 - Scroll-Triggered Fade In:
-```html
 <section class="content-section">
   <div class="fade-in-element">Content</div>
 </section>
@@ -325,10 +314,8 @@ EXAMPLE 2 - Scroll-Triggered Fade In:
     }
   });
 </script>
-```
 
 EXAMPLE 3 - Gold Line Draw:
-```html
 <div class="gold-line w-0 h-[2px] bg-brand-gold mx-auto"></div>
 
 <script>
@@ -342,10 +329,8 @@ EXAMPLE 3 - Gold Line Draw:
     }
   });
 </script>
-```
 
 EXAMPLE 4 - Stagger Animation:
-```html
 <div class="cards-container">
   <div class="card">Card 1</div>
   <div class="card">Card 2</div>
@@ -363,10 +348,8 @@ EXAMPLE 4 - Stagger Animation:
     }
   });
 </script>
-```
 
 EXAMPLE 5 - Text Typing:
-```html
 <p class="typed-text"></p>
 
 <script>
@@ -380,7 +363,6 @@ EXAMPLE 5 - Text Typing:
     }
   });
 </script>
-```
 
 MANDATORY CHECKLIST:
 - ALL 3 GSAP libraries loaded
