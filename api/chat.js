@@ -1,12 +1,12 @@
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import { Octokit } from '@octokit/rest';
 import path from 'path';
 
-// Models to try in order of preference (GLM-4.7 variants)
-const MODELS = ['glm-4.7', 'glm-4.7-FlashX', 'glm-4.7-Flash'];
+// Models to try in order of preference (Claude Sonnet 4.5)
+const MODELS = ['claude-sonnet-4-5-20250929'];
 
-// Vision model for handling image inputs (GLM-4.7 supports vision)
-const VISION_MODELS = ['glm-4.7'];
+// Vision model for handling image inputs (Claude Sonnet has vision)
+const VISION_MODELS = ['claude-sonnet-4-5-20250929'];
 
 // GitHub config
 const REPO_OWNER = 'Mrfocused1';
@@ -15,15 +15,11 @@ const REPO_NAME = 'davidsonandco';
 // Site URL config (configurable via environment variable)
 const SITE_URL = process.env.SITE_URL || 'https://davidsoncolondon.com';
 
-// Initialize GLM client using OpenAI SDK (GLM is OpenAI-compatible)
-const glmClient = new OpenAI({
-  apiKey: process.env.GLM_API_KEY,
-  baseURL: 'https://api.z.ai/api/paas/v4/',
+// Initialize Anthropic client (Claude Sonnet)
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
   timeout: 280000,        // 280 seconds (20s safety margin from 300s Vercel limit)
-  maxRetries: 1,          // Reduce retries, rely on our custom retry logic instead
-  defaultHeaders: {
-    'Connection': 'keep-alive'
-  }
+  maxRetries: 1           // Reduce retries, rely on our custom retry logic instead
 });
 
 const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Davidson & Co London website. You can:
@@ -1580,8 +1576,8 @@ export default async function handler(req, res) {
   };
 
   // Check for required environment variables
-  if (!process.env.GLM_API_KEY) {
-    console.error('GLM_API_KEY environment variable not set');
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error('ANTHROPIC_API_KEY environment variable not set');
     return res.status(500).json({
       error: 'API key not configured',
       message: 'The AI service is not properly configured. Please contact support.'
@@ -1624,12 +1620,109 @@ export default async function handler(req, res) {
       ...processedMessages
     ];
 
+    // Convert OpenAI messages to Anthropic format
+    const convertMessagesToAnthropic = (messages) => {
+      const result = [];
+      let i = 0;
+
+      while (i < messages.length) {
+        const msg = messages[i];
+
+        if (msg.role === 'assistant' && msg.tool_calls) {
+          // Assistant message with tool calls - convert to Anthropic format
+          const content = [];
+          if (msg.content) {
+            content.push({ type: 'text', text: msg.content });
+          }
+          msg.tool_calls.forEach(tc => {
+            content.push({
+              type: 'tool_use',
+              id: tc.id,
+              name: tc.function.name,
+              input: JSON.parse(tc.function.arguments)
+            });
+          });
+          result.push({ role: 'assistant', content });
+          i++;
+        } else if (msg.role === 'tool') {
+          // Collect all tool results and combine into one user message
+          const toolResults = [];
+          while (i < messages.length && messages[i].role === 'tool') {
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: messages[i].tool_call_id,
+              content: messages[i].content
+            });
+            i++;
+          }
+          if (toolResults.length > 0) {
+            result.push({ role: 'user', content: toolResults });
+          }
+        } else if (msg.role !== 'system') {
+          // Regular user/assistant message
+          result.push({
+            role: msg.role,
+            content: typeof msg.content === 'string' ? msg.content : msg.content
+          });
+          i++;
+        } else {
+          i++; // Skip system messages (handled separately)
+        }
+      }
+
+      return result;
+    };
+
+    // Convert Anthropic response format to OpenAI format for compatibility
+    const convertAnthropicToOpenAI = (anthropicResponse) => {
+      const textContent = anthropicResponse.content
+        .filter(block => block.type === 'text')
+        .map(block => block.text)
+        .join('');
+
+      const toolUses = anthropicResponse.content.filter(block => block.type === 'tool_use');
+
+      const message = {
+        role: 'assistant',
+        content: textContent || null
+      };
+
+      if (toolUses.length > 0) {
+        message.tool_calls = toolUses.map(tool => ({
+          id: tool.id,
+          type: 'function',
+          function: {
+            name: tool.name,
+            arguments: JSON.stringify(tool.input)
+          }
+        }));
+      }
+
+      const finishReasonMap = {
+        'end_turn': 'stop',
+        'max_tokens': 'length',
+        'tool_use': 'tool_calls',
+        'stop_sequence': 'stop'
+      };
+
+      return {
+        choices: [{
+          message: message,
+          finish_reason: finishReasonMap[anthropicResponse.stop_reason] || 'stop'
+        }],
+        id: anthropicResponse.id,
+        model: anthropicResponse.model
+      };
+    };
+
     // Helper function to retry API calls with exponential backoff
     const retryWithBackoff = async (fn, maxRetries = 2) => {
       let lastErr;
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-          return await fn();
+          const result = await fn();
+          // Convert Anthropic response to OpenAI format
+          return convertAnthropicToOpenAI(result);
         } catch (err) {
           lastErr = err;
           if (attempt < maxRetries) {
@@ -1660,6 +1753,9 @@ export default async function handler(req, res) {
       });
     }
 
+    // Extract system message for Anthropic format
+    const systemMessage = fullMessages.find(m => m.role === 'system');
+
     // Try each model with tools first (with retry)
     for (const model of modelsToTry) {
       try {
@@ -1667,13 +1763,14 @@ export default async function handler(req, res) {
         console.log(`[TIMING] LLM API call started at ${llmStartTime - REQUEST_START_TIME}ms`);
         console.log(`Trying model: ${model} with tools ${hasImages ? '(VISION MODE)' : ''}`);
         response = await retryWithBackoff(async () => {
-          return await glmClient.chat.completions.create({
+          const anthropicMessages = convertMessagesToAnthropic(fullMessages);
+          return await anthropic.messages.create({
             model: model,
-            messages: fullMessages,
+            max_tokens: 16384,
+            system: systemMessage.content,
+            messages: anthropicMessages,
             tools: tools,
-            tool_choice: 'auto',
-            temperature: 0.7,
-            max_tokens: 16384
+            temperature: 0.7
           });
         });
         usedModel = model;
@@ -1703,11 +1800,13 @@ export default async function handler(req, res) {
         try {
           console.log(`Trying model: ${model} without tools ${hasImages ? '(VISION MODE)' : ''}`);
           response = await retryWithBackoff(async () => {
-            return await glmClient.chat.completions.create({
+            const anthropicMessages = convertMessagesToAnthropic(fullMessages);
+            return await anthropic.messages.create({
               model: model,
-              messages: fullMessages,
-              temperature: 0.7,
-              max_tokens: 16384
+              max_tokens: 16384,
+              system: systemMessage.content,
+              messages: anthropicMessages,
+              temperature: 0.7
             });
           });
           usedModel = model;
@@ -1726,20 +1825,23 @@ export default async function handler(req, res) {
       toolsEnabled = false;
 
       // Convert image messages back to text-only by removing image content
-      const textOnlyMessages = [
-        { role: 'system', content: SYSTEM_PROMPT + '\n\nNOTE: Vision processing failed. User uploaded images but you cannot see them. Acknowledge this limitation and work with text only.' },
-        ...messages
-      ];
+      const textOnlySystemMsg = SYSTEM_PROMPT + '\n\nNOTE: Vision processing failed. User uploaded images but you cannot see them. Acknowledge this limitation and work with text only.';
 
       for (const model of MODELS) {
         try {
           console.log(`Trying text model fallback: ${model}`);
           response = await retryWithBackoff(async () => {
-            return await glmClient.chat.completions.create({
+            const textOnlyMessages = [
+              { role: 'system', content: textOnlySystemMsg },
+              ...messages
+            ];
+            const anthropicMessages = convertMessagesToAnthropic(textOnlyMessages);
+            return await anthropic.messages.create({
               model: model,
-              messages: textOnlyMessages,
-              temperature: 0.7,
-              max_tokens: 16384
+              max_tokens: 16384,
+              system: textOnlySystemMsg,
+              messages: anthropicMessages,
+              temperature: 0.7
             });
           });
           usedModel = model;
@@ -1878,13 +1980,14 @@ export default async function handler(req, res) {
         const llmStartTime2 = Date.now();
         console.log(`[TIMING] Second LLM API call started at ${llmStartTime2 - REQUEST_START_TIME}ms`);
         response = await retryWithBackoff(async () => {
-          return await glmClient.chat.completions.create({
+          const anthropicMessages = convertMessagesToAnthropic(fullMessages);
+          return await anthropic.messages.create({
             model: usedModel,
-            messages: fullMessages,
+            max_tokens: 16384,
+            system: systemMessage.content,
+            messages: anthropicMessages,
             tools: tools,
-            tool_choice: 'auto',
-            temperature: 0.7,
-            max_tokens: 16384
+            temperature: 0.7
           });
         });
 
