@@ -15,42 +15,60 @@ const REPO_NAME = 'davidsonandco';
 // Activity logging function
 async function logActivity(octokit, action, description, files) {
   try {
-    // Get current activity log
-    const { data: activityFile } = await octokit.repos.getContent({
-      owner: REPO_OWNER,
-      repo: REPO_NAME,
-      path: 'activity-log.json',
-      ref: 'main'
-    });
+    let activities = [];
+    let sha = null;
 
-    const activityLog = JSON.parse(
-      Buffer.from(activityFile.content, 'base64').toString('utf-8')
-    );
+    try {
+      // Get current activity log
+      const { data: activityFile } = await octokit.repos.getContent({
+        owner: REPO_OWNER,
+        repo: REPO_NAME,
+        path: 'activity-log.json',
+        ref: 'main'
+      });
+
+      const parsed = JSON.parse(
+        Buffer.from(activityFile.content, 'base64').toString('utf-8')
+      );
+
+      // Handle both formats: flat array or object with activities property
+      activities = Array.isArray(parsed) ? parsed : (parsed.activities || []);
+      sha = activityFile.sha;
+    } catch (error) {
+      if (error.status !== 404) {
+        console.error('Failed to read activity log:', error.message);
+      }
+      // If file doesn't exist or can't be read, start with empty array
+    }
 
     // Add new activity
-    activityLog.activities.unshift({
+    activities.unshift({
       id: Date.now().toString(),
       action: action,
       description: description,
       files: files,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      status: 'completed'
     });
 
-    // Keep only last 50 activities
-    if (activityLog.activities.length > 50) {
-      activityLog.activities = activityLog.activities.slice(0, 50);
+    // Keep only last 100 activities (consistent with chat.js)
+    if (activities.length > 100) {
+      activities = activities.slice(0, 100);
     }
 
-    // Update activity log
-    await octokit.repos.createOrUpdateFileContents({
+    // Update activity log - save as flat array
+    const updateParams = {
       owner: REPO_OWNER,
       repo: REPO_NAME,
       path: 'activity-log.json',
       message: `[Activity Log] ${action}: ${description}`,
-      content: Buffer.from(JSON.stringify(activityLog, null, 2)).toString('base64'),
-      sha: activityFile.sha,
+      content: Buffer.from(JSON.stringify(activities, null, 2)).toString('base64'),
       branch: 'main'
-    });
+    };
+
+    if (sha) updateParams.sha = sha;
+
+    await octokit.repos.createOrUpdateFileContents(updateParams);
   } catch (error) {
     console.error('Failed to log activity:', error.message);
   }

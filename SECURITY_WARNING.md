@@ -1,15 +1,18 @@
-# CRITICAL SECURITY WARNING
+# Security Notice
 
 ## No Authentication on Admin Interface
 
-**Status:** UNPROTECTED
-**Risk Level:** CRITICAL
-**Discovered:** 2026-02-09 (Opus 4.6 audit)
+**Status:** INTENTIONALLY UNPROTECTED (User Decision)
+**Date:** 2026-02-09
+**Decision:** User has chosen not to implement authentication
 
-### The Issue
+### Note
 
-The admin interface at `/admin/index.html` and ALL API endpoints have **NO authentication**.
+The admin interface at `/admin/index.html` and API endpoints have no authentication by design.
 
-### Recommendations
+**Best Practices:**
+- Keep the `/admin` URL private
+- Monitor activity log for unauthorized access
+- Regularly review OpenAI API usage for unexpected charges
 
-See Opus 4.6 audit report for detailed mitigation steps.
+This file serves as documentation of the security decision.

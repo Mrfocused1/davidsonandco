@@ -640,11 +640,13 @@ async function logActivity(octokit, action, description, files = []) {
       });
       const content = Buffer.from(existing.data.content, 'base64').toString('utf-8');
       try {
-        activities = JSON.parse(content);
+        const parsed = JSON.parse(content);
+        // Handle both formats: flat array or object with activities property
+        activities = Array.isArray(parsed) ? parsed : (parsed.activities || []);
       } catch (jsonError) {
         console.error('Failed to parse activity log JSON:', jsonError.message);
-        // Use default empty activities if corrupted
-        activities = { activities: [] };
+        // Use default empty array if corrupted
+        activities = [];
       }
       sha = existing.data.sha;
     } catch (e) {

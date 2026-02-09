@@ -19,7 +19,10 @@ export default async function handler(req, res) {
       });
 
       const content = Buffer.from(response.data.content, 'base64').toString('utf-8');
-      const activities = JSON.parse(content);
+      const parsed = JSON.parse(content);
+
+      // Handle both formats: flat array or object with activities property
+      const activities = Array.isArray(parsed) ? parsed : (parsed.activities || []);
 
       return res.status(200).json({ activities });
     } catch (error) {
