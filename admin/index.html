@@ -525,7 +525,7 @@
             <img src="/secondary-logo.png" alt="Davidson" class="w-full h-full object-contain">
           </div>
           <div class="flex-1 bg-brand-charcoal rounded-2xl rounded-tl-none p-4 sm:p-5 border border-white/5 mr-8 sm:mr-12">
-            <p class="text-sm sm:text-base text-gray-300 leading-relaxed whitespace-pre-wrap">${escapeHtml(content)}</p>
+            <p class="text-sm sm:text-base text-gray-300 leading-relaxed whitespace-pre-wrap">${formatResponse(content)}</p>
           </div>
         `;
       }
@@ -804,21 +804,25 @@
           </div>
         `;
       } else {
-        // Create message structure for bot response
+        // Create message structure for bot response with formatted content (including links)
         const msgId = 'botMsg_' + Date.now();
         messageDiv.innerHTML = `
           <div class="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10">
             <img src="/secondary-logo.png" alt="Davidson" class="w-full h-full object-contain">
           </div>
           <div class="flex-1 bg-brand-charcoal rounded-2xl rounded-tl-none p-4 sm:p-5 border border-white/5 mr-8 sm:mr-12">
-            <p id="${msgId}" class="text-sm sm:text-base text-gray-300 leading-relaxed whitespace-pre-wrap blur-text-container"></p>
+            <p id="${msgId}" class="text-sm sm:text-base text-gray-300 leading-relaxed whitespace-pre-wrap" style="opacity: 0; transition: opacity 0.5s ease-in;">${formatResponse(content)}</p>
           </div>
         `;
         chatContainer.appendChild(messageDiv);
 
-        // Apply blur animation to bot response
+        // Simple fade-in animation (supports HTML links unlike character-by-character animation)
         const textElement = document.getElementById(msgId);
-        animateTextBlur(textElement, content, 0);
+        if (textElement) {
+          setTimeout(() => {
+            textElement.style.opacity = '1';
+          }, 50);
+        }
         scrollToBottom();
         return;
       }
@@ -1243,7 +1247,8 @@
       return escapeHtml(text)
         .replace(/\*\*(.*?)\*\*/g, '<strong class="text-brand-white">$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code class="bg-brand-stone px-1 rounded text-brand-gold">$1</code>');
+        .replace(/`(.*?)`/g, '<code class="bg-brand-stone px-1 rounded text-brand-gold">$1</code>')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-brand-gold hover:text-brand-gold/80 underline transition-colors">$1</a>');
     }
 
     // Show deployment status indicator with visual feedback
