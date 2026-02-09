@@ -1176,8 +1176,6 @@ export default async function handler(req, res) {
             tool_choice: 'auto',
             temperature: 0.7,
             max_tokens: 4096,
-            // Enable thinking mode for complex tasks (Kimi feature)
-            ...(isComplex && model === 'kimi-k2.5' ? { thinking: { enabled: true } } : {})
           });
         });
         usedModel = model;
