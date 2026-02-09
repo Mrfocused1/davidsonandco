@@ -1660,14 +1660,28 @@ export default async function handler(req, res) {
           }
         } else if (msg.role !== 'system') {
           // Regular user/assistant message
+          // Ensure content is in the right format
+          let content = msg.content;
+          if (!content) {
+            console.warn('Message has no content:', msg);
+            i++;
+            continue;
+          }
+          // Anthropic accepts either string or array of content blocks
           result.push({
             role: msg.role,
-            content: typeof msg.content === 'string' ? msg.content : msg.content
+            content: content
           });
           i++;
         } else {
           i++; // Skip system messages (handled separately)
         }
+      }
+
+      // Anthropic requires at least one message
+      if (result.length === 0) {
+        console.error('❌ No messages after conversion!');
+        throw new Error('No valid messages to send to Anthropic');
       }
 
       return result;
