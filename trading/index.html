@@ -97,26 +97,26 @@
   </nav>
 
   <!-- SECTION 1: HERO - SPLIT SCREEN WITH IMAGE MASK REVEAL -->
-  <section id="hero" class="relative h-screen w-full overflow-hidden flex">
+  <section id="hero" class="relative h-screen w-full overflow-hidden flex flex-col md:flex-row">
     <!-- Left Side - Text -->
-    <div class="w-1/2 h-full bg-brand-black flex items-center justify-center relative z-10">
-      <div class="max-w-lg px-12">
+    <div class="w-full md:w-1/2 h-1/2 md:h-full bg-brand-black flex items-center justify-center relative z-10">
+      <div class="max-w-lg px-8 md:px-12">
         <div class="overflow-hidden mb-6">
-          <h1 id="hero-title" class="text-5xl md:text-7xl font-serif leading-tight">
+          <h1 id="hero-title" class="text-4xl sm:text-5xl md:text-7xl font-serif leading-tight text-brand-white">
             Strategic<br>
             <span class="text-gold-gradient">Property</span><br>
             Trading
           </h1>
         </div>
         <div class="h-[1px] w-0 bg-brand-gold mb-6" id="hero-line"></div>
-        <p id="hero-subtitle" class="font-sans text-gray-400 text-lg">
+        <p id="hero-subtitle" class="font-sans text-gray-400 text-base md:text-lg">
           Navigate London's prime property market with institutional-grade insight and discretion.
         </p>
       </div>
     </div>
 
     <!-- Right Side - Image with Mask -->
-    <div class="w-1/2 h-full relative">
+    <div class="w-full md:w-1/2 h-1/2 md:h-full relative">
       <div id="hero-image-mask" class="absolute inset-0" style="clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);">
         <img 
           src="https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
