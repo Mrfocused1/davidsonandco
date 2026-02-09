@@ -1,10 +1,42 @@
 // Webhook handler for Vercel deployment events
 // This receives instant notifications when deployments complete
+import crypto from 'crypto';
 
 export default async function handler(req, res) {
   // Verify this is a POST request
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Verify webhook signature
+  const webhookSecret = process.env.VERCEL_WEBHOOK_SECRET;
+  if (webhookSecret) {
+    const signature = req.headers['x-vercel-signature'];
+
+    if (!signature) {
+      console.warn('⚠️ Webhook request missing signature header');
+      return res.status(401).json({ error: 'Missing signature' });
+    }
+
+    try {
+      const body = JSON.stringify(req.body);
+      const expectedSignature = crypto
+        .createHmac('sha1', webhookSecret)
+        .update(body)
+        .digest('hex');
+
+      if (signature !== expectedSignature) {
+        console.error('❌ Webhook signature verification failed');
+        return res.status(401).json({ error: 'Invalid signature' });
+      }
+
+      console.log('✅ Webhook signature verified');
+    } catch (sigError) {
+      console.error('❌ Signature verification error:', sigError);
+      return res.status(401).json({ error: 'Signature verification failed' });
+    }
+  } else {
+    console.warn('⚠️ VERCEL_WEBHOOK_SECRET not configured - webhook authentication disabled');
   }
 
   try {
