@@ -793,6 +793,57 @@ function isPathSafe(filePath) {
   return { safe: true };
 }
 
+// SSRF protection: Validate URLs to block internal network access
+function isUrlSafe(urlString) {
+  try {
+    const url = new URL(urlString);
+
+    // Only allow HTTP and HTTPS protocols
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      return { safe: false, reason: 'Only HTTP and HTTPS protocols are allowed' };
+    }
+
+    // Block private IP ranges and localhost
+    const hostname = url.hostname.toLowerCase();
+
+    // Block localhost variations
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0') {
+      return { safe: false, reason: 'Cannot access localhost' };
+    }
+
+    // Block cloud metadata endpoints
+    if (hostname === '169.254.169.254' || hostname === 'metadata.google.internal') {
+      return { safe: false, reason: 'Cannot access cloud metadata endpoints' };
+    }
+
+    // Block private IP ranges (10.x.x.x, 172.16-31.x.x, 192.168.x.x)
+    const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+    const match = hostname.match(ipv4Regex);
+    if (match) {
+      const [, a, b, c, d] = match.map(Number);
+
+      // 10.0.0.0/8
+      if (a === 10) {
+        return { safe: false, reason: 'Cannot access private network (10.x.x.x)' };
+      }
+
+      // 172.16.0.0/12
+      if (a === 172 && b >= 16 && b <= 31) {
+        return { safe: false, reason: 'Cannot access private network (172.16-31.x.x)' };
+      }
+
+      // 192.168.0.0/16
+      if (a === 192 && b === 168) {
+        return { safe: false, reason: 'Cannot access private network (192.168.x.x)' };
+      }
+    }
+
+    return { safe: true };
+  } catch (error) {
+    return { safe: false, reason: 'Invalid URL format' };
+  }
+}
+
 // Call GitHub directly instead of through internal APIs
 async function executeFunction(name, args, octokit) {
   try {
@@ -1031,6 +1082,14 @@ async function executeFunction(name, args, octokit) {
 
       case 'fetch_url': {
         console.log(`Fetching URL: ${args.url}`);
+
+        // SECURITY: Validate URL to prevent SSRF
+        const urlCheck = isUrlSafe(args.url);
+        if (!urlCheck.safe) {
+          console.warn(`🚫 Blocked fetch_url attempt: ${args.url} - ${urlCheck.reason}`);
+          return { error: `Cannot fetch this URL: ${urlCheck.reason}` };
+        }
+
         try {
           // Add 8-second timeout to prevent indefinite hangs
           const controller = new AbortController();
