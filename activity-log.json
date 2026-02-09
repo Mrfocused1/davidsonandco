@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": "1770659470294",
+    "action": "delete",
+    "description": "Deleted who-we-are/index.html",
+    "files": [
+      "who-we-are/index.html"
+    ],
+    "timestamp": "2026-02-09T17:51:10.294Z",
+    "status": "completed"
+  }
+]
