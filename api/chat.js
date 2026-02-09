@@ -48,13 +48,29 @@ Before making changes:
 2. Ask: "Should we brainstorm this together, or shall I start and we tweak from there?"
 
 After completing a task, ALWAYS include:
-1. What you accomplished (1 sentence)
-2. How to access/use it - this is CRITICAL:
-   - For new pages: "Visit /pagename to see it" or "Navigate to yoursite.com/pagename"
-   - For edits: "Refresh the page to see the changes"
-   - For deleted items: "The page/file has been removed"
-   - For features: Brief explanation of how to use it
-3. Ask if they'd like any changes
+1. Checkmark showing success: ✅
+2. What you accomplished in PLAIN ENGLISH (1 sentence, no technical terms)
+3. How to access/use it - this is CRITICAL:
+   - For new pages: Provide a clickable link in markdown format: "[Click here to visit your new page](/pagename)"
+   - For edits: "Refresh your browser to see the changes (press F5)"
+   - For deleted items: "The page has been removed and is no longer accessible"
+   - For features: Brief, simple explanation of how to use it
+4. Ask if they'd like any changes
+
+BEGINNER-FRIENDLY LANGUAGE:
+- Use simple, plain English - NO technical jargon
+- Say "page" not "file" or "index.html"
+- Say "website" not "repository" or "deployment"
+- Say "refresh your browser" not "hard refresh" or "clear cache"
+- Assume the user is new to web development
+
+ERROR HANDLING - CRITICAL:
+When something goes wrong or an error occurs:
+1. Start with: "Something went wrong, but don't worry - this happens sometimes."
+2. Explain what happened in SIMPLE terms (no error codes or technical details)
+3. Tell the user: "Please take a screenshot of this conversation and send it to your admin. They'll be able to see what happened and fix it for you."
+4. Never show raw error messages, stack traces, or technical details to the user
+5. Always be reassuring and friendly - errors are normal and fixable
 
 RULES:
 - Maximum 3-4 sentences per response
@@ -67,10 +83,13 @@ User: "I want a contact us page"
 You: "Great idea! Should we brainstorm this together, or shall I start and we tweak from there?"
 
 User: "Just start"
-You: "Done! I've created a contact page with a form, your address, and phone number. Visit /contact to see it. Let me know if you'd like any changes."
+You: "✅ Done! I've created your contact page with a form, address, and phone number. [Click here to visit your new contact page](/contact) Let me know if you'd like any changes."
 
 User: "Delete the partner page"
-You: "I've prepared to delete the partner page. Click the delete button to confirm removal. The /partner URL will no longer be accessible after deletion."
+You: "I've prepared to delete the partner page. Click the delete button to confirm removal. The page will no longer be accessible after deletion."
+
+Example of error:
+If something fails: "Something went wrong, but don't worry - this happens sometimes. I wasn't able to save the page. Please take a screenshot of this conversation and send it to your admin. They'll be able to see what happened and fix it for you."
 
 DELETION WORKFLOW - CRITICAL:
 You CANNOT delete files directly. When a user asks to delete a page or file:
@@ -1444,29 +1463,29 @@ export default async function handler(req, res) {
     console.error('Chat API error:', error);
     console.error('Error stack:', error.stack);
 
-    // Provide more specific error messages
+    // Provide beginner-friendly error messages with screenshot guidance
     let errorMessage = 'Failed to process request';
-    let userFriendlyMessage = 'I encountered an issue. Please try again.';
+    let userFriendlyMessage = 'Something went wrong, but don\'t worry - this happens sometimes. I wasn\'t able to complete that task. Please take a screenshot of this conversation and send it to your admin. They\'ll be able to see what happened and help fix it.';
 
     const errMsg = error.message?.toLowerCase() || '';
     const errCode = error.code || '';
 
     if (errMsg.includes('timeout') || errCode === 'ETIMEDOUT' || errCode === 'ECONNABORTED') {
-      userFriendlyMessage = 'The request took too long. Please try again with a simpler request.';
+      userFriendlyMessage = 'That task took longer than expected, so I had to stop. Please take a screenshot and send it to your admin so they can help.';
     } else if (errMsg.includes('rate') || error.status === 429) {
-      userFriendlyMessage = 'Too many requests. Please wait a moment and try again.';
+      userFriendlyMessage = 'I\'m getting too many requests right now. Please wait a minute and try again. If this keeps happening, take a screenshot and send it to your admin.';
     } else if (errMsg.includes('network') || errCode === 'ECONNREFUSED' || errCode === 'ENOTFOUND') {
-      userFriendlyMessage = 'Network connection issue. Please check your connection and try again.';
+      userFriendlyMessage = 'I\'m having trouble connecting. Please check your internet connection and try again. If it still doesn\'t work, take a screenshot and send it to your admin.';
     } else if (error.status === 401 || error.status === 403 || errMsg.includes('unauthorized') || errMsg.includes('forbidden')) {
-      userFriendlyMessage = 'Authentication issue with AI service. Please contact support.';
+      userFriendlyMessage = 'I don\'t have permission to do that right now. Please take a screenshot of this conversation and send it to your admin - they\'ll need to fix the permissions.';
     } else if (error.status >= 500 || errMsg.includes('internal server error')) {
-      userFriendlyMessage = 'The AI service is temporarily unavailable. Please try again in a moment.';
+      userFriendlyMessage = 'The system is having a temporary issue. Please wait a moment and try again. If it still doesn\'t work, take a screenshot and send it to your admin.';
     } else if (errMsg.includes('invalid') || errMsg.includes('bad request')) {
-      userFriendlyMessage = 'There was an issue processing your request. Please try rephrasing.';
+      userFriendlyMessage = 'I didn\'t quite understand that request. Try saying it differently. If you keep seeing this message, take a screenshot and send it to your admin.';
     } else if (errMsg.includes('model') || errMsg.includes('not found')) {
-      userFriendlyMessage = 'The AI model is currently unavailable. Please try again later.';
+      userFriendlyMessage = 'The system isn\'t available right now. Please try again in a few minutes. If it still doesn\'t work, take a screenshot and send it to your admin.';
     } else if (errMsg.includes('json') || errMsg.includes('parse')) {
-      userFriendlyMessage = 'There was an issue understanding the response. Please try again.';
+      userFriendlyMessage = 'I had trouble understanding the response. Please try again. If this keeps happening, take a screenshot and send it to your admin.';
     }
 
     return res.status(500).json({
