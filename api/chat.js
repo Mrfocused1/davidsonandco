@@ -1137,17 +1137,6 @@ export default async function handler(req, res) {
     let usedModel = null;
     let toolsEnabled = true;
 
-    // Detect if this is a complex task based on message content
-    const isComplexTask = (messages) => {
-      const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
-      const complexKeywords = ['create', 'generate', 'build', 'design', 'develop', 'implement', 'refactor'];
-      return complexKeywords.some(keyword => lastUserMessage.toLowerCase().includes(keyword));
-    };
-
-    const isComplex = isComplexTask(fullMessages);
-    if (isComplex) {
-      console.log('🧠 Complex task detected, will enable thinking mode for Kimi');
-    }
 
     // Use vision models if images are present, otherwise use regular models
     const modelsToTry = hasImages ? VISION_MODELS : MODELS;
@@ -1209,9 +1198,7 @@ export default async function handler(req, res) {
               model: model,
               messages: fullMessages,
               temperature: 0.7,
-              max_tokens: 4096,
-              // Enable thinking mode for complex tasks (Kimi feature)
-              ...(isComplex && model === 'kimi-k2.5' ? { thinking: { enabled: true } } : {})
+              max_tokens: 4096
             });
           });
           usedModel = model;
@@ -1243,9 +1230,7 @@ export default async function handler(req, res) {
               model: model,
               messages: textOnlyMessages,
               temperature: 0.7,
-              max_tokens: 4096,
-              // Enable thinking mode for complex tasks (Kimi feature)
-              ...(isComplex && model === 'kimi-k2.5' ? { thinking: { enabled: true } } : {})
+              max_tokens: 4096
             });
           });
           usedModel = model;
@@ -1385,9 +1370,7 @@ export default async function handler(req, res) {
             tools: tools,
             tool_choice: 'auto',
             temperature: 0.7,
-            max_tokens: 4096,
-            // Enable thinking mode for complex tasks (Kimi feature)
-            ...(isComplex && usedModel === 'kimi-k2.5' ? { thinking: { enabled: true } } : {})
+            max_tokens: 4096
           });
         });
 
