@@ -1,13 +1,6 @@
 import OpenAI from 'openai';
 import { Octokit } from '@octokit/rest';
-import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Get directory name in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.resolve(__dirname, '..');
 
 // Models to try in order of preference
 const MODELS = ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'];
@@ -781,6 +774,11 @@ const BLOCKED_PATTERNS = [
 const ALLOWED_EXTENSIONS = ['.html', '.css', '.js', '.json', '.md', '.txt', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'];
 
 function isPathSafe(filePath) {
+  // Check for path traversal
+  if (filePath.includes('..') || filePath.includes('//')) {
+    return { safe: false, reason: 'Path traversal detected' };
+  }
+
   // Check blocked patterns
   if (BLOCKED_PATTERNS.some(pattern => pattern.test(filePath))) {
     return { safe: false, reason: 'Path matches blocked pattern (api/, .env, etc.)' };
