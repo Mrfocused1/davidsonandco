@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join the Team | Davidson & Co London</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP & Plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .text-gold-gradient {
+      background: linear-gradient(to right, #D4AF37, #FEE180, #D4AF37);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shine 5s linear infinite;
+    }
+
+    @keyframes shine {
+      to {
+        background-position: 200% center;
+      }
+    }
+
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    .job-card {
+      opacity: 0;
+      transform: translateY(60px);
+    }
+
+    .benefit-item {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #080808;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #D4AF37;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body class="relative">
+  <!-- Grain Overlay -->
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center p-8 mix-blend-difference">
+    <a href="/"><img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10"></a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="/" class="text-xs tracking-widest hover:text-brand-gold transition-colors">HOME</a>
+      <a href="/join-the-team" class="text-xs tracking-widest text-brand-gold">JOIN THE TEAM</a>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section id="hero" class="relative h-screen w-full overflow-hidden flex items-center justify-center bg-brand-black">
+    <div class="absolute inset-0 z-0">
+      <video autoplay muted loop playsinline class="w-full h-full object-cover opacity-30 scale-110" id="hero-video">
+        <source src="https://videos.pexels.com/video-files/3252763/3252763-hd_1920_1080_25fps.mp4" type="video/mp4">
+      </video>
+      <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/50 to-brand-black"></div>
+    </div>
+
+    <div class="relative z-10 text-center max-w-4xl px-8">
+      <div class="overflow-hidden mb-6">
+        <p class="text-xs md:text-sm tracking-[0.4em] text-brand-gold transform translate-y-full" id="hero-tagline">CAREERS AT DAVIDSON & CO.</p>
+      </div>
+      <h1 class="text-5xl md:text-8xl font-serif font-bold tracking-tighter mb-8 overflow-hidden">
+        <span class="block transform translate-y-full" id="hero-title-1">Build Your</span>
+        <span class="block text-gold-gradient transform translate-y-full" id="hero-title-2">Legacy</span>
+      </h1>
+      <div class="h-[1px] w-0 bg-brand-gold mx-auto mb-8" id="hero-line"></div>
+      <p class="text-sm md:text-base font-sans text-gray-400 max-w-2xl mx-auto opacity-0 transform translate-y-8" id="hero-subtitle">
+        Join a team of exceptional professionals delivering world-class property services to London's most discerning clients.
+      </p>
+    </div>
+
+    <div class="absolute bottom-12 left-1/2 -translate-x-1/2 opacity-0" id="scroll-hint">
+      <div class="w-[1px] h-16 bg-brand-gold/30 mx-auto"></div>
+      <div class="w-1 h-1 bg-brand-gold rounded-full mt-2 animate-pulse"></div>
+    </div>
+  </section>
+
+  <!-- WHY JOIN US SECTION - STATS -->
+  <section id="why-join" class="py-32 bg-brand-charcoal relative">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="text-center mb-20">
+        <div class="w-[1px] h-20 bg-brand-gold mx-auto mb-8 scale-y-0" id="why-line"></div>
+        <h2 class="text-4xl md:text-6xl font-serif mb-6 opacity-0 transform translate-y-12" id="why-title">Why Join Us</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto opacity-0" id="why-subtitle">Experience a career defined by excellence, discretion, and opportunity.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="text-center p-8 border border-white/5 hover:border-brand-gold/30 transition-colors duration-500 stat-item opacity-0 transform translate-y-8">
+          <div class="text-5xl md:text-6xl font-serif text-brand-gold mb-4" data-count="15">0</div>
+          <p class="text-xs tracking-widest text-gray-400">YEARS OF EXCELLENCE</p>
+        </div>
+        <div class="text-center p-8 border border-white/5 hover:border-brand-gold/30 transition-colors duration-500 stat-item opacity-0 transform translate-y-8">
+          <div class="text-5xl md:text-6xl font-serif text-brand-gold mb-4" data-count="250">0</div>
+          <p class="text-xs tracking-widest text-gray-400">PROPERTIES MANAGED</p>
+        </div>
+        <div class="text-center p-8 border border-white/5 hover:border-brand-gold/30 transition-colors duration-500 stat-item opacity-0 transform translate-y-8">
+          <div class="text-5xl md:text-6xl font-serif text-brand-gold mb-4" data-count="50">0</div>
+          <p class="text-xs tracking-widest text-gray-400">TEAM MEMBERS</p>
+        </div>
+        <div class="text-center p-8 border border-white/5 hover:border-brand-gold/30 transition-colors duration-500 stat-item opacity-0 transform translate-y-8">
+          <div class="text-5xl md:text-6xl font-serif text-brand-gold mb-4" data-count="98">0</div>
+          <p class="text-xs tracking-widest text-gray-400">% CLIENT RETENTION</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPEN POSITIONS SECTION -->
+  <section id="positions" class="py-32 bg-brand-black relative">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16">
+        <div>
+          <div class="w-[1px] h-20 bg-brand-gold mb-8 scale-y-0" id="positions-line"></div>
+          <h2 class="text-4xl md:text-6xl font-serif opacity-0 transform translate-y-12" id="positions-title">Open Positions</h2>
+        </div>
+        <p class="text-gray-400 mt-6 md:mt-0 opacity-0" id="positions-subtitle">Discover your next opportunity</p>
+      </div>
+
+      <div class="space-y-6">
+        <!-- Position 1 -->
+        <div class="job-card group border border-white/5 hover:border-brand-gold/50 transition-all duration-500 p-8 md:p-12 cursor-pointer">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div class="flex-1">
+              <div class="flex items-center gap-4 mb-4">
+                <span class="text-xs tracking-widest text-brand-gold bg-brand-gold/10 px-3 py-1">FULL-TIME</span>
+                <span class="text-xs tracking-widest text-gray-500">LONDON</span>
+              </div>
+              <h3 class="text-2xl md:text-3xl font-serif mb-3 group-hover:text-brand-gold transition-colors">Senior Property Consultant</h3>
+              <p class="text-gray-400 text-sm">Lead high-value residential transactions and provide strategic advisory to elite clientele. Minimum 7 years experience in prime central London market required.</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-brand-gold text-sm">£80,000 - £120,000</span>
+              <div class="w-12 h-12 border border-white/20 group-hover:border-brand-gold group-hover:bg-brand-gold group-hover:text-brand-black transition-all duration-300 flex items-center justify-center">
+                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Position 2 -->
+        <div class="job-card group border border-white/5 hover:border-brand-gold/50 transition-all duration-500 p-8 md:p-12 cursor-pointer">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div class="flex-1">
+              <div class="flex items-center gap-4 mb-4">
+                <span class="text-xs tracking-widest text-brand-gold bg-brand-gold/10 px-3 py-1">FULL-TIME</span>
+                <span class="text-xs tracking-widest text-gray-500">LONDON</span>
+              </div>
+              <h3 class="text-2xl md:text-3xl font-serif mb-3 group-hover:text-brand-gold transition-colors">Property Manager</h3>
+              <p class="text-gray-400 text-sm">Oversee day-to-day management of a portfolio of luxury residential properties. Ensure exceptional service delivery and maintain client relationships.</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-brand-gold text-sm">£45,000 - £65,000</span>
+              <div class="w-12 h-12 border border-white/20 group-hover:border-brand-gold group-hover:bg-brand-gold group-hover:text-brand-black transition-all duration-300 flex items-center justify-center">
+                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Position 3 -->
+        <div class="job-card group border border-white/5 hover:border-brand-gold/50 transition-all duration-500 p-8 md:p-12 cursor-pointer">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div class="flex-1">
+              <div class="flex items-center gap-4 mb-4">
+                <span class="text-xs tracking-widest text-brand-gold bg-brand-gold/10 px-3 py-1">FULL-TIME</span>
+                <span class="text-xs tracking-widest text-gray-500">LONDON</span>
+              </div>
+              <h3 class="text-2xl md:text-3xl font-serif mb-3 group-hover:text-brand-gold transition-colors">Lettings Negotiator</h3>
+              <p class="text-gray-400 text-sm">Source and secure tenants for prime residential properties. Manage viewings, negotiations, and tenancy agreements with discretion and professionalism.</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-brand-gold text-sm">£35,000 - £50,000 + Commission</span>
+              <div class="w-12 h-12 border border-white/20 group-hover:border-brand-gold group-hover:bg-brand-gold group-hover:text-brand-black transition-all duration-300 flex items-center justify-center">
+                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Position 4 -->
+        <div class="job-card group border border-white/5 hover:border-brand-gold/50 transition-all duration-500 p-8 md:p-12 cursor-pointer">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div class="flex-1">
+              <div class="flex items-center gap-4 mb-4">
+                <span class="text-xs tracking-widest text-brand-gold bg-brand-gold/10 px-3 py-1">PART-TIME</span>
+                <span class="text-xs tracking-widest text-gray-500">REMOTE</span>
+              </div>
+              <h3 class="text-2xl md:text-3xl font-serif mb-3 group-hover:text-brand-gold transition-colors">Marketing Coordinator</h3>
+              <p class="text-gray-400 text-sm">Support the marketing team with property listings, social media, and brand communications. Creative flair and attention to detail essential.</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-brand-gold text-sm">£25,000 - £32,000 Pro-Rata</span>
+              <div class="w-12 h-12 border border-white/20 group-hover:border-brand-gold group-hover:bg-brand-gold group-hover:text-brand-black transition-all duration-300 flex items-center justify-center">
+                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CULTURE SECTION - HORIZONTAL SCROLL -->
+  <section id="culture-wrapper" class="h-screen bg-brand-stone overflow-hidden relative">
+    <div class="absolute top-10 left-10 z-20">
+      <span class="text-xs tracking-widest text-brand-gold/50 uppercase">Our Culture</span>
+    </div>
+
+    <div id="culture-track" class="flex h-full w-[500vw]">
+      <!-- Culture 1 -->
+      <div class="w-screen h-full flex flex-col justify-center items-center border-r border-white/5 relative px-8">
+        <h3 class="text-6xl md:text-9xl font-serif text-brand-white/10 absolute">EXCELLENCE</h3>
+        <div class="relative z-10 max-w-2xl text-center">
+          <h4 class="text-3xl md:text-4xl font-serif mb-6">Uncompromising Standards</h4>
+          <p class="text-gray-400 leading-relaxed">We believe in delivering nothing less than exceptional. Every interaction, every detail, every outcome reflects our commitment to excellence.</p>
+        </div>
+      </div>
+
+      <!-- Culture 2 -->
+      <div class="w-screen h-full flex flex-col justify-center items-center border-r border-white/5 relative px-8">
+        <h3 class="text-6xl md:text-9xl font-serif text-brand-white/10 absolute">DISCRETION</h3>
+        <div class="relative z-10 max-w-2xl text-center">
+          <h4 class="text-3xl md:text-4xl font-serif mb-6">Privacy First</h4>
+          <p class="text-gray-400 leading-relaxed">Our clients trust us with their most valuable assets. We honor that trust with absolute discretion and unwavering confidentiality in all matters.</p>
+        </div>
+      </div>
+
+      <!-- Culture 3 -->
+      <div class="w-screen h-full flex flex-col justify-center items-center border-r border-white/5 relative px-8">
+        <h3 class="text-6xl md:text-9xl font-serif text-brand-white/10 absolute">GROWTH</h3>
+        <div class="relative z-10 max-w-2xl text-center">
+          <h4 class="text-3xl md:text-4xl font-serif mb-6">Continuous Development</h4>
+          <p class="text-gray-400 leading-relaxed">We invest in our team's growth through training, mentorship, and clear career progression pathways. Your success is our success.</p>
+        </div>
+      </div>
+
+      <!-- Culture 4 -->
+      <div class="w-screen h-full flex flex-col justify-center items-center border-r border-white/5 relative px-8">
+        <h3 class="text-6xl md:text-9xl font-serif text-brand-white/10 absolute">COLLABORATION</h3>
+        <div class="relative z-10 max-w-2xl text-center">
+          <h4 class="text-3xl md:text-4xl font-serif mb-6">Stronger Together</h4>
+          <p class="text-gray-400 leading-relaxed">We work as one team, sharing knowledge and supporting each other. Collective expertise drives our outstanding results.</p>
+        </div>
+      </div>
+
+      <!-- Culture 5 -->
+      <div class="w-screen h-full flex flex-col justify-center items-center relative px-8">
+        <h3 class="text-6xl md:text-9xl font-serif text-brand-white/10 absolute">INTEGRITY</h3>
+        <div class="relative z-10 max-w-2xl text-center">
+          <h4 class="text-3xl md:text-4xl font-serif mb-6">Honest & Transparent</h4>
+          <p class="text-gray-400 leading-relaxed">We conduct business with the highest ethical standards. Trust is earned through consistent honesty and transparency in all our dealings.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="absolute bottom-10 right-10 flex items-center gap-4">
+      <span class="text-[10px] tracking-[0.2em] uppercase opacity-60">Scroll to Explore</span>
+      <div class="w-12 h-[1px] bg-white/20"></div>
+    </div>
+  </section>
+
+  <!-- BENEFITS SECTION -->
+  <section id="benefits" class="py-32 bg-brand-charcoal relative">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="text-center mb-20">
+        <div class="w-[1px] h-20 bg-brand-gold mx-auto mb-8 scale-y-0" id="benefits-line"></div>
+        <h2 class="text-4xl md:text-6xl font-serif mb-6 opacity-0 transform translate-y-12" id="benefits-title">Benefits & Perks</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto opacity-0" id="benefits-subtitle">We take care of our team</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="benefit-item p-8 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group">
+          <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center mb-6 group-hover:border-brand-gold transition-colors">
+            <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h4 class="text-xl font-serif mb-3">Competitive Salary</h4>
+          <p class="text-gray-400 text-sm">Industry-leading compensation packages with performance-based bonuses.</p>
+        </div>
+
+        <div class="benefit-item p-8 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group">
+          <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center mb-6 group-hover:border-brand-gold transition-colors">
+            <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+          </div>
+          <h4 class="text-xl font-serif mb-3">Private Healthcare</h4>
+          <p class="text-gray-400 text-sm">Comprehensive health insurance including dental and vision coverage.</p>
+        </div>
+
+        <div class="benefit-item p-8 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group">
+          <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center mb-6 group-hover:border-brand-gold transition-colors">
+            <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+          </div>
+          <h4 class="text-xl font-serif mb-3">Professional Development</h4>
+          <p class="text-gray-400 text-sm">Regular training programs and qualifications sponsorship.</p>
+        </div>
+
+        <div class="benefit-item p-8 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group">
+          <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center mb-6 group-hover:border-brand-gold transition-colors">
+            <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <h4 class="text-xl font-serif mb-3">Generous Holiday</h4>
+          <p class="text-gray-400 text-sm">28 days annual leave plus bank holidays and birthday leave.</p>
+        </div>
+
+        <div class="benefit-item p-8 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group">
+          <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center mb-6 group-hover:border-brand-gold transition-colors">
+            <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+          </div>
+          <h4 class="text-xl font-serif mb-3">Hybrid Working</h4>
+          <p class="text-gray-400 text-sm">Flexible working arrangements with office and remote options.</p>
+        </div>
+
+        <div class="benefit-item p-8 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group">
+          <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center mb-6 group-hover:border-brand-gold transition-colors">
+            <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <h4 class="text-xl font-serif mb-3">Pension Scheme</h4>
+          <p class="text-gray-400 text-sm">Contributory pension plan with employer matching up to 5%.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPLICATION FORM SECTION -->
+  <section id="application" class="py-32 bg-brand-black relative">
+    <div class="max-w-4xl mx-auto px-8">
+      <div class="text-center mb-16">
+        <div class="w-[1px] h-20 bg-brand-gold mx-auto mb-8 scale-y-0" id="application-line"></div>
+        <h2 class="text-4xl md:text-6xl font-serif mb-6 opacity-0 transform translate-y-12" id="application-title">Submit Your Application</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto opacity-0" id="application-subtitle">Join our exceptional team</p>
+      </div>
+
+      <form id="applicationForm" class="space-y-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="group relative opacity-0 transform translate-y-8" id="form-name">
+            <input type="text" id="applicantName" required
+              class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white placeholder-gray-600"
+              placeholder="First Name">
+          </div>
+          <div class="group relative opacity-0 transform translate-y-8" id="form-surname">
+            <input type="text" id="applicantSurname" required
+              class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white placeholder-gray-600"
+              placeholder="Last Name">
+          </div>
+        </div>
+
+        <div class="group relative opacity-0 transform translate-y-8" id="form-email">
+          <input type="email" id="applicantEmail" required
+            class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white placeholder-gray-600"
+            placeholder="Email Address">
+        </div>
+
+        <div class="group relative opacity-0 transform translate-y-8" id="form-phone">
+          <input type="tel" id="applicantPhone"
+            class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white placeholder-gray-600"
+            placeholder="Phone Number">
+        </div>
+
+        <div class="group relative opacity-0 transform translate-y-8" id="form-position">
+          <select id="position"
+            class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-gray-400">
+            <option value="">Select Position</option>
+            <option value="Senior Property Consultant">Senior Property Consultant</option>
+            <option value="Property Manager">Property Manager</option>
+            <option value="Lettings Negotiator">Lettings Negotiator</option>
+            <option value="Marketing Coordinator">Marketing Coordinator</option>
+            <option value="General Application">General Application</option>
+          </select>
+        </div>
+
+        <div class="group relative opacity-0 transform translate-y-8" id="form-cover">
+          <textarea id="coverLetter" rows="4"
+            class="w-full bg-transparent border-b border-white/20 py-4 outline-none focus:border-brand-gold transition-colors text-white placeholder-gray-600 resize-none"
+            placeholder="Tell us about yourself and why you'd like to join Davidson & Co."></textarea>
+        </div>
+
+        <div class="group relative opacity-0 transform translate-y-8" id="form-cv">
+          <label class="block text-xs tracking-widest text-brand-gold mb-4">UPLOAD CV (PDF)</label>
+          <div class="border-2 border-dashed border-white/20 hover:border-brand-gold/50 transition-colors p-8 text-center cursor-pointer">
+            <input type="file" id="cvUpload" accept=".pdf" class="hidden">
+            <p class="text-gray-400 text-sm" id="cv-label">Click to upload or drag and drop</p>
+          </div>
+        </div>
+
+        <div class="text-center opacity-0 transform translate-y-8" id="form-submit">
+          <button type="submit"
+            class="px-12 py-4 border border-brand-gold/30 text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-500">
+            SUBMIT APPLICATION
+          </button>
+        </div>
+      </form>
+
+      <script>
+        // File upload label update
+        document.getElementById('cvUpload').addEventListener('change', function(e) {
+          const fileName = e.target.files[0]?.name || 'Click to upload or drag and drop';
+          document.getElementById('cv-label').textContent = fileName;
+        });
+
+        // Form submission
+        document.getElementById('applicationForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+
+          const name = document.getElementById('applicantName').value;
+          const surname = document.getElementById('applicantSurname').value;
+          const email = document.getElementById('applicantEmail').value;
+          const phone = document.getElementById('applicantPhone').value || 'Not provided';
+          const position = document.getElementById('position').value || 'General Application';
+          const coverLetter = document.getElementById('coverLetter').value || 'Not provided';
+
+          const subject = encodeURIComponent(`Job Application - ${position} - ${name} ${surname}`);
+          const body = encodeURIComponent(
+            `Name: ${name} ${surname}\n` +
+            `Email: ${email}\n` +
+            `Phone: ${phone}\n` +
+            `Position: ${position}\n\n` +
+            `Cover Letter:\n${coverLetter}\n\n` +
+            `---\n` +
+            `This application was submitted via the Davidson & Co. website.`
+          );
+
+          const mailtoLink = `mailto:careers@davidsoncolondon.com?subject=${subject}&body=${body}`;
+          window.location.href = mailtoLink;
+        });
+      </script>
+    </div>
+  </section>
+
+  <!-- CTA SECTION -->
+  <section id="cta" class="py-32 bg-brand-charcoal relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+      <img src="https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" class="w-full h-full object-cover grayscale">
+    </div>
+    <div class="relative z-10 max-w-4xl mx-auto px-8 text-center">
+      <h2 class="text-4xl md:text-6xl font-serif mb-8 opacity-0 transform translate-y-12" id="cta-title">Ready to Make Your Mark?</h2>
+      <p class="text-gray-400 mb-12 opacity-0" id="cta-subtitle">Take the first step towards an exceptional career with Davidson & Co. London.</p>
+      <div class="flex flex-col sm:flex-row gap-6 justify-center opacity-0 transform translate-y-8" id="cta-buttons">
+        <a href="#positions" class="px-8 py-4 bg-brand-gold text-brand-black text-xs tracking-[0.2em] hover:bg-white transition-colors duration-300">
+          VIEW POSITIONS
+        </a>
+        <a href="#application" class="px-8 py-4 border border-brand-gold/30 text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-colors duration-300">
+          APPLY NOW
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer id="footer" class="bg-black text-white/40 py-24 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start">
+      <div class="mb-12 md:mb-0">
+        <a href="/"><img src="/logo.png" alt="Davidson & Co." class="h-12 mb-4"></a>
+      </div>
+      <div class="flex gap-16 text-xs font-sans tracking-widest">
+        <div>
+          <h6 class="text-white mb-4">NAVIGATION</h6>
+          <ul class="space-y-2">
+            <li><a href="/" class="hover:text-brand-gold transition-colors">Home</a></li>
+            <li><a href="/join-the-team" class="hover:text-brand-gold transition-colors">Join the Team</a></li>
+          </ul>
+        </div>
+        <div>
+          <h6 class="text-white mb-4">CONTACT</h6>
+          <ul class="space-y-2">
+            <li><a href="tel:+442080544065" class="hover:text-brand-gold transition-colors">020 8054 4065</a></li>
+            <li><a href="mailto:careers@davidsoncolondon.com" class="hover:text-brand-gold transition-colors">careers@davidsoncolondon.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-24 opacity-20 font-sans">
+      © 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.
+    </div>
+  </footer>
+
+  <!-- SCRIPT -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+      // --- HERO ANIMATION ---
+      const heroTl = gsap.timeline();
+      
+      heroTl
+        .to("#hero-tagline", { y: 0, duration: 1.2, ease: "power3.out" })
+        .to("#hero-title-1", { y: 0, duration: 1.2, ease: "power3.out" }, "-=0.8")
+        .to("#hero-title-2", { y: 0, duration: 1.2, ease: "power3.out" }, "-=1")
+        .to("#hero-line", { width: "120px", duration: 1.5, ease: "power2.inOut" }, "-=0.5")
+        .to("#hero-subtitle", { opacity: 1, y: 0, duration: 1, ease: "power2.out" }, "-=0.8")
+        .to("#scroll-hint", { opacity: 1, duration: 1, ease: "power2.out" }, "-=0.3");
+
+      // --- WHY JOIN SECTION ---
+      const whyTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#why-join",
+          start: "top 70%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      whyTl
+        .to("#why-line", { scaleY: 1, duration: 1, ease: "power2.out" })
+        .to("#why-title", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.5")
+        .to("#why-subtitle", { opacity: 1, duration: 0.8, ease: "power2.out" }, "-=0.6");
+
+      // Stats counter animation
+      gsap.utils.toArray(".stat-item").forEach((stat, i) => {
+        const counter = stat.querySelector("[data-count]");
+        const target = parseInt(counter.getAttribute("data-count"));
+        
+        gsap.to(stat, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: stat,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          },
+          delay: i * 0.1
+        });
+
+        gsap.to(counter, {
+          textContent: target,
+          duration: 2,
+          ease: "power1.out",
+          snap: { textContent: 1 },
+          scrollTrigger: {
+            trigger: stat,
+            start: "top 85%"
+          }
+        });
+      });
+
+      // --- OPEN POSITIONS SECTION ---
+      const positionsTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#positions",
+          start: "top 70%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      positionsTl
+        .to("#positions-line", { scaleY: 1, duration: 1, ease: "power2.out" })
+        .to("#positions-title", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.5")
+        .to("#positions-subtitle", { opacity: 1, duration: 0.8, ease: "power2.out" }, "-=0.6");
+
+      // Job cards stagger animation
+      gsap.to(".job-card", {
+        opacity: 1,
+        y: 0,
+        stagger: 0.2,
+        duration: 1,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: "#positions",
+          start: "top 60%"
+        }
+      });
+
+      // --- CULTURE HORIZONTAL SCROLL ---
+      const cultureSection = document.getElementById("culture-wrapper");
+      const cultureTrack = document.getElementById("culture-track");
+
+      gsap.to(cultureTrack, {
+        xPercent: -80,
+        ease: "none",
+        scrollTrigger: {
+          trigger: cultureSection,
+          pin: true,
+          scrub: 1,
+          end: "+=3000"
+        }
+      });
+
+      // --- BENEFITS SECTION ---
+      const benefitsTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#benefits",
+          start: "top 70%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      benefitsTl
+        .to("#benefits-line", { scaleY: 1, duration: 1, ease: "power2.out" })
+        .to("#benefits-title", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.5")
+        .to("#benefits-subtitle", { opacity: 1, duration: 0.8, ease: "power2.out" }, "-=0.6");
+
+      // Benefits items stagger animation
+      gsap.to(".benefit-item", {
+        opacity: 1,
+        scale: 1,
+        stagger: 0.1,
+        duration: 0.8,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: "#benefits",
+          start: "top 60%"
+        }
+      });
+
+      // --- APPLICATION FORM ---
+      const applicationTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#application",
+          start: "top 70%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      applicationTl
+        .to("#application-line", { scaleY: 1, duration: 1, ease: "power2.out" })
+        .to("#application-title", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.5")
+        .to("#application-subtitle", { opacity: 1, duration: 0.8, ease: "power2.out" }, "-=0.6");
+
+      // Form fields stagger animation
+      gsap.to(["#form-name", "#form-surname", "#form-email", "#form-phone", "#form-position", "#form-cover", "#form-cv", "#form-submit"], {
+        opacity: 1,
+        y: 0,
+        stagger: 0.1,
+        duration: 0.8,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: "#application",
+          start: "top 60%"
+        }
+      });
+
+      // --- CTA SECTION ---
+      const ctaTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#cta",
+          start: "top 70%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      ctaTl
+        .to("#cta-title", { opacity: 1, y: 0, duration: 1, ease: "power3.out" })
+        .to("#cta-subtitle", { opacity: 1, duration: 0.8, ease: "power2.out" }, "-=0.6")
+        .to("#cta-buttons", { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, "-=0.4");
+
+      // --- FOOTER REVEAL ---
+      gsap.from("footer", {
+        opacity: 0,
+        y: 60,
+        duration: 1.2,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: "footer",
+          start: "top 90%"
+        }
+      });
+
+    });
+  </script>
+</body>
+
+</html>
