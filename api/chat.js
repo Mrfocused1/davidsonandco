@@ -2,11 +2,11 @@ import OpenAI from 'openai';
 import { Octokit } from '@octokit/rest';
 import path from 'path';
 
-// Models to try in order of preference
-const MODELS = ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'];
+// Models to try in order of preference (GLM-4.7 variants)
+const MODELS = ['glm-4.7', 'glm-4.7-FlashX', 'glm-4.7-Flash'];
 
-// Vision model for handling image inputs
-const VISION_MODELS = ['gpt-4o', 'gpt-4-turbo'];
+// Vision model for handling image inputs (GLM-4.7 supports vision)
+const VISION_MODELS = ['glm-4.7'];
 
 // GitHub config
 const REPO_OWNER = 'Mrfocused1';
@@ -15,9 +15,10 @@ const REPO_NAME = 'davidsonandco';
 // Site URL config (configurable via environment variable)
 const SITE_URL = process.env.SITE_URL || 'https://davidsoncolondon.com';
 
-// Initialize OpenAI client
-const openaiClient = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Initialize GLM client using OpenAI SDK (GLM is OpenAI-compatible)
+const glmClient = new OpenAI({
+  apiKey: process.env.GLM_API_KEY,
+  baseURL: 'https://api.z.ai/api/paas/v4/',
   timeout: 280000,        // 280 seconds (20s safety margin from 300s Vercel limit)
   maxRetries: 1,          // Reduce retries, rely on our custom retry logic instead
   defaultHeaders: {
@@ -1549,8 +1550,8 @@ export default async function handler(req, res) {
   };
 
   // Check for required environment variables
-  if (!process.env.OPENAI_API_KEY) {
-    console.error('OPENAI_API_KEY environment variable not set');
+  if (!process.env.GLM_API_KEY) {
+    console.error('GLM_API_KEY environment variable not set');
     return res.status(500).json({
       error: 'API key not configured',
       message: 'The AI service is not properly configured. Please contact support.'
@@ -1636,7 +1637,7 @@ export default async function handler(req, res) {
         console.log(`[TIMING] LLM API call started at ${llmStartTime - REQUEST_START_TIME}ms`);
         console.log(`Trying model: ${model} with tools ${hasImages ? '(VISION MODE)' : ''}`);
         response = await retryWithBackoff(async () => {
-          return await openaiClient.chat.completions.create({
+          return await glmClient.chat.completions.create({
             model: model,
             messages: fullMessages,
             tools: tools,
@@ -1672,7 +1673,7 @@ export default async function handler(req, res) {
         try {
           console.log(`Trying model: ${model} without tools ${hasImages ? '(VISION MODE)' : ''}`);
           response = await retryWithBackoff(async () => {
-            return await openaiClient.chat.completions.create({
+            return await glmClient.chat.completions.create({
               model: model,
               messages: fullMessages,
               temperature: 0.7,
@@ -1704,7 +1705,7 @@ export default async function handler(req, res) {
         try {
           console.log(`Trying text model fallback: ${model}`);
           response = await retryWithBackoff(async () => {
-            return await openaiClient.chat.completions.create({
+            return await glmClient.chat.completions.create({
               model: model,
               messages: textOnlyMessages,
               temperature: 0.7,
@@ -1847,7 +1848,7 @@ export default async function handler(req, res) {
         const llmStartTime2 = Date.now();
         console.log(`[TIMING] Second LLM API call started at ${llmStartTime2 - REQUEST_START_TIME}ms`);
         response = await retryWithBackoff(async () => {
-          return await openaiClient.chat.completions.create({
+          return await glmClient.chat.completions.create({
             model: usedModel,
             messages: fullMessages,
             tools: tools,
