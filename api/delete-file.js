@@ -128,13 +128,24 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { path: filePath } = req.body;
+  let { path: filePath } = req.body;
 
   if (!filePath) {
     return res.status(400).json({
       success: false,
       error: 'File path is required'
     });
+  }
+
+  // Sanitize: if path has extra characters after a known extension, truncate
+  // This prevents bugs like "index.htmlClick" being rejected
+  const extMatch = filePath.match(/^(.+\.(html|css|js|json|md|txt|png|jpg|jpeg|gif|svg|webp))/i);
+  if (extMatch) {
+    const cleanPath = extMatch[1];
+    if (cleanPath !== filePath) {
+      console.warn(`Path sanitized: "${filePath}" -> "${cleanPath}"`);
+      filePath = cleanPath;
+    }
   }
 
   // SECURITY: Validate file path
@@ -157,47 +168,82 @@ export default async function handler(req, res) {
 
     console.log(`Deleting file: ${filePath}`);
 
-    // Get the file's SHA (required for deletion)
-    let fileSha;
-    try {
-      const { data } = await octokit.repos.getContent({
-        owner: REPO_OWNER,
-        repo: REPO_NAME,
-        path: filePath,
-        ref: 'main'
-      });
-      fileSha = data.sha;
-    } catch (err) {
-      if (err.status === 404) {
-        return res.status(404).json({
-          success: false,
-          error: 'File not found'
+    // Determine if this is a page directory (e.g., "page-name/index.html")
+    // If so, delete ALL files in the directory, not just index.html
+    const dirName = path.dirname(filePath);
+    const isPageDir = dirName !== '.' && path.basename(filePath) === 'index.html';
+    const filesToDelete = [];
+
+    if (isPageDir) {
+      // Try to list all files in the page directory
+      try {
+        const { data: dirContents } = await octokit.repos.getContent({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: dirName,
+          ref: 'main'
         });
+
+        if (Array.isArray(dirContents)) {
+          // Add all files in the directory for deletion
+          for (const item of dirContents) {
+            if (item.type === 'file') {
+              filesToDelete.push({ path: item.path, sha: item.sha });
+            }
+          }
+        }
+      } catch (err) {
+        // If we can't list the directory, fall back to single file deletion
+        console.warn(`Could not list directory ${dirName}, falling back to single file deletion`);
       }
-      throw err;
     }
 
-    // Delete the file from GitHub
-    await octokit.repos.deleteFile({
-      owner: REPO_OWNER,
-      repo: REPO_NAME,
-      path: filePath,
-      message: `[User Confirmed] Delete ${filePath}`,
-      sha: fileSha,
-      branch: 'main'
-    });
+    // If we didn't find directory contents, try the single file
+    if (filesToDelete.length === 0) {
+      try {
+        const { data } = await octokit.repos.getContent({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: filePath,
+          ref: 'main'
+        });
+        filesToDelete.push({ path: filePath, sha: data.sha });
+      } catch (err) {
+        if (err.status === 404) {
+          return res.status(404).json({
+            success: false,
+            error: 'File not found'
+          });
+        }
+        throw err;
+      }
+    }
 
-    console.log(`✅ Deleted from GitHub: ${filePath}`);
+    // Delete all files
+    const deletedPaths = [];
+    for (const file of filesToDelete) {
+      await octokit.repos.deleteFile({
+        owner: REPO_OWNER,
+        repo: REPO_NAME,
+        path: file.path,
+        message: `[User Confirmed] Delete ${file.path}`,
+        sha: file.sha,
+        branch: 'main'
+      });
+      deletedPaths.push(file.path);
+      console.log(`Deleted from GitHub: ${file.path}`);
+    }
 
-    // Note: Local filesystem operations removed (serverless environment)
+    console.log(`Deleted ${deletedPaths.length} file(s) for: ${filePath}`);
 
     // Log activity
-    await logActivity(octokit, 'delete', `Deleted ${filePath}`, [filePath]);
+    await logActivity(octokit, 'delete', `Deleted ${filePath}`, deletedPaths);
 
     return res.status(200).json({
       success: true,
-      message: `Successfully deleted ${filePath}`,
-      path: filePath
+      message: `Successfully deleted ${deletedPaths.length > 1 ? deletedPaths.length + ' files in ' + dirName : filePath}`,
+      path: filePath,
+      deletedFiles: deletedPaths
     });
   } catch (error) {
     console.error('Delete file error:', error);

@@ -1936,35 +1936,60 @@ export default async function handler(req, res) {
     const deleteMarker = 'DELETE_REQUEST:';
     if (finalMessage && finalMessage.includes(deleteMarker)) {
       const markerIndex = finalMessage.indexOf(deleteMarker);
-      const pathStart = markerIndex + deleteMarker.length;
+      const afterMarker = finalMessage.substring(markerIndex + deleteMarker.length);
 
-      // Extract path until we hit a space, newline, or non-path character
-      let pathEnd = finalMessage.length;
-      for (let i = pathStart; i < finalMessage.length; i++) {
-        const char = finalMessage[i];
-        // Stop at space, newline, or uppercase letter (likely start of new sentence)
-        if (char === ' ' || char === '\n' || char === '\r' || (char === char.toUpperCase() && char !== char.toLowerCase() && i > pathStart)) {
-          pathEnd = i;
-          break;
+      // Use regex to extract a valid file path: word-chars, slashes, hyphens, dots
+      // This stops at the FIRST character that isn't part of a file path
+      // Handles all edge cases:
+      //   "path/index.htmlClick..." -> captures "path/index.html" (stops at uppercase after .html)
+      //   "path/index.html Click..." -> captures "path/index.html" (stops at space)
+      //   "path/index.htmlclick..." -> captures "path/index.html" (regex truncates at .html boundary)
+      //   "path/index.html." -> captures "path/index.html"
+      const pathMatch = afterMarker.match(/^[\s]*([\w\-./]+\.html)/i);
+
+      let filePath = null;
+      let rawMatchLength = 0;
+
+      if (pathMatch) {
+        // Best case: we matched up to and including .html
+        filePath = pathMatch[1].trim();
+        rawMatchLength = pathMatch[0].length;
+      } else {
+        // Fallback: extract path-like characters and try to clean up
+        const fallbackMatch = afterMarker.match(/^[\s]*([\w\-./]+)/);
+        if (fallbackMatch) {
+          let rawPath = fallbackMatch[1];
+          // If it contains .html followed by extra chars, truncate at .html
+          const htmlIdx = rawPath.toLowerCase().indexOf('.html');
+          if (htmlIdx !== -1) {
+            rawPath = rawPath.substring(0, htmlIdx + 5); // ".html" is 5 chars
+          }
+          filePath = rawPath.trim();
+          rawMatchLength = fallbackMatch[0].length;
         }
       }
 
-      let filePath = finalMessage.substring(pathStart, pathEnd).trim();
+      if (filePath) {
+        // Final safety: remove any characters that aren't valid in file paths
+        filePath = filePath.replace(/[^a-zA-Z0-9\/\-_.]/g, '');
 
-      // Clean up the path - remove any trailing non-path characters
-      filePath = filePath.replace(/[^a-zA-Z0-9\/\-_.]/g, '');
+        // Remove the entire DELETE_REQUEST:path portion from the message
+        const fullMarkerText = finalMessage.substring(markerIndex, markerIndex + deleteMarker.length + rawMatchLength);
+        finalMessage = finalMessage.replace(fullMarkerText, '').trim();
 
-      // Remove the marker from the message
-      finalMessage = finalMessage.replace(deleteMarker + finalMessage.substring(pathStart, pathEnd), '').trim();
+        requestsDelete = {
+          path: filePath,
+          displayName: filePath.includes('/')
+            ? filePath.split('/')[0]
+            : filePath.replace('.html', '')
+        };
 
-      requestsDelete = {
-        path: filePath,
-        displayName: filePath.includes('/')
-          ? filePath.split('/')[0]
-          : filePath.replace('.html', '')
-      };
-
-      console.log('🗑️ Deletion requested:', requestsDelete);
+        console.log('Deletion requested:', requestsDelete);
+      } else {
+        console.warn('DELETE_REQUEST marker found but could not parse file path from:', afterMarker.substring(0, 100));
+        // Remove the broken marker from the message so user doesn't see it
+        finalMessage = finalMessage.replace(deleteMarker, '').trim();
+      }
     }
 
     const totalRequestTime = Date.now() - REQUEST_START_TIME;
