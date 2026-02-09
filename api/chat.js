@@ -569,23 +569,6 @@ const tools = [
   {
     type: 'function',
     function: {
-      name: 'deploy',
-      description: 'Deploy the current changes to the live website',
-      parameters: {
-        type: 'object',
-        properties: {
-          message: {
-            type: 'string',
-            description: 'Description of what was deployed'
-          }
-        },
-        required: ['message']
-      }
-    }
-  },
-  {
-    type: 'function',
-    function: {
       name: 'fetch_url',
       description: 'Fetch content from a URL to gather information, research designs, or get content for the website. Use this to browse the web for inspiration or information.',
       parameters: {
@@ -739,12 +722,12 @@ function isRetryableError(errorMessage) {
 }
 
 // Retry wrapper for tool execution with exponential backoff + jitter
-async function executeToolWithRetry(name, args, maxRetries = 2) {
+async function executeToolWithRetry(name, args, octokit, maxRetries = 2) {
   let lastError = null;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const result = await executeFunction(name, args);
+      const result = await executeFunction(name, args, octokit);
 
       // If result contains error, check if it's retryable
       if (result.error) {
@@ -813,9 +796,7 @@ function isPathSafe(filePath) {
 }
 
 // Call GitHub directly instead of through internal APIs
-async function executeFunction(name, args) {
-  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-
+async function executeFunction(name, args, octokit) {
   try {
     switch (name) {
       case 'read_file': {
@@ -1047,16 +1028,6 @@ async function executeFunction(name, args) {
           success: true,
           path: args.path,
           message: `Successfully created ${args.path}`
-        };
-      }
-
-case 'deploy': {
-        console.log(`Deploy triggered: ${args.message}`);
-        // Vercel auto-deploys on push to main, so just confirm
-        return {
-          success: true,
-          message: 'Changes pushed to main. Vercel will auto-deploy.',
-          description: args.message
         };
       }
 
@@ -1646,7 +1617,7 @@ export default async function handler(req, res) {
             }
           }
 
-          const result = await executeToolWithRetry(functionName, functionArgs);
+          const result = await executeToolWithRetry(functionName, functionArgs, octokit);
 
           // Log tool completion time
           const toolDuration = Date.now() - toolStartTime;
