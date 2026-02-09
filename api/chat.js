@@ -1212,8 +1212,8 @@ export default async function handler(req, res) {
               messages: fullMessages,
               temperature: 0.7,
               max_tokens: 4096,
-              // Enable thinking mode for complex tasks (GLM-4.7 feature)
-              ...(isComplex && model === 'glm-4.7' ? { thinking: { enabled: true } } : {})
+              // Enable thinking mode for complex tasks (Kimi feature)
+              ...(isComplex && model === 'kimi-k2.5' ? { thinking: { enabled: true } } : {})
             });
           });
           usedModel = model;
@@ -1246,8 +1246,8 @@ export default async function handler(req, res) {
               messages: textOnlyMessages,
               temperature: 0.7,
               max_tokens: 4096,
-              // Enable thinking mode for complex tasks (GLM-4.7 feature)
-              ...(isComplex && model === 'glm-4.7' ? { thinking: { enabled: true } } : {})
+              // Enable thinking mode for complex tasks (Kimi feature)
+              ...(isComplex && model === 'kimi-k2.5' ? { thinking: { enabled: true } } : {})
             });
           });
           usedModel = model;
