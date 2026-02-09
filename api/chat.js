@@ -206,169 +206,66 @@ COMMUNICATION CHECKLIST:
 
 If ANY fail, DO NOT tell user page is complete. Fix issues first.
 
-REQUIRED STYLING & LIBRARIES FOR ALL NEW PAGES:
+REQUIRED PAGE SETUP:
 
-<!-- STEP 1: LIBRARY IMPORTS - COPY THESE INTO <head> -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+STEP 1 - Load these libraries in head:
+- GSAP core: https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js
+- ScrollTrigger plugin: https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js
+- TextPlugin: https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js
+- Tailwind CSS: https://cdn.tailwindcss.com
+- Fonts: Cinzel and Manrope from Google Fonts
 
-<!-- STEP 2: TAILWIND CONFIG -->
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          brand: {
-            black: '#080808',
-            charcoal: '#121212',
-            gold: '#D4AF37',
-            goldDim: '#8A7120',
-            stone: '#1c1c1c',
-            white: '#F5F5F5'
-          }
-        },
-        fontFamily: {
-          serif: ['Cinzel', 'serif'],
-          sans: ['Manrope', 'sans-serif'],
-        }
-      }
-    }
-  }
-</script>
+STEP 2 - Tailwind brand colors config (black: #080808, charcoal: #121212, gold: #D4AF37, etc)
 
-<!-- STEP 3: LUXURY STYLING -->
-<style>
-  body {
-    background-color: #080808;
-    color: #F5F5F5;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-  }
+STEP 3 - Add grain overlay as first body element
 
-  .text-gold-gradient {
-    background: linear-gradient(to right, #D4AF37, #FEE180, #D4AF37);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-size: 200% auto;
-    animation: shine 5s linear infinite;
-  }
+STEP 4 - Include gold gradient text class with shine animation
 
-  @keyframes shine {
-    to { background-position: 200% center; }
-  }
+GSAP ANIMATION SYSTEM - MANDATORY 6+ ANIMATIONS PER PAGE:
 
-  .grain-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 9999;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
-  }
-</style>
+CRITICAL: Always call gsap.registerPlugin(ScrollTrigger, TextPlugin) at start of script
 
-<!-- STEP 4: GRAIN OVERLAY (first element in <body>) -->
-<body class="relative">
-  <div class="grain-overlay"></div>
-  <!-- Rest of content -->
-</body>
+PATTERN A - HERO TIMELINE (REQUIRED):
+Create gsap.timeline() with 3-4 chained animations:
+- Gold line draws: gsap.from("#line", {scaleY: 0, duration: 1.2, ease: "power2.inOut"})
+- Title fades up: gsap.from("#title", {opacity: 0, y: 60, duration: 1.4, ease: "power4.out"})
+- Subtitle types: gsap.to("#subtitle", {text: "tagline", duration: 2.5, ease: "none"})
+- CTA appears: gsap.from("#cta", {opacity: 0, y: 30, duration: 1})
+Use timeline offsets like "-=0.6" for smooth overlap
 
-GSAP ANIMATION SYSTEM -- MANDATORY FOR EVERY PAGE:
+PATTERN B - SECTION REVEALS (REQUIRED for each section):
+Gold line expands + heading fades with ScrollTrigger:
+gsap.to(".line", {width: "120px", duration: 1, ease: "power2.inOut"})
+gsap.from(".heading", {opacity: 0, y: 40, stagger: 0.2, duration: 1, ease: "power3.out"})
+ScrollTrigger: {trigger: "#section", start: "top 75%", toggleActions: "play none none reverse"}
 
-You MUST use at least 6 distinct GSAP animations on every page. Here is your animation toolkit:
+PATTERN C - CARD STAGGER (REQUIRED):
+gsap.from(".card", {opacity: 0, y: 60, scale: 0.95, stagger: 0.15, duration: 0.8, ease: "power3.out", scrollTrigger: {trigger: ".cards", start: "top 75%"}})
+Add hover: gsap.to(card, {y: -8, boxShadow: "0 20px 60px rgba(212,175,55,0.08)", duration: 0.4})
 
-REQUIRED INITIALIZATION (at top of your <script> block, inside DOMContentLoaded):
-gsap.registerPlugin(ScrollTrigger, TextPlugin);
-const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-if (prefersReducedMotion) { gsap.globalTimeline.timeScale(100); return; }
+PATTERN D - TEXT TYPING (REQUIRED):
+gsap.to("#text", {text: "message", duration: 2.5, ease: "none", scrollTrigger: {trigger: "#text", start: "top 75%"}})
 
-ANIMATION PATTERNS -- Use these by section type:
+PATTERN E - FOOTER REVEAL (REQUIRED):
+gsap.from("footer", {opacity: 0, y: 40, duration: 1, ease: "power2.out", scrollTrigger: {trigger: "footer", start: "top 90%"}})
 
-PATTERN A -- HERO (mandatory on every page):
-Use gsap.timeline() for sequential reveal:
-1. Gold line draws down: gsap.from("#hero-line", { scaleY: 0, duration: 1.2, ease: "power2.inOut" })
-2. Title fades up: gsap.from("#hero-title", { opacity: 0, y: 60, duration: 1.4, ease: "power4.out" })
-3. Subtitle types: gsap.to("#hero-subtitle", { text: "Your tagline", duration: 2.5, ease: "none" })
-4. CTA appears: gsap.from("#hero-cta", { opacity: 0, y: 30, duration: 1 })
-Chain these with timeline offsets like "-=0.6" for fluid overlap.
+OPTIONAL PATTERNS:
+- Parallax: gsap.to("#bg", {yPercent: 25, ease: "none", scrollTrigger: {trigger: "#section", scrub: true}})
+- Number counter: gsap.to(el, {innerText: value, duration: 2.5, snap: {innerText: 1}})
+- Image reveal: Timeline with mask sweep and image zoom
 
-PATTERN B -- SECTION REVEAL (mandatory for every content section):
-Use a timeline triggered by ScrollTrigger:
-1. Gold line expands: gsap.to(".section-line", { width: "120px", duration: 1, ease: "power2.inOut" })
-2. Heading and label fade up with stagger: gsap.from(".section-fade", { opacity: 0, y: 40, stagger: 0.2, duration: 1, ease: "power3.out" })
-ScrollTrigger config: { trigger: "#section-id", start: "top 75%", toggleActions: "play none none reverse" }
+EASING GUIDE:
+Hero=power4.out, Headings=power3.out, Cards=power2.out, Lines=power2.inOut, Typing=none
+NEVER use bounce/elastic
 
-PATTERN C -- CARDS/GRID STAGGER (use for any grid layout):
-gsap.from(".card-item", { opacity: 0, y: 60, scale: 0.95, stagger: { each: 0.15, ease: "power2.out" }, duration: 0.8, ease: "power3.out", scrollTrigger: { trigger: "#container", start: "top 75%", toggleActions: "play none none reverse" } });
-Also add hover depth:
-card.addEventListener("mouseenter", () => gsap.to(card, { y: -8, boxShadow: "0 20px 60px rgba(212,175,55,0.08)", duration: 0.4, ease: "power2.out" }));
-card.addEventListener("mouseleave", () => gsap.to(card, { y: 0, boxShadow: "none", duration: 0.3, ease: "power2.in" }));
-
-PATTERN D -- TEXT TYPING (use for quotes, taglines, mission statements):
-gsap.to("#element", { text: "Your text here", duration: 2.5, ease: "none", scrollTrigger: { trigger: "#element", start: "top 75%" } });
-Follow with underline expansion: gsap.to("#underline", { width: "200px", duration: 1, ease: "power2.inOut" });
-
-PATTERN E -- PARALLAX (use when section has background image):
-gsap.to("#bg-layer", { yPercent: 25, ease: "none", scrollTrigger: { trigger: "#section", start: "top bottom", end: "bottom top", scrub: true } });
-gsap.to("#content-layer", { yPercent: -15, ease: "none", scrollTrigger: { trigger: "#section", start: "top bottom", end: "bottom top", scrub: true } });
-
-PATTERN F -- NUMBER COUNTERS (use for stats/numbers):
-gsap.to(counter, { innerText: targetValue, duration: 2.5, ease: "power2.out", snap: { innerText: 1 }, scrollTrigger: { trigger: "#stats", start: "top 75%" } });
-
-PATTERN G -- IMAGE MASK REVEAL (use for key images):
-Timeline: gold mask sweeps right (xPercent: 100), then image zooms from scale 1.3 to 1.1.
-
-PATTERN H -- FOOTER REVEAL:
-gsap.from("footer", { opacity: 0, y: 40, duration: 1, ease: "power2.out", scrollTrigger: { trigger: "footer", start: "top 90%" } });
-
-EASING RULES:
-- Hero: power4.out (dramatic)
-- Headings: power3.out (smooth)
-- Cards/items: power2.out (quick but elegant)
-- Gold lines: power2.inOut (symmetrical)
-- Text typing: "none" (linear)
-- Parallax: "none" (linear, scrub-linked)
-- NEVER use bounce or elastic easings
-
-TIMING RULES:
-- Hero total sequence: 3-5 seconds
-- Section reveals: 0.8-1.2 seconds
-- Stagger intervals: 0.1-0.2 seconds
-- ScrollTrigger start: "top 75%" (animate before center screen)
-- Always use timeline offsets ("-=0.4", "-=0.6") for fluid overlap
-- NEVER have elements just appear instantly
-
-MINIMUM REQUIREMENTS PER PAGE:
-1. Hero cinematic timeline (Pattern A) -- REQUIRED
-2. At least 2 section reveals with gold lines (Pattern B) -- REQUIRED
-3. At least 1 stagger animation for grids/cards (Pattern C) -- REQUIRED
-4. At least 1 text typing effect (Pattern D) -- REQUIRED
-5. Footer reveal (Pattern H) -- REQUIRED
-6. Card hover depth effects -- REQUIRED
-7. Scroll progress indicator -- RECOMMENDED
-
-ANIMATION CHECKLIST -- VERIFY BEFORE RESPONDING:
-[ ] GSAP core + ScrollTrigger + TextPlugin loaded in <head>
-[ ] gsap.registerPlugin(ScrollTrigger, TextPlugin) called
-[ ] prefers-reduced-motion check included
-[ ] Hero has timeline with at least 3 chained animations
-[ ] Each content section has ScrollTrigger-based reveal
-[ ] Gold line expansion animation on at least 2 sections
-[ ] Cards/grid items have stagger + hover effects
-[ ] At least 1 text typing effect
-[ ] Footer has reveal animation
-[ ] All animated elements have proper initial state (no flash of unstyled content)
-[ ] Total distinct animations >= 6
-
-If ANY of these fail, FIX before telling user the page is done.
+CHECKLIST (verify all before responding):
+✓ gsap.registerPlugin called
+✓ Hero timeline with 3+ animations
+✓ Section reveals with gold lines
+✓ Card stagger + hover effects
+✓ Text typing effect
+✓ Footer reveal
+✓ Total animations >= 6
 
 NEVER use <link rel="stylesheet" href="/styles.css"> - doesn't exist
 
