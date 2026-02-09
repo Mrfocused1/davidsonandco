@@ -28,10 +28,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Filename and content are required' });
     }
 
+    if (!contentType) {
+      return res.status(400).json({ error: 'Content type is required' });
+    }
+
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
-    if (contentType && !allowedTypes.includes(contentType)) {
+    if (!allowedTypes.includes(contentType)) {
       return res.status(400).json({ error: 'Invalid file type. Only images are allowed.' });
+    }
+
+    // Validate file size (5MB limit)
+    const fileSize = Buffer.from(content, 'base64').length;
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (fileSize > maxSize) {
+      return res.status(400).json({
+        error: `File too large. Maximum size is 5MB. Your file is ${(fileSize / 1024 / 1024).toFixed(2)}MB.`
+      });
     }
 
     // Sanitize filename
@@ -79,7 +92,7 @@ export default async function handler(req, res) {
     console.error('Upload error:', error);
     return res.status(500).json({
       error: 'Failed to upload image',
-      details: error.message
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 }
