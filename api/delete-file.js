@@ -1,16 +1,41 @@
 import { Octokit } from '@octokit/rest';
-import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Get directory name in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.resolve(__dirname, '..');
 
 // GitHub config
 const REPO_OWNER = 'Mrfocused1';
 const REPO_NAME = 'davidsonandco';
+
+// Security: Block dangerous file paths
+const BLOCKED_PATTERNS = [
+  /^api\//i,           // Block api/ directory
+  /^\.env/i,           // Block .env files
+  /^\.git/i,           // Block .git directory
+  /^package\.json$/i,  // Block package.json
+  /^vercel\.json$/i,   // Block vercel.json
+  /^node_modules\//i   // Block node_modules
+];
+
+const ALLOWED_EXTENSIONS = ['.html', '.css', '.js', '.json', '.md', '.txt', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'];
+
+function isPathSafe(filePath) {
+  // Check for path traversal
+  if (filePath.includes('..') || filePath.includes('//')) {
+    return { safe: false, reason: 'Path traversal detected' };
+  }
+
+  // Check blocked patterns
+  if (BLOCKED_PATTERNS.some(pattern => pattern.test(filePath))) {
+    return { safe: false, reason: 'Path matches blocked pattern (api/, .env, etc.)' };
+  }
+
+  // Check file extension
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext && !ALLOWED_EXTENSIONS.includes(ext)) {
+    return { safe: false, reason: `File extension ${ext} not allowed` };
+  }
+
+  return { safe: true };
+}
 
 // Activity logging function
 async function logActivity(octokit, action, description, files) {
@@ -88,6 +113,16 @@ export default async function handler(req, res) {
     });
   }
 
+  // SECURITY: Validate file path
+  const pathCheck = isPathSafe(filePath);
+  if (!pathCheck.safe) {
+    console.warn(`🚫 Blocked delete attempt: ${filePath} - ${pathCheck.reason}`);
+    return res.status(403).json({
+      success: false,
+      error: `Cannot delete this file: ${pathCheck.reason}`
+    });
+  }
+
   try {
     const githubToken = process.env.GITHUB_TOKEN;
     if (!githubToken) {
@@ -130,27 +165,7 @@ export default async function handler(req, res) {
 
     console.log(`✅ Deleted from GitHub: ${filePath}`);
 
-    // Also delete from local filesystem (for development)
-    try {
-      const localPath = path.join(PROJECT_ROOT, filePath);
-      if (fs.existsSync(localPath)) {
-        fs.unlinkSync(localPath);
-        console.log(`✅ Deleted local file: ${localPath}`);
-
-        // Try to remove empty parent directory if it exists
-        const parentDir = path.dirname(localPath);
-        try {
-          if (fs.readdirSync(parentDir).length === 0) {
-            fs.rmdirSync(parentDir);
-            console.log(`✅ Removed empty directory: ${parentDir}`);
-          }
-        } catch (e) {
-          // Ignore errors removing directory
-        }
-      }
-    } catch (fsError) {
-      console.warn(`Warning: Could not delete local file: ${fsError.message}`);
-    }
+    // Note: Local filesystem operations removed (serverless environment)
 
     // Log activity
     await logActivity(octokit, 'delete', `Deleted ${filePath}`, [filePath]);
