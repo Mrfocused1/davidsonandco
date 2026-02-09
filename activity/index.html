@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>Activity Log | Davidson & Co London</title>
 
   <!-- Fonts -->
@@ -149,6 +150,13 @@
     const emptyState = document.getElementById('emptyState');
     const activityList = document.getElementById('activityList');
 
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
     // Format relative time
     function formatRelativeTime(dateString) {
       const date = new Date(dateString);
@@ -201,7 +209,7 @@
         filesHtml = `
           <div class="mt-3 flex flex-wrap gap-2">
             ${activity.files.map(file => `
-              <span class="text-xs px-2 py-1 bg-brand-stone rounded text-gray-400">${file}</span>
+              <span class="text-xs px-2 py-1 bg-brand-stone rounded text-gray-400">${escapeHtml(file)}</span>
             `).join('')}
           </div>
         `;
@@ -217,10 +225,10 @@
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-2 mb-1">
-                <span class="text-xs uppercase tracking-wider ${colorClass.split(' ')[0]} font-medium">${activity.action}</span>
+                <span class="text-xs uppercase tracking-wider ${colorClass.split(' ')[0]} font-medium">${escapeHtml(activity.action)}</span>
                 <span class="text-xs text-gray-500">${formatRelativeTime(activity.timestamp)}</span>
               </div>
-              <p class="text-sm text-gray-300">${activity.description}</p>
+              <p class="text-sm text-gray-300">${escapeHtml(activity.description)}</p>
               ${filesHtml}
             </div>
           </div>
