@@ -602,70 +602,90 @@ const tools = [
   }
 ];
 
-// Log activity to activity-log.json
+// Log activity to activity-log.json with retry-on-conflict logic
 async function logActivity(octokit, action, description, files = []) {
-  try {
-    const ACTIVITY_FILE = 'activity-log.json';
+  const ACTIVITY_FILE = 'activity-log.json';
+  const MAX_RETRIES = 3;
 
-    // Fetch existing log
-    let activities = [];
-    let sha = null;
+  const newActivity = {
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    action,
+    description,
+    files,
+    status: 'completed'
+  };
 
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-      const existing = await octokit.repos.getContent({
+      // Fetch existing log (fresh on each retry)
+      let activities = [];
+      let sha = null;
+
+      try {
+        const existing = await octokit.repos.getContent({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: ACTIVITY_FILE,
+          ref: 'main'
+        });
+        const content = Buffer.from(existing.data.content, 'base64').toString('utf-8');
+        try {
+          const parsed = JSON.parse(content);
+          // Handle both formats: flat array or object with activities property
+          activities = Array.isArray(parsed) ? parsed : (parsed.activities || []);
+        } catch (jsonError) {
+          console.error('Failed to parse activity log JSON:', jsonError.message);
+          // Use default empty array if corrupted
+          activities = [];
+        }
+        sha = existing.data.sha;
+      } catch (e) {
+        if (e.status !== 404) throw e;
+      }
+
+      // Add new activity
+      activities.unshift(newActivity);
+
+      // Keep only last 100
+      if (activities.length > 100) {
+        activities = activities.slice(0, 100);
+      }
+
+      // Save
+      const updateParams = {
         owner: REPO_OWNER,
         repo: REPO_NAME,
         path: ACTIVITY_FILE,
-        ref: 'main'
-      });
-      const content = Buffer.from(existing.data.content, 'base64').toString('utf-8');
-      try {
-        const parsed = JSON.parse(content);
-        // Handle both formats: flat array or object with activities property
-        activities = Array.isArray(parsed) ? parsed : (parsed.activities || []);
-      } catch (jsonError) {
-        console.error('Failed to parse activity log JSON:', jsonError.message);
-        // Use default empty array if corrupted
-        activities = [];
+        message: `[Activity Log] ${action}: ${description}`,
+        content: Buffer.from(JSON.stringify(activities, null, 2)).toString('base64'),
+        branch: 'main'
+      };
+
+      if (sha) updateParams.sha = sha;
+
+      await octokit.repos.createOrUpdateFileContents(updateParams);
+
+      // Success! Exit retry loop
+      if (attempt > 0) {
+        console.log(`✅ Activity log updated successfully on attempt ${attempt + 1}`);
       }
-      sha = existing.data.sha;
-    } catch (e) {
-      if (e.status !== 404) throw e;
+      return;
+
+    } catch (error) {
+      // Check if it's a 409 conflict (stale SHA)
+      if (error.status === 409 && attempt < MAX_RETRIES - 1) {
+        console.warn(`⚠️ Activity log conflict on attempt ${attempt + 1}, retrying...`);
+        // Wait a bit before retrying (exponential backoff with jitter)
+        const delay = 100 * Math.pow(2, attempt) + Math.random() * 100;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue; // Retry with fresh SHA
+      }
+
+      console.error('Failed to log activity:', error.message);
+      // Don't throw - activity logging shouldn't break the main operation
+      return;
     }
-
-    // Add new activity
-    const newActivity = {
-      id: Date.now(),
-      timestamp: new Date().toISOString(),
-      action,
-      description,
-      files,
-      status: 'completed'
-    };
-
-    activities.unshift(newActivity);
-
-    // Keep only last 100
-    if (activities.length > 100) {
-      activities = activities.slice(0, 100);
-    }
-
-    // Save
-    const updateParams = {
-      owner: REPO_OWNER,
-      repo: REPO_NAME,
-      path: ACTIVITY_FILE,
-      message: `[Activity Log] ${action}: ${description}`,
-      content: Buffer.from(JSON.stringify(activities, null, 2)).toString('base64'),
-      branch: 'main'
-    };
-
-    if (sha) updateParams.sha = sha;
-
-    await octokit.repos.createOrUpdateFileContents(updateParams);
-  } catch (error) {
-    console.error('Failed to log activity:', error.message);
-    // Don't throw - activity logging shouldn't break the main operation
   }
 }
 
