@@ -1337,6 +1337,13 @@
     // Send message to serverless API
     async function sendMessage(message, signal) {
       chatHistory.push({ role: 'user', content: message });
+
+      // Trim chat history to last 20 messages (10 exchanges) to prevent context overflow
+      const MAX_HISTORY_MESSAGES = 20;
+      if (chatHistory.length > MAX_HISTORY_MESSAGES) {
+        chatHistory = chatHistory.slice(-MAX_HISTORY_MESSAGES);
+      }
+
       saveChatHistory(); // Save to localStorage
 
       // Add client-side timeout (290 seconds - slightly less than server timeout)

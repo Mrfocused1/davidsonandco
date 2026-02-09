@@ -19,6 +19,9 @@ const VISION_MODELS = ['gpt-4o', 'gpt-4-turbo'];
 const REPO_OWNER = 'Mrfocused1';
 const REPO_NAME = 'davidsonandco';
 
+// Site URL config (configurable via environment variable)
+const SITE_URL = process.env.SITE_URL || 'https://davidsoncolondon.com';
+
 // Initialize OpenAI client
 const openaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -65,7 +68,7 @@ After completing a task, ALWAYS include:
 3. How to access/use it - this is CRITICAL:
    - For new pages: Provide BOTH a clickable link AND full URL:
      Example: "[Click here to visit your new page](/who-we-are)"
-     "Full URL: https://davidsoncolondon.com/who-we-are"
+     "Full URL: ${SITE_URL}/who-we-are"
    - CRITICAL: Internal navigation links MUST point to actual pages:
      ✓ CORRECT: href="/who-we-are" for Who We Are page
      ✗ WRONG: href="/" for non-homepage links
@@ -109,7 +112,7 @@ You: "✅ Done! I've created your contact page with hero section, contact form, 
 User: "Create a who we are page"
 You: "Great idea! Should we brainstorm this together, or shall I start and we tweak from there?"
 User: "you start"
-You: "✅ Done! I've created your Who We Are page with: hero section, mission statement, team profiles, company values, timeline, and CTA section - all with GSAP scroll animations. [Click here to visit your new page](/who-we-are). Full URL: https://davidsoncolondon.com/who-we-are. Let me know if you'd like any changes."
+You: "✅ Done! I've created your Who We Are page with: hero section, mission statement, team profiles, company values, timeline, and CTA section - all with GSAP scroll animations. [Click here to visit your new page](/who-we-are). Full URL: ${SITE_URL}/who-we-are. Let me know if you'd like any changes."
 
 User: "Delete the partner page"
 You: [FIRST call list_files("") to verify the page exists and find its exact path, then respond:]
@@ -206,7 +209,7 @@ NAVIGATION CHECKLIST:
 
 COMMUNICATION CHECKLIST:
 ✓ Relative link provided: [Visit page](/page-name)
-✓ Full URL provided: https://davidsoncolondon.com/page-name
+✓ Full URL provided: ${SITE_URL}/page-name
 
 If ANY fail, DO NOT tell user page is complete. Fix issues first.
 
@@ -390,8 +393,9 @@ IMAGE UPLOADS:
 - YOU CAN SEE IMAGES - you have vision capabilities, so analyze what's in the image
 - When users upload images, first DESCRIBE what you see, then ask how they want to use it
 - Uploaded images are saved to src/assets/ with sanitized filenames
-- Use these exact paths when referencing the images in HTML code
-- Example: <img src="src/assets/uploaded-image.png" alt="Description">
+- IMPORTANT: Use ABSOLUTE paths starting with / when referencing uploaded images
+- Example: <img src="/src/assets/uploaded-image.png" alt="Description">
+- This ensures images work from pages in subdirectories (e.g., /about/index.html)
 - When you see an image, comment on its content (colors, design, subject matter, etc.)
 
 WHEN USER WANTS TO ADD IMAGES/VIDEO - ALWAYS provide this guidance:
@@ -422,7 +426,7 @@ After deploying changes, you MUST verify that content is actually live before te
 
 1. After calling deploy, wait for deployment to complete (typical: 2-5 minutes, can take up to 10 minutes)
 2. Use verify_live_content tool to check that expected content appears on the live site
-   - Provide the URL (e.g., "https://davidsoncolondon.com/charity" or "/charity")
+   - Provide the URL (e.g., "${SITE_URL}/charity" or "/charity")
    - Provide array of expected text strings that should be present (e.g., ["Areas of Impact", "Housing Support"])
 3. If verification succeeds: Tell user "Deployed! I've confirmed the content is live at [URL]. Use hard refresh (Ctrl+Shift+R) if needed."
 4. If verification fails: "Deployment completed but content may take 1-2 minutes to appear due to CDN caching. Wait a moment and try again."
@@ -506,6 +510,10 @@ const tools = [
           message: {
             type: 'string',
             description: 'Commit message describing the change'
+          },
+          replace_all: {
+            type: 'boolean',
+            description: 'If true, replace ALL occurrences of old_text. If false (default), replace only the first occurrence for safety.'
           }
         },
         required: ['path', 'old_text', 'new_text', 'message']
@@ -598,7 +606,7 @@ const tools = [
         properties: {
           url: {
             type: 'string',
-            description: 'The full URL to verify (e.g., "https://davidsoncolondon.com/charity" or use relative like "/charity")'
+            description: 'The full URL to verify (e.g., "${SITE_URL}/charity" or use relative like "/charity")'
           },
           expectedContent: {
             type: 'array',
@@ -821,8 +829,10 @@ async function executeFunction(name, args) {
           };
         }
 
-        // Replace old_text with new_text (replaceAll for global replacement)
-        const newContent = currentContent.replaceAll(args.old_text, args.new_text);
+        // Replace old_text with new_text (use replace_all parameter to control single vs all)
+        const newContent = args.replace_all
+          ? currentContent.replaceAll(args.old_text, args.new_text)
+          : currentContent.replace(args.old_text, args.new_text);
 
         // Verify the change was made
         if (newContent === currentContent && args.old_text !== args.new_text) {
@@ -1003,74 +1013,7 @@ async function executeFunction(name, args) {
         };
       }
 
-      case 'delete_file': {
-        console.log(`Deleting file: ${args.path}`);
-
-        // Get the file's SHA (required for deletion)
-        let fileSha;
-        try {
-          const { data } = await octokit.repos.getContent({
-            owner: REPO_OWNER,
-            repo: REPO_NAME,
-            path: args.path,
-            ref: 'main'
-          });
-          fileSha = data.sha;
-        } catch (err) {
-          if (err.status === 404) {
-            return {
-              error: 'File not found. Please check the path and try again.',
-              path: args.path
-            };
-          }
-          throw err;
-        }
-
-        // Delete the file from GitHub
-        const commitMessage = args.message || `Delete ${args.path}`;
-        await octokit.repos.deleteFile({
-          owner: REPO_OWNER,
-          repo: REPO_NAME,
-          path: args.path,
-          message: `[Davidson AI] ${commitMessage}`,
-          sha: fileSha,
-          branch: 'main'
-        });
-
-        // Also delete from local filesystem (for development)
-        try {
-          const localPath = path.join(PROJECT_ROOT, args.path);
-          if (fs.existsSync(localPath)) {
-            fs.unlinkSync(localPath);
-            console.log(`✓ Deleted local file: ${localPath}`);
-
-            // Try to remove empty parent directory if it exists
-            const parentDir = path.dirname(localPath);
-            try {
-              if (fs.readdirSync(parentDir).length === 0) {
-                fs.rmdirSync(parentDir);
-                console.log(`✓ Removed empty directory: ${parentDir}`);
-              }
-            } catch (e) {
-              // Ignore errors removing directory (may not be empty or may not exist)
-            }
-          }
-        } catch (fsError) {
-          console.warn(`Warning: Could not delete local file: ${fsError.message}`);
-          // Don't fail the operation if local delete fails
-        }
-
-        // Log activity
-        await logActivity(octokit, 'delete', args.message || `Deleted ${args.path}`, [args.path]);
-
-        return {
-          success: true,
-          path: args.path,
-          message: `Successfully deleted ${args.path}`
-        };
-      }
-
-      case 'deploy': {
+case 'deploy': {
         console.log(`Deploy triggered: ${args.message}`);
         // Vercel auto-deploys on push to main, so just confirm
         return {
@@ -1453,7 +1396,7 @@ export default async function handler(req, res) {
             tools: tools,
             tool_choice: 'auto',
             temperature: 0.7,
-            max_tokens: 4096
+            max_tokens: 16384
           });
         });
         usedModel = model;
@@ -1487,7 +1430,7 @@ export default async function handler(req, res) {
               model: model,
               messages: fullMessages,
               temperature: 0.7,
-              max_tokens: 4096
+              max_tokens: 16384
             });
           });
           usedModel = model;
@@ -1519,7 +1462,7 @@ export default async function handler(req, res) {
               model: model,
               messages: textOnlyMessages,
               temperature: 0.7,
-              max_tokens: 4096
+              max_tokens: 16384
             });
           });
           usedModel = model;
@@ -1561,7 +1504,12 @@ export default async function handler(req, res) {
         });
       }
 
-      while (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
+      // Prevent infinite tool loops
+      let toolIterations = 0;
+      const MAX_TOOL_ITERATIONS = 10;
+
+      while (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0 && toolIterations < MAX_TOOL_ITERATIONS) {
+        toolIterations++;
         fullMessages.push(assistantMessage);
 
         for (const toolCall of assistantMessage.tool_calls) {
@@ -1659,7 +1607,7 @@ export default async function handler(req, res) {
             tools: tools,
             tool_choice: 'auto',
             temperature: 0.7,
-            max_tokens: 4096
+            max_tokens: 16384
           });
         });
 
@@ -1677,6 +1625,16 @@ export default async function handler(req, res) {
             madeChanges: madeChanges
           });
         }
+      }
+
+      // Check if we hit the iteration limit
+      if (toolIterations >= MAX_TOOL_ITERATIONS) {
+        console.error(`⚠️ Hit maximum tool iterations (${MAX_TOOL_ITERATIONS})`);
+        return res.status(200).json({
+          message: "I made too many changes in one go. Let me try a simpler approach. Please try breaking your request into smaller steps.",
+          error: 'Maximum tool iterations reached',
+          madeChanges: madeChanges
+        });
       }
     }
 
