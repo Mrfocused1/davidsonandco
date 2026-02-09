@@ -541,7 +541,7 @@ const tools = [
     type: 'function',
     function: {
       name: 'create_file',
-      description: 'Create a new file (page, section, etc). ONLY works for files that do not exist yet. For pages, use "pagename/index.html" format for clean URLs.',
+      description: 'Create a new file (page, section, etc). By default, will NOT overwrite existing files. For pages, use "pagename/index.html" format for clean URLs.',
       parameters: {
         type: 'object',
         properties: {
@@ -556,6 +556,10 @@ const tools = [
           message: {
             type: 'string',
             description: 'Commit message describing what was created'
+          },
+          overwrite: {
+            type: 'boolean',
+            description: 'If true, overwrite existing file. If false (default), return error if file exists. Use with caution.'
           }
         },
         required: ['path', 'content', 'message']
@@ -781,6 +785,33 @@ async function executeToolWithRetry(name, args, maxRetries = 2) {
   };
 }
 
+// Security: Block dangerous file paths
+const BLOCKED_PATTERNS = [
+  /^api\//i,           // Block api/ directory
+  /^\.env/i,           // Block .env files
+  /^\.git/i,           // Block .git directory
+  /^package\.json$/i,  // Block package.json
+  /^vercel\.json$/i,   // Block vercel.json
+  /^node_modules\//i   // Block node_modules
+];
+
+const ALLOWED_EXTENSIONS = ['.html', '.css', '.js', '.json', '.md', '.txt', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'];
+
+function isPathSafe(filePath) {
+  // Check blocked patterns
+  if (BLOCKED_PATTERNS.some(pattern => pattern.test(filePath))) {
+    return { safe: false, reason: 'Path matches blocked pattern (api/, .env, etc.)' };
+  }
+
+  // Check file extension
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext && !ALLOWED_EXTENSIONS.includes(ext)) {
+    return { safe: false, reason: `File extension ${ext} not allowed` };
+  }
+
+  return { safe: true };
+}
+
 // Call GitHub directly instead of through internal APIs
 async function executeFunction(name, args) {
   const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
@@ -807,6 +838,15 @@ async function executeFunction(name, args) {
       case 'edit_file': {
         console.log(`Editing file: ${args.path}`);
         console.log(`Looking for: "${args.old_text.substring(0, 50)}..."`);
+
+        // Security check
+        const pathCheck = isPathSafe(args.path);
+        if (!pathCheck.safe) {
+          return {
+            error: `Cannot edit this file: ${pathCheck.reason}`,
+            path: args.path
+          };
+        }
 
         // Get existing file content
         const existing = await octokit.repos.getContent({
@@ -887,17 +927,7 @@ async function executeFunction(name, args) {
           branch: 'main'
         });
 
-        // Also update the file locally (for development)
-        try {
-          const localPath = path.join(PROJECT_ROOT, args.path);
-          if (fs.existsSync(localPath)) {
-            fs.writeFileSync(localPath, newContent, 'utf-8');
-            console.log(`✓ Updated local file: ${localPath}`);
-          }
-        } catch (fsError) {
-          console.warn(`Warning: Could not update local file: ${fsError.message}`);
-          // Don't fail the operation if local update fails
-        }
+        // Note: Local filesystem operations removed (serverless environment)
 
         // Log activity
         await logActivity(octokit, 'edit', args.message || `Edited ${args.path}`, [args.path]);
@@ -934,19 +964,36 @@ async function executeFunction(name, args) {
       case 'create_file': {
         console.log(`Creating new file: ${args.path}`);
 
+        // Security check
+        const pathCheck = isPathSafe(args.path);
+        if (!pathCheck.safe) {
+          return {
+            error: `Cannot create this file: ${pathCheck.reason}`,
+            path: args.path
+          };
+        }
+
         // Check if file already exists
+        let existingSha = null;
         try {
-          await octokit.repos.getContent({
+          const existing = await octokit.repos.getContent({
             owner: REPO_OWNER,
             repo: REPO_NAME,
             path: args.path,
             ref: 'main'
           });
-          // If we get here, file exists - don't overwrite
-          return {
-            error: 'File already exists. Use edit_file to modify existing files, or choose a different path.',
-            path: args.path
-          };
+
+          // File exists - check if overwrite is allowed
+          if (!args.overwrite) {
+            return {
+              error: 'File already exists. Use edit_file to modify, set overwrite:true to replace, or choose a different path.',
+              path: args.path
+            };
+          }
+
+          // File exists and overwrite is true - save SHA for update
+          existingSha = existing.data.sha;
+          console.log(`File exists, overwriting with new content (overwrite=true)`);
         } catch (err) {
           // 404 means file doesn't exist - good, we can create it
           if (err.status !== 404) {
@@ -975,35 +1022,23 @@ async function executeFunction(name, args) {
           };
         }
 
-        // Create the new file on GitHub
-        const commitMessage = args.message || `Create ${args.path}`;
-        await octokit.repos.createOrUpdateFileContents({
+        // Create or update the file on GitHub
+        const commitMessage = args.message || (existingSha ? `Update ${args.path}` : `Create ${args.path}`);
+        const updateParams = {
           owner: REPO_OWNER,
           repo: REPO_NAME,
           path: args.path,
           message: `[Davidson AI] ${commitMessage}`,
           content: Buffer.from(args.content).toString('base64'),
           branch: 'main'
-        });
+        };
 
-        // Also create the file locally (for development)
-        try {
-          const localPath = path.join(PROJECT_ROOT, args.path);
-          const localDir = path.dirname(localPath);
+        // Include SHA if overwriting existing file
+        if (existingSha) updateParams.sha = existingSha;
 
-          // Create directory if it doesn't exist
-          if (!fs.existsSync(localDir)) {
-            fs.mkdirSync(localDir, { recursive: true });
-            console.log(`✓ Created directory: ${localDir}`);
-          }
+        await octokit.repos.createOrUpdateFileContents(updateParams);
 
-          // Write the file
-          fs.writeFileSync(localPath, args.content, 'utf-8');
-          console.log(`✓ Created local file: ${localPath}`);
-        } catch (fsError) {
-          console.warn(`Warning: Could not create local file: ${fsError.message}`);
-          // Don't fail the operation if local create fails
-        }
+        // Note: Local filesystem operations removed (serverless environment)
 
         // Log activity
         await logActivity(octokit, 'create', args.message || `Created ${args.path}`, [args.path]);
