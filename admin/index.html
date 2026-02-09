@@ -1256,8 +1256,15 @@
       // Inline code
       formatted = formatted.replace(/`(.*?)`/g, '<code class="bg-brand-stone px-1 rounded text-brand-gold">$1</code>');
 
-      // Links (with security)
-      formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-brand-gold hover:text-brand-gold/80 underline transition-colors">$1</a>');
+      // Links (with security - only allow http/https/relative paths)
+      formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+        // Only allow http://, https://, and relative paths starting with /
+        if (/^(https?:\/\/|\/)/i.test(url)) {
+          return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-brand-gold hover:text-brand-gold/80 underline transition-colors">${text}</a>`;
+        }
+        // Strip non-safe links, return just the text
+        return text;
+      });
 
       // Headings (## heading)
       formatted = formatted.replace(/^## (.+)$/gm, '<h2 class="text-lg font-serif text-brand-gold mt-4 mb-2">$1</h2>');
@@ -1508,7 +1515,7 @@
       deleteDiv.className = 'message-appear flex gap-3 sm:gap-4 items-center justify-center py-6';
       deleteDiv.innerHTML = `
         <div class="flex flex-col items-center gap-4 p-6 bg-brand-charcoal rounded-2xl border border-red-500/30">
-          <p class="text-sm text-gray-300 text-center">Are you sure you want to delete <span class="text-red-400 font-medium">${displayName}</span>?</p>
+          <p class="text-sm text-gray-300 text-center">Are you sure you want to delete <span class="text-red-400 font-medium">${escapeHtml(displayName)}</span>?</p>
           <div class="flex gap-3">
             <button id="cancelDeleteBtn" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-xl transition-colors">
               Cancel
