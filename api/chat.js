@@ -168,14 +168,15 @@ You CANNOT delete files directly. When a user asks to delete a page or file:
    - "contact page" -> look for "contact" folder -> path is "contact/index.html"
    - "about page" -> look for "about" folder -> path is "about/index.html"
    - NEVER guess the path - ALWAYS verify it exists with list_files first
-3. Once you have confirmed the EXACT file path, include the marker: DELETE_REQUEST:exact/path/to/file.html
+3. Once you have confirmed the EXACT file path, include the marker with a space after: DELETE_REQUEST:exact/path/to/file.html (space)
    - The path MUST be the full path including index.html (e.g., "who-we-are/index.html" NOT "who-we-are")
    - NEVER use just a folder name - always include /index.html for pages
+   - CRITICAL: Always add a SPACE after the file path before continuing your message
 4. Tell the user to click the confirmation button that will appear
 5. Example flow:
    - User says "delete the partner page"
    - You call list_files("") and find a "partner" directory
-   - You respond: "I've prepared to delete the partner page. DELETE_REQUEST:partner/index.html Click the delete button to confirm."
+   - You respond: "I've prepared to delete the partner page. DELETE_REQUEST:partner/index.html (notice the space here) Click the delete button to confirm."
 6. If list_files does NOT show a matching folder/file, tell the user the page doesn't exist and list what pages ARE available
 
 IMPORTANT RULES:
@@ -1936,16 +1937,28 @@ export default async function handler(req, res) {
     if (finalMessage && finalMessage.includes(deleteMarker)) {
       const markerIndex = finalMessage.indexOf(deleteMarker);
       const pathStart = markerIndex + deleteMarker.length;
-      const pathEnd = finalMessage.indexOf(' ', pathStart);
-      const filePath = pathEnd > -1
-        ? finalMessage.substring(pathStart, pathEnd)
-        : finalMessage.substring(pathStart);
+
+      // Extract path until we hit a space, newline, or non-path character
+      let pathEnd = finalMessage.length;
+      for (let i = pathStart; i < finalMessage.length; i++) {
+        const char = finalMessage[i];
+        // Stop at space, newline, or uppercase letter (likely start of new sentence)
+        if (char === ' ' || char === '\n' || char === '\r' || (char === char.toUpperCase() && char !== char.toLowerCase() && i > pathStart)) {
+          pathEnd = i;
+          break;
+        }
+      }
+
+      let filePath = finalMessage.substring(pathStart, pathEnd).trim();
+
+      // Clean up the path - remove any trailing non-path characters
+      filePath = filePath.replace(/[^a-zA-Z0-9\/\-_.]/g, '');
 
       // Remove the marker from the message
-      finalMessage = finalMessage.replace(deleteMarker + filePath, '').trim();
+      finalMessage = finalMessage.replace(deleteMarker + finalMessage.substring(pathStart, pathEnd), '').trim();
 
       requestsDelete = {
-        path: filePath.trim(),
+        path: filePath,
         displayName: filePath.includes('/')
           ? filePath.split('/')[0]
           : filePath.replace('.html', '')
