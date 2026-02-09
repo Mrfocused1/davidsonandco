@@ -9,22 +9,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 
-// Models to try in order of preference (glm-4.7 is the newest, used by EastD)
-const MODELS = ['glm-4.7', 'glm-4-flash', 'glm-4-air', 'glm-4', 'glm-4-plus'];
+// Models to try in order of preference
+const MODELS = ['kimi-k2.5'];
 
 // Vision model for handling image inputs
-// Confirmed model name from bigmodel.cn API docs: "glm-4v" (lowercase)
-// Supports: jpg/png/jpeg, <5MB, <6000x6000px, base64 encoding
-const VISION_MODELS = ['glm-4v'];
+const VISION_MODELS = ['kimi-k2.5'];
 
 // GitHub config
 const REPO_OWNER = 'Mrfocused1';
 const REPO_NAME = 'davidsonandco';
 
-// Initialize GLM client using OpenAI SDK (GLM is OpenAI-compatible)
-const glmClient = new OpenAI({
-  apiKey: process.env.GLM_API_KEY,
-  baseURL: 'https://open.bigmodel.cn/api/paas/v4',
+// Initialize Kimi client using OpenAI SDK (Kimi is OpenAI-compatible)
+const kimiClient = new OpenAI({
+  apiKey: process.env.KIMI_API_KEY,
+  baseURL: 'https://api.moonshot.ai/v1',
   timeout: 280000,        // 280 seconds (20s safety margin from 300s Vercel limit)
   maxRetries: 1,          // Reduce retries, rely on our custom retry logic instead
   defaultHeaders: {
@@ -1019,9 +1017,9 @@ async function convertToVisionMessage(message, octokit) {
       console.log(`  - Approx size: ${approxSizeMB}MB`);
       console.log(`  - Base64 length: ${base64Content.length} chars`);
 
-      // Warn if image might be too large (GLM-4V limit is 5MB)
+      // Warn if image might be too large (Kimi limit is 5MB)
       if (approxSizeBytes > 5 * 1024 * 1024) {
-        console.warn(`⚠️  Image may exceed 5MB limit for GLM-4V (${approxSizeMB}MB)`);
+        console.warn(`⚠️  Image may exceed 5MB limit for Kimi (${approxSizeMB}MB)`);
       }
 
       // Add image in OpenAI-compatible vision format
@@ -1072,8 +1070,8 @@ export default async function handler(req, res) {
   };
 
   // Check for required environment variables
-  if (!process.env.GLM_API_KEY) {
-    console.error('GLM_API_KEY environment variable not set');
+  if (!process.env.KIMI_API_KEY) {
+    console.error('KIMI_API_KEY environment variable not set');
     return res.status(500).json({
       error: 'API key not configured',
       message: 'The AI service is not properly configured. Please contact support.'
@@ -1148,7 +1146,7 @@ export default async function handler(req, res) {
 
     const isComplex = isComplexTask(fullMessages);
     if (isComplex) {
-      console.log('🧠 Complex task detected, will enable thinking mode for GLM-4.7');
+      console.log('🧠 Complex task detected, will enable thinking mode for Kimi');
     }
 
     // Use vision models if images are present, otherwise use regular models
@@ -1164,22 +1162,22 @@ export default async function handler(req, res) {
     }
 
     // Try each model with tools first (with retry)
-    // Note: GLM-4V supports native multimodal function calling
+    // Note: Kimi supports native multimodal function calling
     for (const model of modelsToTry) {
       try {
         const llmStartTime = Date.now();
         console.log(`[TIMING] LLM API call started at ${llmStartTime - REQUEST_START_TIME}ms`);
         console.log(`Trying model: ${model} with tools ${hasImages ? '(VISION MODE)' : ''}`);
         response = await retryWithBackoff(async () => {
-          return await glmClient.chat.completions.create({
+          return await kimiClient.chat.completions.create({
             model: model,
             messages: fullMessages,
             tools: tools,
             tool_choice: 'auto',
             temperature: 0.7,
             max_tokens: 4096,
-            // Enable thinking mode for complex tasks (GLM-4.7 feature)
-            ...(isComplex && model === 'glm-4.7' ? { thinking: { enabled: true } } : {})
+            // Enable thinking mode for complex tasks (Kimi feature)
+            ...(isComplex && model === 'kimi-k2.5' ? { thinking: { enabled: true } } : {})
           });
         });
         usedModel = model;
@@ -1209,7 +1207,7 @@ export default async function handler(req, res) {
         try {
           console.log(`Trying model: ${model} without tools ${hasImages ? '(VISION MODE)' : ''}`);
           response = await retryWithBackoff(async () => {
-            return await glmClient.chat.completions.create({
+            return await kimiClient.chat.completions.create({
               model: model,
               messages: fullMessages,
               temperature: 0.7,
@@ -1243,7 +1241,7 @@ export default async function handler(req, res) {
         try {
           console.log(`Trying text model fallback: ${model}`);
           response = await retryWithBackoff(async () => {
-            return await glmClient.chat.completions.create({
+            return await kimiClient.chat.completions.create({
               model: model,
               messages: textOnlyMessages,
               temperature: 0.7,
@@ -1383,15 +1381,15 @@ export default async function handler(req, res) {
         const llmStartTime2 = Date.now();
         console.log(`[TIMING] Second LLM API call started at ${llmStartTime2 - REQUEST_START_TIME}ms`);
         response = await retryWithBackoff(async () => {
-          return await glmClient.chat.completions.create({
+          return await kimiClient.chat.completions.create({
             model: usedModel,
             messages: fullMessages,
             tools: tools,
             tool_choice: 'auto',
             temperature: 0.7,
             max_tokens: 4096,
-            // Enable thinking mode for complex tasks (GLM-4.7 feature)
-            ...(isComplex && usedModel === 'glm-4.7' ? { thinking: { enabled: true } } : {})
+            // Enable thinking mode for complex tasks (Kimi feature)
+            ...(isComplex && usedModel === 'kimi-k2.5' ? { thinking: { enabled: true } } : {})
           });
         });
 
