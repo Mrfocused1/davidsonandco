@@ -1087,74 +1087,103 @@ case 'deploy': {
       case 'verify_live_content': {
         console.log(`Verifying live content at: ${args.url}`);
 
-        // Wait a bit for CDN propagation before checking
-        await new Promise(resolve => setTimeout(resolve, 3000)); // 3 seconds
+        // Retry with backoff: immediate, +5s, +10s (3 attempts total)
+        const maxAttempts = 3;
+        const delays = [0, 5000, 10000]; // ms
 
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-
-        try {
-          const response = await fetch(args.url, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (compatible; DavidsonBot/1.0)',
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache'
-            },
-            signal: controller.signal
-          });
-
-          clearTimeout(timeout);
-
-          if (!response.ok) {
-            return {
-              verified: false,
-              error: `HTTP ${response.status}: ${response.statusText}`,
-              suggestion: 'Page may not be live yet or returned an error. Wait 30 seconds and try again.',
-              url: args.url
-            };
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          if (attempt > 0) {
+            console.log(`Retry ${attempt + 1}/${maxAttempts} after ${delays[attempt]}ms delay`);
+            await new Promise(resolve => setTimeout(resolve, delays[attempt]));
           }
 
-          const html = await response.text();
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 15000); // 15 second timeout per attempt
 
-          // Check for expected content strings
-          const expectedContent = Array.isArray(args.expectedContent) ? args.expectedContent : [args.expectedContent];
-          const foundAll = expectedContent.every(text => html.includes(text));
+          try {
+            const response = await fetch(args.url, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (compatible; DavidsonBot/1.0)',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+              },
+              signal: controller.signal
+            });
 
-          if (foundAll) {
+            clearTimeout(timeout);
+
+            if (!response.ok) {
+              // HTTP error - retry
+              if (attempt < maxAttempts - 1) continue;
+
+              return {
+                verified: false,
+                error: `HTTP ${response.status}: ${response.statusText}`,
+                suggestion: 'Page may not be live yet or returned an error. Wait 30 seconds and try again.',
+                url: args.url
+              };
+            }
+
+            const html = await response.text();
+
+            // Check for expected content strings
+            const expectedContent = Array.isArray(args.expectedContent) ? args.expectedContent : [args.expectedContent];
+            const foundAll = expectedContent.every(text => html.includes(text));
+
+            if (foundAll) {
+              return {
+                verified: true,
+                message: `All expected content found on live page at ${args.url}`,
+                url: args.url,
+                checked: expectedContent.length,
+                attempts: attempt + 1
+              };
+            } else {
+              // Content not found - retry
+              if (attempt < maxAttempts - 1) continue;
+
+              const missing = expectedContent.filter(text => !html.includes(text));
+              return {
+                verified: false,
+                missing: missing,
+                suggestion: 'Some content not found after 3 attempts. Deployment may still be propagating through CDN.',
+                url: args.url,
+                attempts: maxAttempts
+              };
+            }
+          } catch (fetchError) {
+            clearTimeout(timeout);
+
+            // Network error - retry unless last attempt
+            if (attempt < maxAttempts - 1) continue;
+
+            if (fetchError.name === 'AbortError') {
+              return {
+                verified: false,
+                error: 'Verification timeout after 15 seconds',
+                suggestion: 'Could not verify live content. Server may be slow or deployment still in progress.',
+                url: args.url,
+                attempts: maxAttempts
+              };
+            }
+
             return {
-              verified: true,
-              message: `All expected content found on live page at ${args.url}`,
+              verified: false,
+              error: `Failed to fetch page: ${fetchError.message}`,
+              suggestion: 'Could not verify live content. Deployment may still be in progress.',
               url: args.url,
-              checked: expectedContent.length
-            };
-          } else {
-            const missing = expectedContent.filter(text => !html.includes(text));
-            return {
-              verified: false,
-              missing: missing,
-              suggestion: 'Some content not found. Deployment may still be propagating through CDN. Wait 1-2 minutes and try again.',
-              url: args.url
+              attempts: maxAttempts
             };
           }
-        } catch (fetchError) {
-          clearTimeout(timeout);
-
-          if (fetchError.name === 'AbortError') {
-            return {
-              verified: false,
-              error: 'Verification timeout after 15 seconds',
-              suggestion: 'Could not verify live content. Server may be slow or deployment still in progress.',
-              url: args.url
-            };
-          }
-
-          return {
-            verified: false,
-            error: `Failed to fetch page: ${fetchError.message}`,
-            suggestion: 'Could not verify live content. Deployment may still be in progress.',
-            url: args.url
-          };
         }
+
+        // Should never reach here, but just in case
+        return {
+          verified: false,
+          error: 'Verification failed after all attempts',
+          url: args.url,
+          attempts: maxAttempts
+        };
       }
 
       default:
@@ -1252,9 +1281,9 @@ async function convertToVisionMessage(message, octokit) {
       console.log(`  - Approx size: ${approxSizeMB}MB`);
       console.log(`  - Base64 length: ${base64Content.length} chars`);
 
-      // Warn if image might be too large (Kimi limit is 5MB)
-      if (approxSizeBytes > 5 * 1024 * 1024) {
-        console.warn(`⚠️  Image may exceed 5MB limit for Kimi (${approxSizeMB}MB)`);
+      // Warn if image might be too large (OpenAI Vision API limit is 20MB)
+      if (approxSizeBytes > 20 * 1024 * 1024) {
+        console.warn(`⚠️  Image may exceed 20MB limit for OpenAI Vision API (${approxSizeMB}MB)`);
       }
 
       // Add image in OpenAI-compatible vision format

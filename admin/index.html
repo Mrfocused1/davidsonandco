@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>Davidson & Co London | AI Builder</title>
 
   <!-- Fonts -->
@@ -1242,13 +1243,38 @@
       return div.innerHTML;
     }
 
-    // Format response (basic markdown-like formatting)
+    // Format response (enhanced markdown formatting)
     function formatResponse(text) {
-      return escapeHtml(text)
-        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-brand-white">$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code class="bg-brand-stone px-1 rounded text-brand-gold">$1</code>')
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-brand-gold hover:text-brand-gold/80 underline transition-colors">$1</a>');
+      let formatted = escapeHtml(text);
+
+      // Bold
+      formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong class="text-brand-white">$1</strong>');
+
+      // Italic
+      formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+      // Inline code
+      formatted = formatted.replace(/`(.*?)`/g, '<code class="bg-brand-stone px-1 rounded text-brand-gold">$1</code>');
+
+      // Links (with security)
+      formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-brand-gold hover:text-brand-gold/80 underline transition-colors">$1</a>');
+
+      // Headings (## heading)
+      formatted = formatted.replace(/^## (.+)$/gm, '<h2 class="text-lg font-serif text-brand-gold mt-4 mb-2">$1</h2>');
+      formatted = formatted.replace(/^### (.+)$/gm, '<h3 class="text-base font-serif text-brand-gold mt-3 mb-1">$1</h3>');
+
+      // Bullet lists (- item or * item)
+      formatted = formatted.replace(/^[*-] (.+)$/gm, '<li class="ml-4">• $1</li>');
+      formatted = formatted.replace(/(<li class="ml-4">.*<\/li>\n?)+/g, '<ul class="my-2">$&</ul>');
+
+      // Numbered lists (1. item)
+      formatted = formatted.replace(/^\d+\. (.+)$/gm, '<li class="ml-4 list-decimal">$1</li>');
+      formatted = formatted.replace(/(<li class="ml-4 list-decimal">.*<\/li>\n?)+/g, '<ol class="my-2 ml-4">$&</ol>');
+
+      // Line breaks (double newline = paragraph break)
+      formatted = formatted.replace(/\n\n/g, '<br><br>');
+
+      return formatted;
     }
 
     // Show deployment status indicator with visual feedback
@@ -1673,11 +1699,11 @@
             setTimeout(checkStatus, 2000);
           }
         } catch (error) {
-          // On error, assume success after a delay
+          // On error, try a few times, then show ambiguous message
           console.error('Status check error:', error);
           if (attempts >= 5) {
             clearPublishingIndicator();
-            showSuccessAnimation();
+            showAmbiguousDeploymentMessage();
           } else {
             attempts++;
             setTimeout(checkStatus, 2000);
@@ -1749,6 +1775,29 @@
         </div>
       `;
       chatContainer.appendChild(errorDiv);
+      scrollToBottom();
+    }
+
+    // Show ambiguous deployment message (when status is unknown)
+    function showAmbiguousDeploymentMessage() {
+      const ambiguousDiv = document.createElement('div');
+      ambiguousDiv.className = 'message-appear flex gap-3 sm:gap-4 items-center justify-center py-6';
+      ambiguousDiv.innerHTML = `
+        <div class="flex flex-col items-center gap-4 p-6 bg-brand-charcoal rounded-2xl border border-yellow-500/30">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div class="text-center">
+            <h3 class="text-lg font-serif text-yellow-400 mb-2">Deployment Status Unknown</h3>
+            <p class="text-sm text-gray-300 mb-4">Unable to verify deployment status. Your changes may still be deploying.</p>
+            <p class="text-xs text-gray-400">Please check your website directly to confirm changes are live.</p>
+          </div>
+          <a href="/" target="_blank" class="px-4 py-2 bg-brand-gold/20 hover:bg-brand-gold/30 text-brand-gold text-sm rounded-lg transition-colors">
+            Check Website →
+          </a>
+        </div>
+      `;
+      chatContainer.appendChild(ambiguousDiv);
       scrollToBottom();
     }
 
