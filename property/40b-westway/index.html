@@ -284,7 +284,85 @@
   </section>
 
   <!-- SECTION 4: Video Tour -->
-  <section id="features" class="py-24 bg-brand-charcoal">
+  <section id="video-tour" class="py-24 bg-brand-charcoal">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="grid md:grid-cols-2 gap-16 items-center">
+        <!-- Video Content -->
+        <div id="video-content">
+          <div class="w-16 h-[1px] bg-brand-gold mb-6" id="video-line"></div>
+          <h2 class="text-3xl md:text-4xl font-serif text-brand-white mb-6" id="video-title">Virtual Tour</h2>
+          <p class="font-sans text-gray-400 leading-relaxed mb-8" id="video-description">
+            Experience 40b Westway from the comfort of your home. Our immersive video tour showcases every detail of this exceptional residence, from the spacious living areas to the private garden sanctuary.
+          </p>
+
+          <!-- Video Features -->
+          <div class="flex flex-wrap gap-6 mb-8" id="video-features">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-brand-gold/10 flex items-center justify-center">
+                <svg class="w-5 h-5 text-brand-gold" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm text-brand-white">HD Quality</p>
+                <p class="text-xs text-gray-500">1080p</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-brand-gold/10 flex items-center justify-center">
+                <svg class="w-5 h-5 text-brand-gold" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm text-brand-white">360° View</p>
+                <p class="text-xs text-gray-500">Interactive</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-brand-gold/10 flex items-center justify-center">
+                <svg class="w-5 h-5 text-brand-gold" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm text-brand-white">5 Min</p>
+                <p class="text-xs text-gray-500">Duration</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- CTA -->
+          <a href="#inquiry" class="inline-block px-8 py-4 bg-brand-gold text-brand-black text-xs tracking-[0.2em] hover:bg-white transition-all duration-300 font-semibold">
+            ARRANGE VIEWING
+          </a>
+        </div>
+
+        <!-- Video Player -->
+        <div class="relative" id="video-player">
+          <div class="aspect-video bg-brand-stone overflow-hidden border border-white/10">
+            <video class="w-full h-full object-cover" poster="https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=1200&h=675&dpr=2" id="property-video">
+              <source src="https://videos.pexels.com/video-files/35372089/14987235_1080_1920_30fps.mp4" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <!-- Play Button Overlay -->
+            <button id="play-button" class="absolute inset-0 flex items-center justify-center bg-brand-black/40 hover:bg-brand-black/20 transition-all duration-300">
+              <div class="w-20 h-20 rounded-full border-2 border-brand-gold flex items-center justify-center hover:scale-110 transition-transform duration-300">
+                <svg class="w-8 h-8 text-brand-gold ml-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                </svg>
+              </div>
+            </button>
+          </div>
+          <!-- Decorative Elements -->
+          <div class="absolute -bottom-4 -left-4 w-24 h-[1px] bg-brand-gold"></div>
+          <div class="absolute -bottom-4 -left-4 w-[1px] h-24 bg-brand-gold"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: Features & Amenities -->
     <div class="max-w-7xl mx-auto px-8">
       <!-- Section Header -->
       <div class="text-center mb-16">
