@@ -119,11 +119,32 @@
     <div id="scroll-progress" class="w-full bg-brand-gold rounded-full transition-all duration-100 ease-out" style="height: 0%"></div>
   </div>
 
-  <!-- Navigation (Minimal) -->
+  <!-- Navigation -->
   <nav
-    class="fixed top-0 left-0 w-full z-50 flex justify-between items-center p-8 mix-blend-difference pointer-events-none">
-    <img src="src/assets/logo.png" alt="Davidson & Co." class="h-10 pointer-events-auto">
+    class="fixed top-0 left-0 w-full z-50 flex justify-between items-center p-6 md:p-8 mix-blend-difference transition-all duration-500"
+    id="main-nav">
+    <a href="/" class="pointer-events-auto">
+      <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="/" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">HOME</a>
+      <a href="/listings" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">LISTINGS</a>
+      <a href="#contact" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">CONTACT</a>
+    </div>
+    <!-- Mobile Menu Button -->
+    <button class="md:hidden pointer-events-auto text-white/70 hover:text-brand-gold transition-colors duration-300" id="mobile-menu-btn">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
   </nav>
+
+  <!-- Mobile Menu Overlay -->
+  <div class="fixed inset-0 bg-brand-black z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-opacity duration-500" id="mobile-menu">
+    <a href="/" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">HOME</a>
+    <a href="/listings" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">LISTINGS</a>
+    <a href="#contact" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">CONTACT</a>
+  </div>
 
   <!-- SECTION 1: HERO - THE VAULT DOOR -->
   <section id="hero" class="relative h-screen w-full overflow-hidden flex items-center justify-center bg-brand-black">
