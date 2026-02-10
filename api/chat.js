@@ -2176,7 +2176,12 @@ export default async function handler(req, res) {
     const errCode = error.code || '';
     let statusCode = 500;
 
-    if (errMsg.includes('credit') || errMsg.includes('billing') || errMsg.includes('balance is too low')) {
+    // Check authentication errors FIRST (most common issue)
+    if (error.status === 401 || error.status === 403 || errMsg.includes('authentication') || errMsg.includes('invalid x-api-key') || errMsg.includes('unauthorized') || errMsg.includes('forbidden')) {
+      userFriendlyMessage = 'The AI service API key is invalid or expired. Please contact your admin to update the ANTHROPIC_API_KEY in Vercel with a valid API key from console.anthropic.com.';
+      errorMessage = 'Invalid or expired Anthropic API key';
+      statusCode = error.status || 401;
+    } else if (errMsg.includes('credit') || errMsg.includes('billing') || errMsg.includes('balance is too low')) {
       userFriendlyMessage = 'The AI service has run out of credits. Please contact your admin to top up the Anthropic API credits so I can get back to work.';
       errorMessage = 'Anthropic API credit balance too low';
       statusCode = 402;
@@ -2188,9 +2193,6 @@ export default async function handler(req, res) {
     } else if (errMsg.includes('network') || errCode === 'ECONNREFUSED' || errCode === 'ENOTFOUND') {
       userFriendlyMessage = 'I\'m having trouble connecting. Please check your internet connection and try again. If it still doesn\'t work, take a screenshot and send it to your admin.';
       statusCode = 503;
-    } else if (error.status === 401 || error.status === 403 || errMsg.includes('unauthorized') || errMsg.includes('forbidden')) {
-      userFriendlyMessage = 'I don\'t have permission to do that right now. Please take a screenshot of this conversation and send it to your admin - they\'ll need to fix the permissions.';
-      statusCode = error.status || 403;
     } else if (error.status >= 500 || errMsg.includes('internal server error')) {
       userFriendlyMessage = 'The system is having a temporary issue. Please wait a moment and try again. If it still doesn\'t work, take a screenshot and send it to your admin.';
     } else if (errMsg.includes('invalid') || errMsg.includes('bad request')) {
