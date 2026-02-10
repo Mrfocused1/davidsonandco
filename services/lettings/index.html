@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lettings | Davidson & Co London</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP & Plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .text-gold-gradient {
+      background: linear-gradient(to right, #D4AF37, #FEE180, #D4AF37);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shine 5s linear infinite;
+    }
+
+    @keyframes shine {
+      to { background-position: 200% center; }
+    }
+
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    .animated-line {
+      width: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #D4AF37, transparent);
+    }
+  </style>
+</head>
+
+<body class="relative">
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center p-6 md:p-8 mix-blend-difference transition-all duration-500">
+    <a href="/" class="pointer-events-auto">
+      <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="/" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">HOME</a>
+      <a href="/listings" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">LISTINGS</a>
+      <a href="/#valuation-tools" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">MANAGEMENT RESOURCES</a>
+      <a href="/#contact" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">CONTACT</a>
+    </div>
+    <button class="md:hidden pointer-events-auto text-white/70 hover:text-brand-gold transition-colors duration-300" id="mobile-menu-btn">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="fixed inset-0 bg-brand-black z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-opacity duration-500" id="mobile-menu">
+    <a href="/" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">HOME</a>
+    <a href="/listings" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">LISTINGS</a>
+    <a href="/#valuation-tools" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">MANAGEMENT RESOURCES</a>
+    <a href="/#contact" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">CONTACT</a>
+  </div>
+
+  <!-- HERO: Centered with Animated Lines -->
+  <section id="hero" class="relative h-screen w-full overflow-hidden flex items-center justify-center bg-brand-black">
+    <div class="absolute inset-0 opacity-20">
+      <img src="https://images.pexels.com/photos/13466074/pexels-photo-13466074.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Lettings" class="w-full h-full object-cover grayscale">
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/80 to-brand-black/60"></div>
+
+    <div class="relative z-10 text-center px-8 max-w-4xl">
+      <div class="animated-line mx-auto mb-12" id="hero-line-top"></div>
+      <span class="text-brand-gold text-xs tracking-[0.4em] uppercase mb-8 block opacity-0" id="hero-tagline">Corporate & Private</span>
+      <h1 class="text-6xl md:text-8xl lg:text-9xl font-serif mb-8 opacity-0" id="hero-title">
+        <span class="text-white">Lettings</span>
+      </h1>
+      <p class="text-gray-400 text-lg md:text-xl leading-relaxed mb-12 opacity-0" id="hero-text">
+        Bespoke letting solutions for discerning corporate clients and private individuals seeking exceptional residences in London's most prestigious addresses.
+      </p>
+      <a href="/#contact" class="inline-block px-10 py-4 border border-brand-gold/30 text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300 opacity-0" id="hero-cta">
+        ENQUIRE NOW
+      </a>
+      <div class="animated-line mx-auto mt-12" id="hero-line-bottom"></div>
+    </div>
+  </section>
+
+  <!-- SECTION: Service Types -->
+  <section id="service-types" class="py-32 bg-brand-charcoal relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+        <!-- Corporate Lettings -->
+        <div class="service-type p-12 md:p-20 border-r border-white/5 relative overflow-hidden group">
+          <div class="absolute inset-0 bg-brand-gold/0 group-hover:bg-brand-gold/5 transition-all duration-700"></div>
+          <div class="relative z-10">
+            <span class="text-brand-gold text-xs tracking-[0.3em] uppercase mb-6 block opacity-0" id="corp-tagline">FOR BUSINESS</span>
+            <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="corp-title">Corporate Lettings</h2>
+            <div class="w-0 h-[1px] bg-brand-gold mb-8" id="corp-line"></div>
+            <p class="text-gray-400 text-lg leading-relaxed mb-8 opacity-0" id="corp-text">
+              Tailored accommodation solutions for executives, relocating staff, and international assignees. We handle every detail from property sourcing to tenancy management.
+            </p>
+            <ul class="space-y-4 opacity-0" id="corp-features">
+              <li class="flex items-center gap-4">
+                <span class="w-2 h-2 bg-brand-gold rounded-full"></span>
+                <span class="text-gray-300">Dedicated account management</span>
+              </li>
+              <li class="flex items-center gap-4">
+                <span class="w-2 h-2 bg-brand-gold rounded-full"></span>
+                <span class="text-gray-300">Global mobility support</span>
+              </li>
+              <li class="flex items-center gap-4">
+                <span class="w-2 h-2 bg-brand-gold rounded-full"></span>
+                <span class="text-gray-300">Flexible lease terms</span>
+              </li>
+              <li class="flex items-center gap-4">
+                <span class="w-2 h-2 bg-brand-gold rounded-full"></span>
+                <span class="text-gray-300">Invoice consolidation services</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Private Lettings -->
+        <div class="service-type p-12 md:p-20 relative overflow-hidden group">
+          <div class="absolute inset-0 bg-brand-gold/0 group-hover:bg-brand-gold/5 transition-all duration-700"></div>
+          <div class="relative z-10">
+            <span class="text-brand-gold text-xs tracking-[0.3em] uppercase mb-6 block opacity-0" id="priv-tagline">FOR INDIVIDUALS</span>
+            <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="priv-title">Private Lettings</h2>
+            <div class="w-0 h-[1px] bg-brand-gold mb-8" id="priv-line"></div>
+            <p class="text-gray-400 text-lg leading-relaxed mb-8 opacity-0" id="priv-text">
+              Exceptional homes for private clients who demand the highest standards. From heritage townhouses to contemporary apartments, we curate properties that exceed expectations.
+            </p>
+            <ul class="space-y-4 opacity-0" id="priv-features">
+              <li class="flex items-center gap-4">
+                <span class="w-2 h-2 bg-brand-gold rounded-full"></span>
+                <span class="text-gray-300">Personal property matching</span>
+              </li>
+              <li class="flex items-center gap-4">
+                <span class="w-2 h-2 bg-brand-gold rounded-full"></span>
+                <span class="text-gray-300">Concierge-style service</span>
+              </li>
+              <li class="flex items-center gap-4">
+                <span class="w-2 h-2 bg-brand-gold rounded-full"></span>
+                <span class="text-gray-300">Premium furnishing packages</span>
+              </li>
+              <li class="flex items-center gap-4">
+                <span class="w-2 h-2 bg-brand-gold rounded-full"></span>
+                <span class="text-gray-300">24/7 maintenance support</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: Benefits Grid -->
+  <section id="benefits" class="py-32 bg-brand-black relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="text-center mb-20">
+        <div class="w-0 h-[1px] bg-brand-gold mx-auto mb-8" id="benefits-line"></div>
+        <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="benefits-title">Why Choose Davidson & Co</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto opacity-0" id="benefits-subtitle">Our letting service combines local expertise with global standards.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="benefit-card text-center p-8 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0" style="transform: translateY(30px);">
+          <div class="w-16 h-16 mx-auto mb-6 flex items-center justify-center border border-brand-gold/30 rounded-full">
+            <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Vetted Properties</h3>
+          <p class="text-gray-400 text-sm">Every property undergoes rigorous quality checks before listing.</p>
+        </div>
+
+        <div class="benefit-card text-center p-8 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0" style="transform: translateY(30px);">
+          <div class="w-16 h-16 mx-auto mb-6 flex items-center justify-center border border-brand-gold/30 rounded-full">
+            <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Efficient Process</h3>
+          <p class="text-gray-400 text-sm">From viewing to move-in, we streamline every step of your journey.</p>
+        </div>
+
+        <div class="benefit-card text-center p-8 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0" style="transform: translateY(30px);">
+          <div class="w-16 h-16 mx-auto mb-6 flex items-center justify-center border border-brand-gold/30 rounded-full">
+            <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Expert Team</h3>
+          <p class="text-gray-400 text-sm">Dedicated lettings specialists with deep London market knowledge.</p>
+        </div>
+
+        <div class="benefit-card text-center p-8 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0" style="transform: translateY(30px);">
+          <div class="w-16 h-16 mx-auto mb-6 flex items-center justify-center border border-brand-gold/30 rounded-full">
+            <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Ongoing Support</h3>
+          <p class="text-gray-400 text-sm">Full tenancy management and responsive maintenance services.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: Property Types -->
+  <section id="property-types" class="py-32 bg-brand-charcoal relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="text-center mb-20">
+        <div class="w-0 h-[1px] bg-brand-gold mx-auto mb-8" id="types-line"></div>
+        <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="types-title">Property Portfolio</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="prop-type-card relative h-96 overflow-hidden group cursor-pointer opacity-0">
+          <img src="https://images.pexels.com/photos/14841840/pexels-photo-14841840.jpeg?auto=compress&cs=tinysrgb&w=600&h=800&dpr=2" alt="Apartments" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+          <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/40 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-8">
+            <h3 class="text-2xl font-serif text-white mb-2">Apartments</h3>
+            <p class="text-brand-gold text-xs tracking-widest">Contemporary living in prime locations</p>
+          </div>
+        </div>
+
+        <div class="prop-type-card relative h-96 overflow-hidden group cursor-pointer opacity-0">
+          <img src="https://images.pexels.com/photos/259588/pexels-photo-259588.jpeg?auto=compress&cs=tinysrgb&w=600&h=800&dpr=2" alt="Townhouses" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+          <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/40 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-8">
+            <h3 class="text-2xl font-serif text-white mb-2">Townhouses</h3>
+            <p class="text-brand-gold text-xs tracking-widest">Heritage homes with character</p>
+          </div>
+        </div>
+
+        <div class="prop-type-card relative h-96 overflow-hidden group cursor-pointer opacity-0">
+          <img src="https://images.pexels.com/photos/2119713/pexels-photo-2119713.jpeg?auto=compress&cs=tinysrgb&w=600&h=800&dpr=2" alt="Penthouses" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+          <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/40 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-8">
+            <h3 class="text-2xl font-serif text-white mb-2">Penthouses</h3>
+            <p class="text-brand-gold text-xs tracking-widest">Luxury living with spectacular views</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: CTA -->
+  <section id="cta" class="py-32 bg-brand-black relative overflow-hidden">
+    <div class="max-w-4xl mx-auto px-8 text-center">
+      <div class="w-0 h-[1px] bg-brand-gold mx-auto mb-8" id="cta-line"></div>
+      <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="cta-title">Find Your Perfect Home</h2>
+      <p class="text-gray-400 mb-12 max-w-2xl mx-auto opacity-0" id="cta-text">Whether you're relocating for business or seeking a private residence, we're here to help.</p>
+      <a href="/listings" class="inline-block px-12 py-4 bg-brand-gold text-brand-black text-xs tracking-[0.2em] hover:bg-brand-white transition-all duration-300 mr-4 opacity-0" id="cta-button-1">
+        VIEW LISTINGS
+      </a>
+      <a href="/#contact" class="inline-block px-12 py-4 border border-brand-gold/30 text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300 opacity-0" id="cta-button-2">
+        ENQUIRE NOW
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-black text-white/40 py-24 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start">
+      <div class="mb-12 md:mb-0">
+        <a href="/"><img src="/logo.png" alt="Davidson & Co." class="h-12 mb-4"></a>
+      </div>
+      <div class="flex gap-16 text-xs font-sans tracking-widest">
+        <div>
+          <h6 class="text-white mb-4">NAVIGATION</h6>
+          <ul class="space-y-2">
+            <li><a href="/" class="hover:text-brand-gold transition-colors">Home</a></li>
+            <li><a href="/services/sales" class="hover:text-brand-gold transition-colors">Sales</a></li>
+            <li><a href="/services/lettings" class="hover:text-brand-gold transition-colors">Lettings</a></li>
+            <li><a href="/listings" class="hover:text-brand-gold transition-colors">Listings</a></li>
+          </ul>
+        </div>
+        <div>
+          <h6 class="text-white mb-4">CONTACT</h6>
+          <ul class="space-y-2">
+            <li><a href="tel:+442080544065" class="hover:text-brand-gold transition-colors">020 8054 4065</a></li>
+            <li><a href="mailto:info@davidsoncolondon.com" class="hover:text-brand-gold transition-colors">info@davidsoncolondon.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-24 opacity-20 font-sans">
+      © 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+      // Hero Animation
+      const heroTl = gsap.timeline();
+      heroTl
+        .to("#hero-line-top", {width: "200px", duration: 1.5, ease: "power2.inOut"})
+        .from("#hero-tagline", {opacity: 0, y: 30, duration: 1, ease: "power3.out"}, "-=0.8")
+        .from("#hero-title", {opacity: 0, y: 60, duration: 1.2, ease: "power4.out"}, "-=0.6")
+        .from("#hero-text", {opacity: 0, y: 40, duration: 1, ease: "power3.out"}, "-=0.6")
+        .from("#hero-cta", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4")
+        .to("#hero-line-bottom", {width: "200px", duration: 1.5, ease: "power2.inOut"}, "-=0.8");
+
+      // Service Types
+      const serviceTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#service-types",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      serviceTl
+        .to("#corp-tagline", {opacity: 1, duration: 0.8})
+        .from("#corp-title", {opacity: 0, y: 40, duration: 1}, "-=0.4")
+        .to("#corp-line", {width: "60px", duration: 0.8}, "-=0.6")
+        .from("#corp-text", {opacity: 0, y: 30, duration: 0.8}, "-=0.4")
+        .from("#corp-features", {opacity: 0, y: 20, duration: 0.8}, "-=0.4")
+        .to("#priv-tagline", {opacity: 1, duration: 0.8}, "-=0.4")
+        .from("#priv-title", {opacity: 0, y: 40, duration: 1}, "-=0.4")
+        .to("#priv-line", {width: "60px", duration: 0.8}, "-=0.6")
+        .from("#priv-text", {opacity: 0, y: 30, duration: 0.8}, "-=0.4")
+        .from("#priv-features", {opacity: 0, y: 20, duration: 0.8}, "-=0.4");
+
+      // Benefits
+      const benefitsTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#benefits",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      benefitsTl
+        .to("#benefits-line", {width: "100px", duration: 1, ease: "power2.inOut"})
+        .from("#benefits-title", {opacity: 0, y: 50, duration: 1, ease: "power3.out"}, "-=0.6")
+        .from("#benefits-subtitle", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4");
+
+      gsap.utils.toArray(".benefit-card").forEach((card, i) => {
+        gsap.to(card, {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+
+      // Property Types
+      const typesTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#property-types",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      typesTl
+        .to("#types-line", {width: "100px", duration: 1, ease: "power2.inOut"})
+        .from("#types-title", {opacity: 0, y: 50, duration: 1, ease: "power3.out"}, "-=0.6");
+
+      gsap.utils.toArray(".prop-type-card").forEach((card, i) => {
+        gsap.to(card, {
+          opacity: 1,
+          duration: 1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+
+      // CTA
+      const ctaTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#cta",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      ctaTl
+        .to("#cta-line", {width: "100px", duration: 1, ease: "power2.inOut"})
+        .from("#cta-title", {opacity: 0, y: 50, duration: 1, ease: "power3.out"}, "-=0.6")
+        .from("#cta-text", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4")
+        .from("#cta-button-1", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4")
+        .from("#cta-button-2", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4");
+
+      // Mobile Menu
+      const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+      const mobileMenu = document.getElementById("mobile-menu");
+      const mobileNavLinks = document.querySelectorAll(".mobile-nav-link");
+      let menuOpen = false;
+
+      mobileMenuBtn.addEventListener("click", () => {
+        menuOpen = !menuOpen;
+        if (menuOpen) {
+          gsap.to(mobileMenu, {opacity: 1, pointerEvents: "auto", duration: 0.5});
+          gsap.from(".mobile-nav-link", {y: 30, opacity: 0, stagger: 0.1, duration: 0.5});
+        } else {
+          gsap.to(mobileMenu, {opacity: 0, pointerEvents: "none", duration: 0.3});
+        }
+      });
+
+      mobileNavLinks.forEach(link => {
+        link.addEventListener("click", () => {
+          menuOpen = false;
+          gsap.to(mobileMenu, {opacity: 0, pointerEvents: "none", duration: 0.3});
+        });
+      });
+    });
+  </script>
+</body>
+</html>
