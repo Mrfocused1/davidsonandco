@@ -1416,7 +1416,39 @@ async function executeFunction(name, args, octokit) {
     }
   } catch (error) {
     console.error(`Tool execution error (${name}):`, error.message);
-    return { error: error.message };
+    console.error(`Tool error details:`, error.status, error.response?.data);
+
+    const errorResult = {
+      error: `Tool '${name}' failed: ${error.message}`,
+      status: error.status || 'unknown',
+      tool: name,
+      success: false
+    };
+
+    // Include file path context if available
+    if (args.path) {
+      errorResult.failedPath = args.path;
+      errorResult.error += ` (path: ${args.path})`;
+    }
+
+    // Include GitHub-specific error details
+    if (error.response?.data?.message) {
+      errorResult.githubError = error.response.data.message;
+      errorResult.error += ` - GitHub says: ${error.response.data.message}`;
+    }
+
+    // Provide actionable hints based on error type
+    if (error.status === 409) {
+      errorResult.hint = 'Conflict error - the file was modified by another process. Try again.';
+    } else if (error.status === 422) {
+      errorResult.hint = 'Validation error - the content or parameters may be invalid.';
+    } else if (error.status === 404) {
+      errorResult.hint = 'File or path not found. Check the path and try again.';
+    } else if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
+      errorResult.hint = 'Request timeout - try again or simplify the request.';
+    }
+
+    return errorResult;
   }
 }
 
@@ -2022,6 +2054,13 @@ export default async function handler(req, res) {
           // Log tool completion time
           const toolDuration = Date.now() - toolStartTime;
           console.log(`✅ Tool ${functionName} completed in ${toolDuration}ms`);
+
+          // Log the actual result being sent to LLM
+          const resultPreview = JSON.stringify(result).substring(0, 500);
+          console.log(`📤 Tool result for ${functionName}:`, resultPreview);
+          if (result.success === false || result.error) {
+            console.error(`❌ Tool ${functionName} returned error:`, result.error);
+          }
 
           // Track if changes were made (edit_file, create_file, or delete_file with success)
           if ((functionName === 'edit_file' || functionName === 'create_file' || functionName === 'delete_file') && result.success) {
