@@ -940,6 +940,53 @@
       // Listen for scroll events
       window.addEventListener("scroll", onScrollStart);
 
+
+      // --- MOBILE MENU FUNCTIONALITY ---
+      const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+      const mobileMenu = document.getElementById("mobile-menu");
+      const mobileNavLinks = document.querySelectorAll(".mobile-nav-link");
+      let menuOpen = false;
+
+      // Toggle mobile menu
+      mobileMenuBtn.addEventListener("click", () => {
+        menuOpen = !menuOpen;
+        if (menuOpen) {
+          gsap.to(mobileMenu, {
+            opacity: 1,
+            pointerEvents: "auto",
+            duration: 0.5,
+            ease: "power2.out"
+          });
+          gsap.from(".mobile-nav-link", {
+            y: 30,
+            opacity: 0,
+            stagger: 0.1,
+            duration: 0.5,
+            ease: "power2.out"
+          });
+        } else {
+          gsap.to(mobileMenu, {
+            opacity: 0,
+            pointerEvents: "none",
+            duration: 0.3,
+            ease: "power2.in"
+          });
+        }
+      });
+
+      // Close mobile menu when clicking a link
+      mobileNavLinks.forEach(link => {
+        link.addEventListener("click", () => {
+          menuOpen = false;
+          gsap.to(mobileMenu, {
+            opacity: 0,
+            pointerEvents: "none",
+            duration: 0.3,
+            ease: "power2.in"
+          });
+        });
+      });
+
     });
   </script>
 </body>
