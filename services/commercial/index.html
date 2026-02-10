@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commercial | Davidson & Co London</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP & Plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .text-gold-gradient {
+      background: linear-gradient(to right, #D4AF37, #FEE180, #D4AF37);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shine 5s linear infinite;
+    }
+
+    @keyframes shine {
+      to { background-position: 200% center; }
+    }
+
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+  </style>
+</head>
+
+<body class="relative">
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center p-6 md:p-8 mix-blend-difference transition-all duration-500">
+    <a href="/" class="pointer-events-auto">
+      <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="/" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">HOME</a>
+      <a href="/listings" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">LISTINGS</a>
+      <a href="/#valuation-tools" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">MANAGEMENT RESOURCES</a>
+      <a href="/#contact" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">CONTACT</a>
+    </div>
+    <button class="md:hidden pointer-events-auto text-white/70 hover:text-brand-gold transition-colors duration-300" id="mobile-menu-btn">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="fixed inset-0 bg-brand-black z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-opacity duration-500" id="mobile-menu">
+    <a href="/" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">HOME</a>
+    <a href="/listings" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">LISTINGS</a>
+    <a href="/#valuation-tools" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">MANAGEMENT RESOURCES</a>
+    <a href="/#contact" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">CONTACT</a>
+  </div>
+
+  <!-- HERO: Full Screen Video Background Style -->
+  <section id="hero" class="relative h-screen w-full overflow-hidden flex items-center justify-center bg-brand-black">
+    <div class="absolute inset-0">
+      <img src="https://images.pexels.com/photos/4832514/pexels-photo-4832514.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Commercial Property" class="w-full h-full object-cover scale-110 opacity-40" id="hero-bg">
+      <div class="absolute inset-0 bg-gradient-to-b from-brand-black/80 via-brand-black/60 to-brand-black"></div>
+    </div>
+
+    <div class="relative z-10 text-center px-8 max-w-5xl">
+      <span class="text-brand-gold text-xs tracking-[0.4em] uppercase mb-8 block opacity-0" id="hero-tagline">Investment Advisory</span>
+      <h1 class="text-6xl md:text-8xl lg:text-9xl font-serif text-white mb-8 opacity-0" id="hero-title">
+        Commercial
+      </h1>
+      <div class="w-0 h-[1px] bg-brand-gold mx-auto mb-8" id="hero-line"></div>
+      <p class="text-gray-400 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed mb-12 opacity-0" id="hero-text">
+        Strategic commercial real estate advisory for investors and businesses. From acquisition to asset management, we deliver results through market intelligence and expert negotiation.
+      </p>
+      <a href="/#contact" class="inline-block px-10 py-4 border border-brand-gold/30 text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300 opacity-0" id="hero-cta">
+        EXPLORE OPPORTUNITIES
+      </a>
+    </div>
+  </section>
+
+  <!-- SECTION: Services Overview -->
+  <section id="services-overview" class="py-32 bg-brand-charcoal relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="text-center mb-20">
+        <div class="w-0 h-[1px] bg-brand-gold mx-auto mb-8" id="overview-line"></div>
+        <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="overview-title">Commercial Expertise</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto opacity-0" id="overview-subtitle">Comprehensive services across the commercial real estate spectrum.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="overview-card p-12 bg-brand-stone/30 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0" style="transform: translateX(-40px);">
+          <div class="flex items-start gap-6">
+            <div class="w-16 h-16 flex-shrink-0 flex items-center justify-center border border-brand-gold/30 rounded-full">
+              <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-2xl font-serif mb-4 text-white">Office Space</h3>
+              <p class="text-gray-400 leading-relaxed">Strategic office acquisitions and leasing for businesses of all sizes. From boutique spaces to headquarters, we find solutions that align with your operational needs and brand identity.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="overview-card p-12 bg-brand-stone/30 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0" style="transform: translateX(40px);">
+          <div class="flex items-start gap-6">
+            <div class="w-16 h-16 flex-shrink-0 flex items-center justify-center border border-brand-gold/30 rounded-full">
+              <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-2xl font-serif mb-4 text-white">Retail Properties</h3>
+              <p class="text-gray-400 leading-relaxed">High-street and destination retail acquisitions. We understand footfall, demographics, and the factors that drive retail success in London's competitive market.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="overview-card p-12 bg-brand-stone/30 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0" style="transform: translateX(-40px);">
+          <div class="flex items-start gap-6">
+            <div class="w-16 h-16 flex-shrink-0 flex items-center justify-center border border-brand-gold/30 rounded-full">
+              <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-2xl font-serif mb-4 text-white">Industrial & Logistics</h3>
+              <p class="text-gray-400 leading-relaxed">Strategic industrial property acquisitions with focus on location, accessibility, and future-proofing. Last-mile delivery facilities and warehousing solutions.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="overview-card p-12 bg-brand-stone/30 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0" style="transform: translateX(40px);">
+          <div class="flex items-start gap-6">
+            <div class="w-16 h-16 flex-shrink-0 flex items-center justify-center border border-brand-gold/30 rounded-full">
+              <svg class="w-8 h-8 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-2xl font-serif mb-4 text-white">Investment Advisory</h3>
+              <p class="text-gray-400 leading-relaxed">Data-driven investment strategies for commercial portfolios. Market analysis, yield optimization, and exit planning for institutional and private investors.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: Investment Process -->
+  <section id="investment-process" class="py-32 bg-brand-black relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="text-center mb-20">
+        <div class="w-0 h-[1px] bg-brand-gold mx-auto mb-8" id="process-line"></div>
+        <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="process-title">Investment Process</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div class="process-item text-center p-8 opacity-0" id="process-1">
+          <div class="w-20 h-20 mx-auto mb-6 flex items-center justify-center border-2 border-brand-gold/30 rounded-full relative">
+            <span class="text-3xl font-serif text-brand-gold">01</span>
+            <div class="absolute inset-0 border border-brand-gold/20 rounded-full scale-125"></div>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Strategy</h3>
+          <p class="text-gray-400 text-sm">Define investment objectives, risk parameters, and target markets.</p>
+        </div>
+
+        <div class="process-item text-center p-8 opacity-0" id="process-2">
+          <div class="w-20 h-20 mx-auto mb-6 flex items-center justify-center border-2 border-brand-gold/30 rounded-full relative">
+            <span class="text-3xl font-serif text-brand-gold">02</span>
+            <div class="absolute inset-0 border border-brand-gold/20 rounded-full scale-125"></div>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Analysis</h3>
+          <p class="text-gray-400 text-sm">Comprehensive market research and financial modeling of opportunities.</p>
+        </div>
+
+        <div class="process-item text-center p-8 opacity-0" id="process-3">
+          <div class="w-20 h-20 mx-auto mb-6 flex items-center justify-center border-2 border-brand-gold/30 rounded-full relative">
+            <span class="text-3xl font-serif text-brand-gold">03</span>
+            <div class="absolute inset-0 border border-brand-gold/20 rounded-full scale-125"></div>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Acquisition</h3>
+          <p class="text-gray-400 text-sm">Expert negotiation and seamless transaction management.</p>
+        </div>
+
+        <div class="process-item text-center p-8 opacity-0" id="process-4">
+          <div class="w-20 h-20 mx-auto mb-6 flex items-center justify-center border-2 border-brand-gold/30 rounded-full relative">
+            <span class="text-3xl font-serif text-brand-gold">04</span>
+            <div class="absolute inset-0 border border-brand-gold/20 rounded-full scale-125"></div>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Optimization</h3>
+          <p class="text-gray-400 text-sm">Active asset management to maximise returns and value.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: Market Insights -->
+  <section id="insights" class="py-32 bg-brand-charcoal relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="text-center mb-20">
+        <div class="w-0 h-[1px] bg-brand-gold mx-auto mb-8" id="insights-line"></div>
+        <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="insights-title">Market Focus</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="insight-card p-8 bg-brand-stone/50 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0">
+          <h3 class="text-2xl font-serif mb-4 text-brand-gold">Prime Central London</h3>
+          <p class="text-gray-400 mb-6">Mayfair, St James's, Marylebone. Trophy assets with global appeal and resilient values.</p>
+          <div class="flex items-center gap-4">
+            <div class="text-3xl font-serif text-white">4.2%</div>
+            <div class="text-xs text-gray-500 uppercase tracking-widest">Avg Yield</div>
+          </div>
+        </div>
+
+        <div class="insight-card p-8 bg-brand-stone/50 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0">
+          <h3 class="text-2xl font-serif mb-4 text-brand-gold">City Fringe</h3>
+          <p class="text-gray-400 mb-6">Shoreditch, Clerkenwell, Farringdon. Tech and creative hubs with strong rental demand.</p>
+          <div class="flex items-center gap-4">
+            <div class="text-3xl font-serif text-white">5.1%</div>
+            <div class="text-xs text-gray-500 uppercase tracking-widest">Avg Yield</div>
+          </div>
+        </div>
+
+        <div class="insight-card p-8 bg-brand-stone/50 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0">
+          <h3 class="text-2xl font-serif mb-4 text-brand-gold">Growth Corridors</h3>
+          <p class="text-gray-400 mb-6">Crossrail stations, regeneration zones. Emerging opportunities with capital appreciation potential.</p>
+          <div class="flex items-center gap-4">
+            <div class="text-3xl font-serif text-white">6.3%</div>
+            <div class="text-xs text-gray-500 uppercase tracking-widest">Avg Yield</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: CTA -->
+  <section id="cta" class="py-32 bg-brand-black relative overflow-hidden">
+    <div class="max-w-4xl mx-auto px-8 text-center">
+      <div class="w-0 h-[1px] bg-brand-gold mx-auto mb-8" id="cta-line"></div>
+      <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="cta-title">Strategic Commercial Advice</h2>
+      <p class="text-gray-400 mb-12 max-w-2xl mx-auto opacity-0" id="cta-text">Whether acquiring your first commercial property or managing a portfolio, our expertise delivers results.</p>
+      <a href="/#contact" class="inline-block px-12 py-4 bg-brand-gold text-brand-black text-xs tracking-[0.2em] hover:bg-brand-white transition-all duration-300 opacity-0" id="cta-button">
+        SCHEDULE CONSULTATION
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-black text-white/40 py-24 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start">
+      <div class="mb-12 md:mb-0">
+        <a href="/"><img src="/logo.png" alt="Davidson & Co." class="h-12 mb-4"></a>
+      </div>
+      <div class="flex gap-16 text-xs font-sans tracking-widest">
+        <div>
+          <h6 class="text-white mb-4">NAVIGATION</h6>
+          <ul class="space-y-2">
+            <li><a href="/" class="hover:text-brand-gold transition-colors">Home</a></li>
+            <li><a href="/services/sales" class="hover:text-brand-gold transition-colors">Sales</a></li>
+            <li><a href="/services/lettings" class="hover:text-brand-gold transition-colors">Lettings</a></li>
+            <li><a href="/listings" class="hover:text-brand-gold transition-colors">Listings</a></li>
+          </ul>
+        </div>
+        <div>
+          <h6 class="text-white mb-4">CONTACT</h6>
+          <ul class="space-y-2">
+            <li><a href="tel:+442080544065" class="hover:text-brand-gold transition-colors">020 8054 4065</a></li>
+            <li><a href="mailto:info@davidsoncolondon.com" class="hover:text-brand-gold transition-colors">info@davidsoncolondon.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-24 opacity-20 font-sans">
+      © 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+      // Hero Animation
+      const heroTl = gsap.timeline();
+      heroTl
+        .from("#hero-tagline", {opacity: 0, y: 30, duration: 1, ease: "power3.out"})
+        .from("#hero-title", {opacity: 0, y: 80, duration: 1.4, ease: "power4.out"}, "-=0.6")
+        .to("#hero-line", {width: "120px", duration: 1, ease: "power2.inOut"}, "-=0.8")
+        .from("#hero-text", {opacity: 0, y: 40, duration: 1, ease: "power3.out"}, "-=0.6")
+        .from("#hero-cta", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4")
+        .from("#hero-bg", {scale: 1.2, duration: 2.5, ease: "power2.out"}, "-=1.5");
+
+      // Overview Section
+      const overviewTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#services-overview",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      overviewTl
+        .to("#overview-line", {width: "100px", duration: 1, ease: "power2.inOut"})
+        .from("#overview-title", {opacity: 0, y: 50, duration: 1, ease: "power3.out"}, "-=0.6")
+        .from("#overview-subtitle", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4");
+
+      gsap.utils.toArray(".overview-card").forEach((card, i) => {
+        gsap.to(card, {
+          opacity: 1,
+          x: 0,
+          duration: 1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+
+      // Process Section
+      const processTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#investment-process",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      processTl
+        .to("#process-line", {width: "100px", duration: 1, ease: "power2.inOut"})
+        .from("#process-title", {opacity: 0, y: 50, duration: 1, ease: "power3.out"}, "-=0.6");
+
+      gsap.utils.toArray(".process-item").forEach((item, i) => {
+        gsap.to(item, {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          delay: i * 0.15,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: item,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+
+      // Insights Section
+      const insightsTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#insights",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      insightsTl
+        .to("#insights-line", {width: "100px", duration: 1, ease: "power2.inOut"})
+        .from("#insights-title", {opacity: 0, y: 50, duration: 1, ease: "power3.out"}, "-=0.6");
+
+      gsap.utils.toArray(".insight-card").forEach((card, i) => {
+        gsap.to(card, {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          delay: i * 0.15,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+
+      // CTA Section
+      const ctaTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#cta",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      ctaTl
+        .to("#cta-line", {width: "100px", duration: 1, ease: "power2.inOut"})
+        .from("#cta-title", {opacity: 0, y: 50, duration: 1, ease: "power3.out"}, "-=0.6")
+        .from("#cta-text", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4")
+        .from("#cta-button", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4");
+
+      // Mobile Menu
+      const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+      const mobileMenu = document.getElementById("mobile-menu");
+      const mobileNavLinks = document.querySelectorAll(".mobile-nav-link");
+      let menuOpen = false;
+
+      mobileMenuBtn.addEventListener("click", () => {
+        menuOpen = !menuOpen;
+        if (menuOpen) {
+          gsap.to(mobileMenu, {opacity: 1, pointerEvents: "auto", duration: 0.5});
+          gsap.from(".mobile-nav-link", {y: 30, opacity: 0, stagger: 0.1, duration: 0.5});
+        } else {
+          gsap.to(mobileMenu, {opacity: 0, pointerEvents: "none", duration: 0.3});
+        }
+      });
+
+      mobileNavLinks.forEach(link => {
+        link.addEventListener("click", () => {
+          menuOpen = false;
+          gsap.to(mobileMenu, {opacity: 0, pointerEvents: "none", duration: 0.3});
+        });
+      });
+    });
+  </script>
+</body>
+</html>
