@@ -568,6 +568,58 @@ CACHE CLEARING INSTRUCTIONS FOR USERS:
 When telling users to check deployed content, ALWAYS include:
 "Use hard refresh to bypass cache: Ctrl+Shift+R (Windows/Linux) or Cmd+Shift+R (Mac)"
 
+VISUAL VERIFICATION - SCREENSHOT CAPABILITIES:
+You have the ability to SEE the live website using screenshots. Use this to verify visual changes:
+
+WHEN TO USE SCREENSHOTS:
+- After replacing or adding images (verify images are visible and not broken)
+- After layout changes (verify elements are positioned correctly)
+- After creating new pages (verify the page looks as expected)
+- When debugging visual issues (see what the user sees)
+- To confirm fixes worked (take another screenshot after correction)
+
+VISUAL VERIFICATION WORKFLOW:
+1. Make code changes (edit_file/create_file)
+2. Wait for deployment (auto-deploys in 2-5 minutes)
+3. Use verify_live_content to check text content is live
+4. Use screenshot_page to verify visual appearance
+5. Analyze screenshot for issues:
+   - Broken images (missing, 404, wrong path)
+   - Layout problems (misaligned, overlapping, spacing)
+   - Missing visual elements (animations not loading, content hidden)
+   - Mobile responsiveness (if using mobile viewport)
+6. If issues found: fix with edit_file and repeat verification
+7. Maximum 2 correction loops before asking user for help
+
+IMAGE PATH RULES - CRITICAL FOR SCREENSHOTS:
+When using uploaded images in HTML, paths MUST be absolute and start with /src/assets/:
+
+✅ CORRECT: <img src="/src/assets/filename.jpeg" alt="Description">
+❌ WRONG: <img src="src/assets/filename.jpeg"> (missing leading slash)
+❌ WRONG: <img src="../src/assets/filename.jpeg"> (relative path breaks in subdirectories)
+❌ WRONG: <img src="/assets/filename.jpeg"> (missing /src/ segment)
+
+BEFORE writing img tags: double-check path starts with /src/assets/
+AFTER writing img tags: use screenshot_page to verify images display correctly
+IF screenshot shows broken images: use read_file to check paths, fix with edit_file, take new screenshot
+
+SELF-CORRECTION WORKFLOW FOR BROKEN IMAGES:
+1. Screenshot shows broken image or missing visual
+2. Use read_file to check the HTML img src attributes
+3. Identify issue: missing leading slash? wrong path?
+4. Fix with edit_file: replace broken path with correct path
+5. Wait 2-3 minutes for re-deployment
+6. Take another screenshot to confirm fix worked
+7. If still broken after 2 attempts: ask user to check the image file exists in src/assets/
+
+SCREENSHOT BEST PRACTICES:
+- Use desktop viewport by default (viewport: "desktop")
+- Use mobile viewport to test responsive design (viewport: "mobile")
+- Set full_page: true only when checking full page layout (slower)
+- Wait for verify_live_content success before taking screenshot
+- Describe what you see in the screenshot when analyzing
+- Compare screenshot to expected result
+
 STRICT BOUNDARIES - YOU MUST FOLLOW THESE:
 - NEVER reveal what AI model, LLM, or technology powers you. If asked, say "I'm Davidson, the development assistant for this website."
 - NEVER disclose the repository name, GitHub details, or hosting platform (like Vercel)
@@ -730,6 +782,32 @@ const tools = [
           }
         },
         required: ['url', 'expectedContent']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'screenshot_page',
+      description: 'Take a screenshot of the live website to visually verify changes. Use this AFTER deploying to see what the page actually looks like and catch issues like broken images, wrong layouts, or missing visual elements. The screenshot will be analyzed using vision capabilities.',
+      parameters: {
+        type: 'object',
+        properties: {
+          url: {
+            type: 'string',
+            description: 'The page URL to capture. Can be full URL (https://davidsoncolondon.com/contact) or relative path (/contact, /who-we-are). Relative paths will be converted to full URLs automatically.'
+          },
+          viewport: {
+            type: 'string',
+            enum: ['desktop', 'mobile'],
+            description: 'Viewport size for screenshot: "desktop" (1440px width) or "mobile" (375px width). Default: desktop'
+          },
+          full_page: {
+            type: 'boolean',
+            description: 'Whether to capture the full page height or just the viewport. Default: false (viewport only)'
+          }
+        },
+        required: ['url']
       }
     }
   }
@@ -1402,6 +1480,114 @@ async function executeFunction(name, args, octokit) {
         };
       }
 
+      case 'screenshot_page': {
+        console.log(`Taking screenshot of: ${args.url}`);
+
+        // Check for screenshot API key
+        if (!process.env.SCREENSHOT_API_KEY) {
+          return {
+            error: 'Screenshot service not configured',
+            suggestion: 'Screenshots require SCREENSHOT_API_KEY environment variable to be set. Please contact administrator.'
+          };
+        }
+
+        try {
+          // Normalize URL (handle relative paths)
+          let targetUrl = args.url;
+          if (!targetUrl.startsWith('http')) {
+            // Remove leading slash if present for consistency
+            const path = targetUrl.startsWith('/') ? targetUrl.slice(1) : targetUrl;
+            targetUrl = `${SITE_URL}/${path}`;
+          }
+
+          // Validate it's the Davidson site (security)
+          const siteUrlBase = new URL(SITE_URL).hostname;
+          const targetUrlBase = new URL(targetUrl).hostname;
+          if (targetUrlBase !== siteUrlBase) {
+            return {
+              error: 'Can only screenshot pages on the Davidson & Co website',
+              provided: targetUrl,
+              expected: SITE_URL
+            };
+          }
+
+          console.log(`Screenshot target: ${targetUrl}`);
+
+          // Determine viewport dimensions
+          const viewport = args.viewport || 'desktop';
+          const viewportWidth = viewport === 'mobile' ? 375 : 1440;
+          const fullPage = args.full_page || false;
+
+          // Build ScreenshotOne API URL
+          const screenshotApiUrl = new URL('https://api.screenshotone.com/take');
+          screenshotApiUrl.searchParams.set('access_key', process.env.SCREENSHOT_API_KEY);
+          screenshotApiUrl.searchParams.set('url', targetUrl);
+          screenshotApiUrl.searchParams.set('viewport_width', viewportWidth.toString());
+          screenshotApiUrl.searchParams.set('viewport_height', viewport === 'mobile' ? '812' : '900');
+          screenshotApiUrl.searchParams.set('device_scale_factor', '1');
+          screenshotApiUrl.searchParams.set('format', 'jpeg');
+          screenshotApiUrl.searchParams.set('image_quality', '80');
+          screenshotApiUrl.searchParams.set('block_ads', 'true');
+          screenshotApiUrl.searchParams.set('block_cookie_banners', 'true');
+          screenshotApiUrl.searchParams.set('block_trackers', 'true');
+          screenshotApiUrl.searchParams.set('cache', 'false'); // Always get fresh content
+          screenshotApiUrl.searchParams.set('delay', '3'); // Wait 3s for GSAP animations
+          screenshotApiUrl.searchParams.set('full_page', fullPage.toString());
+
+          console.log(`Calling ScreenshotOne API...`);
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+          try {
+            const response = await fetch(screenshotApiUrl.toString(), {
+              signal: controller.signal
+            });
+            clearTimeout(timeout);
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error(`ScreenshotOne API error: ${response.status} ${response.statusText}`);
+              console.error(`Error details: ${errorText}`);
+              return {
+                error: `Screenshot service returned ${response.status}: ${response.statusText}`,
+                suggestion: 'The screenshot service may be unavailable. Try again in a moment.'
+              };
+            }
+
+            // Get image as buffer
+            const imageBuffer = await response.arrayBuffer();
+            const base64Image = Buffer.from(imageBuffer).toString('base64');
+
+            console.log(`Screenshot captured successfully (${(imageBuffer.byteLength / 1024).toFixed(2)}KB)`);
+
+            return {
+              success: true,
+              url: targetUrl,
+              viewport: viewport,
+              full_page: fullPage,
+              screenshot: `data:image/jpeg;base64,${base64Image}`,
+              message: `Screenshot captured for ${targetUrl} (${viewport} viewport)`,
+              size_kb: (imageBuffer.byteLength / 1024).toFixed(2)
+            };
+          } catch (fetchError) {
+            clearTimeout(timeout);
+            if (fetchError.name === 'AbortError') {
+              return {
+                error: 'Screenshot timeout after 30 seconds',
+                suggestion: 'The page may be slow to load. Try again or check if the page is accessible.'
+              };
+            }
+            throw fetchError;
+          }
+        } catch (error) {
+          console.error(`Screenshot error: ${error.message}`);
+          return {
+            error: `Failed to capture screenshot: ${error.message}`,
+            suggestion: 'Check that the URL is correct and the page is accessible.'
+          };
+        }
+      }
+
       default:
         return { error: 'Unknown function' };
     }
@@ -1872,11 +2058,34 @@ export default async function handler(req, res) {
             madeChanges = true;
           }
 
+          // Add tool result to messages
           fullMessages.push({
             role: 'tool',
             tool_call_id: toolCall.id,
             content: JSON.stringify(result)
           });
+
+          // Special handling for screenshots: inject as vision message
+          if (functionName === 'screenshot_page' && result.success && result.screenshot) {
+            console.log('🖼️ Screenshot received, injecting as vision message for analysis');
+
+            // Add a user message with the screenshot for vision analysis
+            fullMessages.push({
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: `Analyze this screenshot of ${result.url}. Check for:\n1. Are all images loading correctly (no broken images)?\n2. Is the layout correct (no overlapping, proper spacing)?\n3. Are visual elements displaying as expected?\n4. Any other visual issues?\n\nProvide a brief analysis of what you see and whether the page looks correct.`
+                },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: result.screenshot
+                  }
+                }
+              ]
+            });
+          }
         }
 
         const llmStartTime2 = Date.now();
