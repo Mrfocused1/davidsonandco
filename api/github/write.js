@@ -39,6 +39,28 @@ function hasAllowedExtension(path) {
   return ALLOWED_EXTENSIONS.some(ext => path.toLowerCase().endsWith(ext));
 }
 
+// Retry function with exponential backoff for rate limiting
+async function retryWithBackoff(fn, maxRetries = 3) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      const isRateLimitError = error.status === 403 && error.message?.includes('rate limit');
+      const is429Error = error.status === 429;
+      const isRetryableError = isRateLimitError || is429Error || error.status === 502 || error.status === 503;
+
+      if (isRetryableError && attempt < maxRetries) {
+        // Exponential backoff: 1s, 2s, 4s
+        const delayMs = Math.pow(2, attempt) * 1000;
+        console.log(`⚠️ Rate limit/retryable error on attempt ${attempt + 1}/${maxRetries + 1}. Retrying in ${delayMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -66,11 +88,13 @@ export default async function handler(req, res) {
     // Try to get existing file to get its SHA
     let sha;
     try {
-      const existing = await octokit.repos.getContent({
-        owner: REPO_OWNER,
-        repo: REPO_NAME,
-        path: path,
-        ref: 'main'
+      const existing = await retryWithBackoff(async () => {
+        return await octokit.repos.getContent({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: path,
+          ref: 'main'
+        });
       });
       sha = existing.data.sha;
     } catch (e) {
@@ -78,14 +102,16 @@ export default async function handler(req, res) {
       if (e.status !== 404) throw e;
     }
 
-    const response = await octokit.repos.createOrUpdateFileContents({
-      owner: REPO_OWNER,
-      repo: REPO_NAME,
-      path: path,
-      message: `[Davidson AI] ${message}`,
-      content: Buffer.from(content).toString('base64'),
-      sha: sha,
-      branch: 'main'
+    const response = await retryWithBackoff(async () => {
+      return await octokit.repos.createOrUpdateFileContents({
+        owner: REPO_OWNER,
+        repo: REPO_NAME,
+        path: path,
+        message: `[Davidson AI] ${message}`,
+        content: Buffer.from(content).toString('base64'),
+        sha: sha,
+        branch: 'main'
+      });
     });
 
     return res.status(200).json({
@@ -98,6 +124,21 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('GitHub write error:', error);
+
+    if (error.status === 403 && error.message?.includes('rate limit')) {
+      return res.status(429).json({
+        error: 'GitHub API rate limit exceeded',
+        details: 'Too many requests to GitHub. Please wait a moment and try again.'
+      });
+    }
+
+    if (error.status === 429) {
+      return res.status(429).json({
+        error: 'Too many requests',
+        details: 'Rate limit exceeded. Please wait a moment and try again.'
+      });
+    }
+
     return res.status(500).json({
       error: 'Failed to write file',
       details: error.message
