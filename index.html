@@ -855,6 +855,51 @@
       });
 
 
+      // --- PROPERTY LISTINGS ---
+      // Header Animation
+      const listingsTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#property-listings",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      listingsTl
+        .from("#listings-line-left", { width: 0, duration: 1, ease: "power2.inOut" })
+        .from("#listings-line-right", { width: 0, duration: 1, ease: "power2.inOut" }, "<")
+        .from("#listings-title", { opacity: 0, y: 30, duration: 0.8, ease: "power3.out" }, "-=0.6")
+        .from("#listings-subtitle", { opacity: 0, y: 20, duration: 0.6, ease: "power2.out" }, "-=0.4");
+
+      // Property Cards Stagger Animation
+      gsap.from(".property-card", {
+        opacity: 0,
+        y: 60,
+        scale: 0.95,
+        stagger: 0.15,
+        duration: 0.8,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: ".property-card",
+          start: "top 85%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      // CTA Button Animation
+      gsap.from("#listings-cta", {
+        opacity: 0,
+        y: 30,
+        duration: 0.8,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: "#listings-cta",
+          start: "top 90%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+
       // --- FOOTER FADE ---
       ScrollTrigger.create({
         trigger: "#footer",
