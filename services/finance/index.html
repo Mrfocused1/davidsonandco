@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance | Davidson & Co London</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP & Plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .text-gold-gradient {
+      background: linear-gradient(to right, #D4AF37, #FEE180, #D4AF37);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shine 5s linear infinite;
+    }
+
+    @keyframes shine {
+      to {
+        background-position: 200% center;
+      }
+    }
+
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    .step-connector {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, #D4AF37, transparent);
+      transform: translateX(-50%);
+    }
+
+    .service-icon {
+      width: 80px;
+      height: 80px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.5s ease;
+    }
+
+    .service-card:hover .service-icon {
+      border-color: #D4AF37;
+      background: rgba(212, 175, 55, 0.1);
+    }
+  </style>
+</head>
+
+<body class="relative">
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center p-6 md:p-8 mix-blend-difference">
+    <a href="/">
+      <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="/" class="text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">HOME</a>
+      <a href="/listings" class="text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">LISTINGS</a>
+      <a href="/contact" class="text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">CONTACT</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <!-- Background -->
+    <div class="absolute inset-0">
+      <img src="https://images.pexels.com/photos/4386431/pexels-photo-4386431.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
+           alt="Finance" 
+           class="w-full h-full object-cover opacity-20 scale-110" 
+           id="hero-bg">
+      <div class="absolute inset-0 bg-gradient-to-b from-brand-black/80 via-brand-black/60 to-brand-black"></div>
+    </div>
+
+    <!-- Hero Content -->
+    <div class="relative z-10 text-center px-8 max-w-4xl">
+      <p class="text-xs tracking-[0.4em] text-brand-gold mb-6 opacity-0" id="hero-subtitle">MORTGAGE ADVISORY</p>
+      <h1 class="text-6xl md:text-8xl font-serif mb-8 opacity-0" id="hero-title">
+        <span class="text-gold-gradient">Finance</span>
+      </h1>
+      <div class="h-[1px] w-0 bg-brand-gold mx-auto mb-8" id="hero-line"></div>
+      <p class="text-xl md:text-2xl text-gray-400 leading-relaxed mb-12 opacity-0" id="hero-desc">
+        Strategic mortgage solutions for high-net-worth property acquisitions. We navigate complex financing to secure optimal terms.
+      </p>
+      <a href="/contact" class="inline-block px-12 py-4 bg-brand-gold text-brand-black text-xs tracking-[0.2em] hover:bg-brand-white transition-all duration-300 opacity-0" id="hero-cta">
+        SCHEDULE CONSULTATION
+      </a>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0" id="scroll-hint">
+      <span class="text-[10px] tracking-[0.2em] uppercase mb-4">Discover More</span>
+      <div class="w-[1px] h-16 bg-brand-gold/50"></div>
+    </div>
+  </section>
+
+  <!-- Services Overview -->
+  <section id="services" class="py-32 bg-brand-charcoal relative">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="text-center mb-20">
+        <p class="text-xs tracking-[0.4em] text-brand-gold mb-6 opacity-0" id="services-tagline">OUR EXPERTISE</p>
+        <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="services-title">Financial Solutions</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto opacity-0" id="services-subtitle">Comprehensive mortgage advisory tailored to complex property transactions and international acquisitions.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Service 1 -->
+        <div class="service-card p-8 bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0">
+          <div class="service-icon mb-6">
+            <span class="text-3xl font-serif text-brand-gold">01</span>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Residential Mortgages</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            Competitive financing for prime and super-prime residential properties across London and the UK.
+          </p>
+        </div>
+
+        <!-- Service 2 -->
+        <div class="service-card p-8 bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0">
+          <div class="service-icon mb-6">
+            <span class="text-3xl font-serif text-brand-gold">02</span>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Buy-to-Let Portfolio</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            Specialist financing for investment portfolios, including multi-property and HMO arrangements.
+          </p>
+        </div>
+
+        <!-- Service 3 -->
+        <div class="service-card p-8 bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0">
+          <div class="service-icon mb-6">
+            <span class="text-3xl font-serif text-brand-gold">03</span>
+          </div>
+          <h3 class="text-xl font-serif mb-4">International Finance</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            Cross-border mortgage solutions for international buyers investing in UK property.
+          </p>
+        </div>
+
+        <!-- Service 4 -->
+        <div class="service-card p-8 bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0">
+          <div class="service-icon mb-6">
+            <span class="text-3xl font-serif text-brand-gold">04</span>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Commercial Lending</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            Financing for commercial property acquisitions, development projects, and refinancing.
+          </p>
+        </div>
+
+        <!-- Service 5 -->
+        <div class="service-card p-8 bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0">
+          <div class="service-icon mb-6">
+            <span class="text-3xl font-serif text-brand-gold">05</span>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Bridge Financing</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            Short-term funding solutions for time-sensitive acquisitions and property chains.
+          </p>
+        </div>
+
+        <!-- Service 6 -->
+        <div class="service-card p-8 bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500 opacity-0">
+          <div class="service-icon mb-6">
+            <span class="text-3xl font-serif text-brand-gold">06</span>
+          </div>
+          <h3 class="text-xl font-serif mb-4">Restructuring Advice</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            Strategic review and optimization of existing mortgage arrangements for better terms.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Process Section (Pinned) -->
+  <section id="process-section" class="relative min-h-screen bg-brand-black overflow-hidden">
+    <div class="max-w-4xl mx-auto px-8 py-32">
+      <div class="text-center mb-24">
+        <p class="text-xs tracking-[0.4em] text-brand-gold mb-6 opacity-0" id="process-tagline">THE PROCESS</p>
+        <h2 class="text-4xl md:text-5xl font-serif opacity-0" id="process-title">How We Work</h2>
+      </div>
+
+      <div class="relative">
+        <!-- Vertical Connector Line -->
+        <div class="step-connector hidden md:block"></div>
+
+        <!-- Step 1 -->
+        <div class="process-step relative mb-20 md:mb-32 opacity-30" id="step-1">
+          <div class="flex items-start gap-8">
+            <div class="hidden md:flex w-16 h-16 bg-brand-gold rounded-full items-center justify-center text-brand-black font-serif text-xl z-10 flex-shrink-0">
+              1
+            </div>
+            <div class="flex-1">
+              <h3 class="text-2xl font-serif mb-4">Initial Consultation</h3>
+              <p class="text-gray-400 text-sm leading-relaxed">
+                We begin with a comprehensive review of your financial position, property requirements, and long-term objectives. This allows us to understand your needs and identify the most suitable financing options.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="process-step relative mb-20 md:mb-32 opacity-30" id="step-2">
+          <div class="flex items-start gap-8">
+            <div class="hidden md:flex w-16 h-16 bg-brand-gold rounded-full items-center justify-center text-brand-black font-serif text-xl z-10 flex-shrink-0">
+              2
+            </div>
+            <div class="flex-1">
+              <h3 class="text-2xl font-serif mb-4">Market Analysis</h3>
+              <p class="text-gray-400 text-sm leading-relaxed">
+                Our team conducts thorough market research, accessing exclusive rates and products from our network of lenders. We compare options to find the most competitive terms for your specific situation.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="process-step relative mb-20 md:mb-32 opacity-30" id="step-3">
+          <div class="flex items-start gap-8">
+            <div class="hidden md:flex w-16 h-16 bg-brand-gold rounded-full items-center justify-center text-brand-black font-serif text-xl z-10 flex-shrink-0">
+              3
+            </div>
+            <div class="flex-1">
+              <h3 class="text-2xl font-serif mb-4">Tailored Recommendations</h3>
+              <p class="text-gray-400 text-sm leading-relaxed">
+                We present a curated selection of mortgage options, explaining the benefits and considerations of each. Our recommendations are always aligned with your financial goals and risk tolerance.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="process-step relative opacity-30" id="step-4">
+          <div class="flex items-start gap-8">
+            <div class="hidden md:flex w-16 h-16 bg-brand-gold rounded-full items-center justify-center text-brand-black font-serif text-xl z-10 flex-shrink-0">
+              4
+            </div>
+            <div class="flex-1">
+              <h3 class="text-2xl font-serif mb-4">Application & Completion</h3>
+              <p class="text-gray-400 text-sm leading-relaxed">
+                We manage the entire application process, from documentation to underwriting to completion. Our team liaises with lenders, solicitors, and all parties to ensure a smooth and timely settlement.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Choose Us -->
+  <section id="why-us" class="py-32 bg-brand-charcoal relative">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="text-center mb-20">
+        <p class="text-xs tracking-[0.4em] text-brand-gold mb-6 opacity-0" id="why-tagline">THE DAVIDSON ADVANTAGE</p>
+        <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="why-title">Why Choose Our Finance Service</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <!-- Left Column -->
+        <div class="space-y-8">
+          <div class="why-item flex gap-6 opacity-0">
+            <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center flex-shrink-0">
+              <span class="text-brand-gold">✓</span>
+            </div>
+            <div>
+              <h3 class="text-lg font-serif mb-2">Whole of Market Access</h3>
+              <p class="text-gray-400 text-sm">We work with the entire market, including private banks and specialist lenders not available to the general public.</p>
+            </div>
+          </div>
+
+          <div class="why-item flex gap-6 opacity-0">
+            <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center flex-shrink-0">
+              <span class="text-brand-gold">✓</span>
+            </div>
+            <div>
+              <h3 class="text-lg font-serif mb-2">HNW Specialist Team</h3>
+              <p class="text-gray-400 text-sm">Our advisors specialize in complex cases for high-net-worth individuals with international income and assets.</p>
+            </div>
+          </div>
+
+          <div class="why-item flex gap-6 opacity-0">
+            <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center flex-shrink-0">
+              <span class="text-brand-gold">✓</span>
+            </div>
+            <div>
+              <h3 class="text-lg font-serif mb-2">No Hidden Fees</h3>
+              <p class="text-gray-400 text-sm">Transparent pricing with clear communication about all costs involved. No surprises at completion.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="space-y-8">
+          <div class="why-item flex gap-6 opacity-0">
+            <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center flex-shrink-0">
+              <span class="text-brand-gold">✓</span>
+            </div>
+            <div>
+              <h3 class="text-lg font-serif mb-2">Dedicated Advisor</h3>
+              <p class="text-gray-400 text-sm">Work with a single point of contact who understands your situation and manages your case from start to finish.</p>
+            </div>
+          </div>
+
+          <div class="why-item flex gap-6 opacity-0">
+            <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center flex-shrink-0">
+              <span class="text-brand-gold">✓</span>
+            </div>
+            <div>
+              <h3 class="text-lg font-serif mb-2">Integrated Property Service</h3>
+              <p class="text-gray-400 text-sm">Seamless coordination with our sales, lettings, and legal teams for a holistic property acquisition experience.</p>
+            </div>
+          </div>
+
+          <div class="why-item flex gap-6 opacity-0">
+            <div class="w-12 h-12 border border-brand-gold/30 flex items-center justify-center flex-shrink-0">
+              <span class="text-brand-gold">✓</span>
+            </div>
+            <div>
+              <h3 class="text-lg font-serif mb-2">Ongoing Support</h3>
+              <p class="text-gray-400 text-sm">We remain available post-completion for advice on future refinancing, portfolio expansion, or market opportunities.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section id="cta" class="py-32 bg-brand-black relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+      <img src="https://images.pexels.com/photos/259200/pexels-photo-259200.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
+           alt="London" 
+           class="w-full h-full object-cover">
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/90 to-transparent"></div>
+
+    <div class="relative z-10 max-w-3xl mx-auto text-center px-8">
+      <p class="text-xs tracking-[0.4em] text-brand-gold mb-6 opacity-0" id="cta-tagline">GET STARTED</p>
+      <h2 class="text-4xl md:text-5xl font-serif mb-8 opacity-0" id="cta-title">Discuss Your Financing Needs</h2>
+      <p class="text-gray-400 mb-12 max-w-xl mx-auto opacity-0" id="cta-text">
+        Schedule a confidential consultation with our mortgage advisory team. We'll provide tailored recommendations for your property acquisition.
+      </p>
+      <a href="/contact" class="inline-block px-12 py-4 bg-brand-gold text-brand-black text-xs tracking-[0.2em] hover:bg-brand-white transition-all duration-300 opacity-0" id="cta-button">
+        REQUEST CONSULTATION
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-black text-white/40 py-24 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start">
+      <div class="mb-12 md:mb-0">
+        <a href="/">
+          <img src="/logo.png" alt="Davidson & Co." class="h-12 mb-4">
+        </a>
+      </div>
+      <div class="flex gap-16 text-xs font-sans tracking-widest">
+        <div>
+          <h6 class="text-white mb-4">NAVIGATION</h6>
+          <ul class="space-y-2">
+            <li><a href="/" class="hover:text-brand-gold transition-colors">Home</a></li>
+            <li><a href="/services/finance" class="hover:text-brand-gold transition-colors">Finance</a></li>
+            <li><a href="/listings" class="hover:text-brand-gold transition-colors">Listings</a></li>
+            <li><a href="/contact" class="hover:text-brand-gold transition-colors">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h6 class="text-white mb-4">CONTACT</h6>
+          <ul class="space-y-2">
+            <li><a href="tel:+442080544065" class="hover:text-brand-gold transition-colors">020 8054 4065</a></li>
+            <li><a href="mailto:info@davidsoncolondon.com" class="hover:text-brand-gold transition-colors">info@davidsoncolondon.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-24 opacity-20 font-sans">
+      © 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+      // Hero Animation
+      const heroTl = gsap.timeline();
+      heroTl
+        .from("#hero-bg", { scale: 1.2, duration: 2, ease: "power2.out" })
+        .to("#hero-subtitle", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=1.5")
+        .to("#hero-title", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.6")
+        .to("#hero-line", { width: "100px", duration: 1, ease: "power2.inOut" }, "-=0.6")
+        .from("#hero-desc", { opacity: 0, y: 30, duration: 0.8, ease: "power2.out" }, "-=0.4")
+        .to("#hero-cta", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, "-=0.3")
+        .to("#scroll-hint", { opacity: 1, duration: 0.6, ease: "power2.out" }, "-=0.2");
+
+      // Services Section
+      const servicesTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#services",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      servicesTl
+        .to("#services-tagline", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" })
+        .to("#services-title", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.4")
+        .to("#services-subtitle", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, "-=0.4");
+
+      gsap.utils.toArray(".service-card").forEach((card, i) => {
+        gsap.to(card, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+
+      // Process Section - Pinned
+      const processTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#process-section",
+          start: "top top",
+          end: "+=2500",
+          pin: true,
+          scrub: 1,
+          anticipatePin: 1
+        }
+      });
+
+      processTl
+        .to("#process-tagline", { opacity: 1, duration: 0.5 })
+        .to("#process-title", { opacity: 1, y: 0, duration: 0.8 }, "-=0.3")
+        .to("#step-1", { opacity: 1, duration: 1 })
+        .to("#step-1", { opacity: 0.3, duration: 0.5 })
+        .to("#step-2", { opacity: 1, duration: 1 })
+        .to("#step-2", { opacity: 0.3, duration: 0.5 })
+        .to("#step-3", { opacity: 1, duration: 1 })
+        .to("#step-3", { opacity: 0.3, duration: 0.5 })
+        .to("#step-4", { opacity: 1, duration: 1 });
+
+      // Why Choose Us
+      const whyTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#why-us",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      whyTl
+        .to("#why-tagline", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" })
+        .to("#why-title", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.4");
+
+      gsap.utils.toArray(".why-item").forEach((item, i) => {
+        gsap.to(item, {
+          opacity: 1,
+          x: 0,
+          duration: 0.8,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: item,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+
+      // CTA Section
+      const ctaTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#cta",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      ctaTl
+        .to("#cta-tagline", { opacity: 1, duration: 0.6 })
+        .to("#cta-title", { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.4")
+        .to("#cta-text", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, "-=0.4")
+        .to("#cta-button", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, "-=0.3");
+
+      // Footer
+      gsap.from("footer", {
+        opacity: 0,
+        y: 40,
+        duration: 1,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: "footer",
+          start: "top 90%"
+        }
+      });
+    });
+  </script>
+</body>
+</html>
