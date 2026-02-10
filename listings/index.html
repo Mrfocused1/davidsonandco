@@ -306,23 +306,7 @@
         }
       });
 
-      // ANIMATION 3: Featured Property Section with Staggered Reveals
-      const featuredTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: "#featured-property",
-          start: "top 70%",
-          toggleActions: "play none none reverse"
-        }
-      });
-
-      featuredTl
-        .to("#featured-line-left", { width: "96px", duration: 1, ease: "power2.inOut" })
-        .to("#featured-line-right", { width: "96px", duration: 1, ease: "power2.inOut" }, "<")
-        .from("#featured-title", { opacity: 0, y: 40, duration: 0.8, ease: "power3.out" }, "-=0.6")
-        .from("#featured-gallery", { opacity: 0, x: -60, duration: 1, ease: "power3.out" }, "-=0.4")
-        .from("#featured-details", { opacity: 0, x: 60, duration: 1, ease: "power3.out" }, "-=0.8");
-
-      // ANIMATION 4: Property Grid with ScrollTrigger.batch
+      // ANIMATION 3: Property Grid with ScrollTrigger.batch
       ScrollTrigger.batch(".property-card", {
         start: "top 85%",
         onEnter: batch => gsap.to(batch, {
