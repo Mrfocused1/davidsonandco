@@ -1,5 +1,15 @@
 [
   {
+    "id": 1770711995754,
+    "timestamp": "2026-02-10T08:26:35.754Z",
+    "action": "edit",
+    "description": "Fix mobile scaling for Focus Markets section - stack vertically on mobile, horizontal scroll on desktop",
+    "files": [
+      "africa/index.html"
+    ],
+    "status": "completed"
+  },
+  {
     "id": 1770711787539,
     "timestamp": "2026-02-10T08:23:07.539Z",
     "action": "edit",
