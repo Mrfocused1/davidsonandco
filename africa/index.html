@@ -583,9 +583,9 @@
       const heroTl = gsap.timeline({ defaults: { ease: "power4.out" } });
       heroTl
         .to("#hero-line", { scaleX: 1, duration: 1.2 })
-        .from("#hero-title", { opacity: 0, y: 60, duration: 1.4 }, "-=0.8")
-        .from("#hero-subtitle", { opacity: 0, y: 40, duration: 1.2 }, "-=0.9")
-        .from("#hero-cta", { opacity: 0, y: 30, duration: 1 }, "-=0.7")
+        .to("#hero-title", { opacity: 1, y: 0, duration: 1.4 }, "-=0.8")
+        .to("#hero-subtitle", { opacity: 1, y: 0, duration: 1.2 }, "-=0.9")
+        .to("#hero-cta", { opacity: 1, y: 0, duration: 1 }, "-=0.7")
         .to("#continent-mask", { 
           clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)", 
           duration: 2, 
