@@ -613,20 +613,18 @@
         .to("#vision-2", { opacity: 0, scale: 1.05, duration: 0.8 }, "+=0.5")
         .to("#vision-3", { opacity: 1, scale: 1, duration: 1 }, "-=0.4");
 
-      // ===== MARKETS HORIZONTAL SCROLL (Desktop only) =====
-      if (window.innerWidth >= 1024) {
-        const markets = gsap.utils.toArray("#markets-track > div");
-        gsap.to(markets, {
-          xPercent: -100 * (markets.length - 1),
-          ease: "none",
-          scrollTrigger: {
-            trigger: "#markets-wrapper",
-            pin: true,
-            scrub: 1,
-            end: () => "+=" + (markets.length * 800)
-          }
-        });
-      }
+      // ===== MARKETS HORIZONTAL SCROLL (All devices) =====
+      const markets = gsap.utils.toArray("#markets-track > div");
+      gsap.to(markets, {
+        xPercent: -100 * (markets.length - 1),
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#markets-wrapper",
+          pin: true,
+          scrub: 1,
+          end: () => "+=" + (markets.length * 800)
+        }
+      });
 
       // ===== PARTNERSHIP MODEL SECTION REVEAL =====
       gsap.timeline({
