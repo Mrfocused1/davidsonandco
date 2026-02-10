@@ -20,7 +20,7 @@ const SITE_URL = process.env.SITE_URL || 'https://davidsoncolondon.com';
 const anthropic = new Anthropic({
   apiKey: (process.env.ANTHROPIC_API_KEY || '').trim(),
   timeout: 280000,        // 280 seconds (20s safety margin from 300s Vercel limit)
-  maxRetries: 1           // Reduce retries, rely on our custom retry logic instead
+  maxRetries: 2           // Allow SDK to retry on transient errors (rate limits handled by our custom logic too)
 });
 
 const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Davidson & Co London website. You can:
@@ -1781,7 +1781,11 @@ export default async function handler(req, res) {
     // Helper function to retry API calls with exponential backoff
     const retryWithBackoff = async (fn, maxRetries = 2) => {
       let lastErr;
-      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      // Use more retries for rate limit errors
+      const MAX_RATE_LIMIT_RETRIES = 4;
+      let effectiveMaxRetries = maxRetries;
+
+      for (let attempt = 0; attempt <= effectiveMaxRetries; attempt++) {
         try {
           const result = await fn();
           console.log('✅ Anthropic API response received:', JSON.stringify(result, null, 2).substring(0, 500));
@@ -1808,9 +1812,38 @@ export default async function handler(req, res) {
             throw err;
           }
 
-          if (attempt < maxRetries) {
-            const delay = Math.pow(2, attempt) * 1000; // 1s, 2s
-            console.log(`Retry attempt ${attempt + 1} after ${delay}ms...`);
+          // Handle rate limit errors with longer delays and more retries
+          const isRateLimit = err.status === 429 || errMsgLower.includes('rate');
+          if (isRateLimit && effectiveMaxRetries < MAX_RATE_LIMIT_RETRIES) {
+            effectiveMaxRetries = MAX_RATE_LIMIT_RETRIES;
+            console.log(`⚠️ Rate limit detected - increasing max retries to ${MAX_RATE_LIMIT_RETRIES}`);
+          }
+
+          if (attempt < effectiveMaxRetries) {
+            // Check if we still have time for retries
+            if (!hasTimeRemaining()) {
+              console.error('❌ No time remaining for retries - aborting');
+              throw err;
+            }
+
+            let delay;
+            if (isRateLimit) {
+              // Use retry-after header if available, otherwise use longer backoff for rate limits
+              const retryAfter = err.headers?.get?.('retry-after') || err.headers?.['retry-after'];
+              if (retryAfter) {
+                delay = parseInt(retryAfter, 10) * 1000;
+                console.log(`⏳ Rate limit: using retry-after header value of ${retryAfter}s`);
+              } else {
+                // Longer backoff for rate limits: 10s, 20s, 40s, 60s (capped)
+                delay = Math.min(10000 * Math.pow(2, attempt), 60000);
+              }
+            } else {
+              delay = Math.pow(2, attempt) * 1000; // 1s, 2s for other errors
+            }
+
+            // Add jitter to prevent thundering herd
+            delay += Math.random() * 2000;
+            console.log(`Retry attempt ${attempt + 1}/${effectiveMaxRetries} after ${Math.round(delay)}ms...${isRateLimit ? ' (rate limited)' : ''}`);
             await new Promise(resolve => setTimeout(resolve, delay));
           }
         }
@@ -2227,7 +2260,7 @@ export default async function handler(req, res) {
     } else if (errMsg.includes('timeout') || errCode === 'ETIMEDOUT' || errCode === 'ECONNABORTED') {
       userFriendlyMessage = 'That task took longer than expected, so I had to stop. Please take a screenshot and send it to your admin so they can help.';
     } else if (errMsg.includes('rate') || error.status === 429) {
-      userFriendlyMessage = 'I\'m getting too many requests right now. Please wait a minute and try again. If this keeps happening, take a screenshot and send it to your admin.';
+      userFriendlyMessage = 'I\'m receiving too many messages right now and need a short break. Please wait about 30 seconds and try again. This usually resolves on its own. If it keeps happening after a few minutes, take a screenshot and send it to your admin.';
       statusCode = 429;
     } else if (errMsg.includes('network') || errCode === 'ECONNREFUSED' || errCode === 'ENOTFOUND') {
       userFriendlyMessage = 'I\'m having trouble connecting. Please check your internet connection and try again. If it still doesn\'t work, take a screenshot and send it to your admin.';

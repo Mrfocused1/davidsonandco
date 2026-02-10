@@ -1475,23 +1475,41 @@
       }
 
       try {
-        const response = await fetch(CHAT_API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            messages: chatHistory
-          }),
-          signal: combinedSignal
-        });
+        // Retry logic for rate limit (429) errors
+        const MAX_RATE_LIMIT_RETRIES = 3;
+        let response;
+        let responseText;
+        let data;
+
+        for (let retryAttempt = 0; retryAttempt <= MAX_RATE_LIMIT_RETRIES; retryAttempt++) {
+          response = await fetch(CHAT_API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              messages: chatHistory
+            }),
+            signal: combinedSignal
+          });
+
+          // If rate limited, wait and retry automatically
+          if (response.status === 429 && retryAttempt < MAX_RATE_LIMIT_RETRIES) {
+            const retryAfter = response.headers.get('retry-after');
+            const waitSeconds = retryAfter ? parseInt(retryAfter, 10) : (15 * Math.pow(2, retryAttempt));
+            console.warn(`Rate limited (429). Retrying in ${waitSeconds}s (attempt ${retryAttempt + 1}/${MAX_RATE_LIMIT_RETRIES})...`);
+            await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+            continue;
+          }
+
+          break; // Not rate limited or out of retries, proceed
+        }
 
         clearTimeout(timeoutId);
 
         // Get response text first for better error handling
-        const responseText = await response.text();
+        responseText = await response.text();
 
-        let data;
         try {
           data = JSON.parse(responseText);
         } catch (jsonError) {
