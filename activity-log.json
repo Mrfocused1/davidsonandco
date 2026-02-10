@@ -1,5 +1,15 @@
 [
   {
+    "id": 1770739291929,
+    "timestamp": "2026-02-10T16:01:31.929Z",
+    "action": "edit",
+    "description": "Link Details button to 40b Westway property page",
+    "files": [
+      "listings/index.html"
+    ],
+    "status": "completed"
+  },
+  {
     "id": 1770739138973,
     "timestamp": "2026-02-10T15:58:58.973Z",
     "action": "edit",
