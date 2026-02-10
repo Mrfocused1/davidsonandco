@@ -20,7 +20,7 @@ const SITE_URL = process.env.SITE_URL || 'https://davidsoncolondon.com';
 const anthropic = new Anthropic({
   apiKey: (process.env.ANTHROPIC_API_KEY || '').trim(),
   timeout: 280000,        // 280 seconds (20s safety margin from 300s Vercel limit)
-  maxRetries: 1           // Reduce retries, rely on our custom retry logic instead
+  maxRetries: 0           // Disable SDK retries, our custom retryWithBackoff handles all retry logic
 });
 
 const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Davidson & Co London website. You can:
@@ -889,9 +889,11 @@ async function executeToolWithRetry(name, args, octokit, maxRetries = 2) {
         const isRetryable = isRetryableError(result.error);
 
         if (isRetryable && attempt < maxRetries) {
-          // Calculate backoff with jitter: base * (2^attempt) + random(0-1000ms)
-          const backoffMs = (1000 * Math.pow(2, attempt)) + Math.random() * 1000;
-          console.log(`⚠️ Retryable error on attempt ${attempt + 1}/${maxRetries + 1}. Retrying in ${backoffMs.toFixed(0)}ms...`);
+          // Use longer backoff for rate limit errors
+          const isRateLimit = /rate limit|429/i.test(result.error);
+          const baseMs = isRateLimit ? 10000 : 1000;
+          const backoffMs = (baseMs * Math.pow(2, attempt)) + Math.random() * 1000;
+          console.log(`⚠️ Retryable error${isRateLimit ? ' (rate limit)' : ''} on attempt ${attempt + 1}/${maxRetries + 1}. Retrying in ${(backoffMs / 1000).toFixed(1)}s...`);
           await new Promise(resolve => setTimeout(resolve, backoffMs));
           lastError = result.error;
           continue;
@@ -908,8 +910,10 @@ async function executeToolWithRetry(name, args, octokit, maxRetries = 2) {
       lastError = error.message;
 
       if (attempt < maxRetries) {
-        const backoffMs = (1000 * Math.pow(2, attempt)) + Math.random() * 1000;
-        console.log(`⚠️ Exception on attempt ${attempt + 1}/${maxRetries + 1}. Retrying in ${backoffMs.toFixed(0)}ms...`);
+        const isRateLimit = error.status === 429 || /rate limit|429/i.test(error.message);
+        const baseMs = isRateLimit ? 10000 : 1000;
+        const backoffMs = (baseMs * Math.pow(2, attempt)) + Math.random() * 1000;
+        console.log(`⚠️ Exception${isRateLimit ? ' (rate limit)' : ''} on attempt ${attempt + 1}/${maxRetries + 1}. Retrying in ${(backoffMs / 1000).toFixed(1)}s...`);
         await new Promise(resolve => setTimeout(resolve, backoffMs));
       }
     }
@@ -1779,7 +1783,7 @@ export default async function handler(req, res) {
     };
 
     // Helper function to retry API calls with exponential backoff
-    const retryWithBackoff = async (fn, maxRetries = 2) => {
+    const retryWithBackoff = async (fn, maxRetries = 3) => {
       let lastErr;
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
@@ -1809,8 +1813,23 @@ export default async function handler(req, res) {
           }
 
           if (attempt < maxRetries) {
-            const delay = Math.pow(2, attempt) * 1000; // 1s, 2s
-            console.log(`Retry attempt ${attempt + 1} after ${delay}ms...`);
+            let delay;
+            // Use longer backoff for rate limit errors, and respect retry-after header
+            if (err.status === 429) {
+              const retryAfter = err.headers?.['retry-after'];
+              if (retryAfter) {
+                delay = parseInt(retryAfter, 10) * 1000;
+                console.log(`⏳ Rate limited (429). Respecting retry-after: ${retryAfter}s`);
+              } else {
+                // Rate limit backoff: 10s, 20s, 40s
+                delay = 10000 * Math.pow(2, attempt);
+              }
+              console.log(`⏳ Rate limited (429). Retry attempt ${attempt + 1} after ${(delay / 1000).toFixed(1)}s...`);
+            } else {
+              // Standard backoff: 1s, 2s, 4s
+              delay = Math.pow(2, attempt) * 1000;
+              console.log(`Retry attempt ${attempt + 1} after ${delay}ms...`);
+            }
             await new Promise(resolve => setTimeout(resolve, delay));
           }
         }
