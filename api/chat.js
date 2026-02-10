@@ -1599,12 +1599,31 @@ export default async function handler(req, res) {
       let lastErr;
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-          return await fn();
+          const result = await fn();
+
+          // Validate response structure
+          if (!result || !result.choices || !Array.isArray(result.choices) || result.choices.length === 0) {
+            throw new Error('Invalid API response structure: missing choices array');
+          }
+
+          if (!result.choices[0].message) {
+            throw new Error('Invalid API response structure: missing message in first choice');
+          }
+
+          return result;
         } catch (err) {
           lastErr = err;
+          console.error(`Attempt ${attempt + 1} failed:`, err.message);
+
+          // Log more details for debugging
+          if (err.response) {
+            console.error(`API Response Status:`, err.response.status);
+            console.error(`API Response Headers:`, err.response.headers);
+          }
+
           if (attempt < maxRetries) {
             const delay = Math.pow(2, attempt) * 1000; // 1s, 2s
-            console.log(`Retry attempt ${attempt + 1} after ${delay}ms...`);
+            console.log(`Retrying after ${delay}ms...`);
             await new Promise(resolve => setTimeout(resolve, delay));
           }
         }
@@ -1653,6 +1672,7 @@ export default async function handler(req, res) {
         break;
       } catch (err) {
         console.error(`❌ Model ${model} with tools failed:`, err.message);
+
         // Log detailed error for debugging
         if (err.response) {
           console.error(`API Response Status:`, err.response.status);
@@ -1661,6 +1681,13 @@ export default async function handler(req, res) {
         if (err.error) {
           console.error(`API Error Details:`, JSON.stringify(err.error, null, 2));
         }
+
+        // Check for rate limiting - if so, throw immediately to return error to user
+        if (err.status === 429 || err.message?.toLowerCase().includes('rate limit')) {
+          console.error('❌ Rate limit hit - stopping retries');
+          throw new Error('API rate limit exceeded. Please wait a moment and try again.');
+        }
+
         lastError = err;
       }
     }
@@ -1685,6 +1712,13 @@ export default async function handler(req, res) {
           break;
         } catch (err) {
           console.error(`Model ${model} without tools failed:`, err.message);
+
+          // Check for rate limiting
+          if (err.status === 429 || err.message?.toLowerCase().includes('rate limit')) {
+            console.error('❌ Rate limit hit - stopping retries');
+            throw new Error('API rate limit exceeded. Please wait a moment and try again.');
+          }
+
           lastError = err;
         }
       }
