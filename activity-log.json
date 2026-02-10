@@ -1,5 +1,15 @@
 [
   {
+    "id": 1770739121416,
+    "timestamp": "2026-02-10T15:58:41.416Z",
+    "action": "edit",
+    "description": "Replace hero image with uploaded property photo",
+    "files": [
+      "listings/index.html"
+    ],
+    "status": "completed"
+  },
+  {
     "id": 1770738957287,
     "timestamp": "2026-02-10T15:55:57.287Z",
     "action": "edit",
