@@ -451,7 +451,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         
         <!-- Property Card 1 -->
-        <div class="property-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+        <div class="property-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500" style="opacity: 1;">
           <div class="relative h-80 overflow-hidden">
             <img src="https://images.pexels.com/photos/3639504/pexels-photo-3639504.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&dpr=2" 
                  alt="Mayfair Property" 
@@ -479,7 +479,7 @@
         </div>
 
         <!-- Property Card 2 -->
-        <div class="property-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+        <div class="property-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500" style="opacity: 1;">
           <div class="relative h-80 overflow-hidden">
             <img src="https://images.pexels.com/photos/17154879/pexels-photo-17154879.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&dpr=2" 
                  alt="Knightsbridge Property" 
@@ -508,7 +508,7 @@
         </div>
 
         <!-- Property Card 3 -->
-        <div class="property-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+        <div class="property-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500" style="opacity: 1;">
           <div class="relative h-80 overflow-hidden">
             <img src="https://images.pexels.com/photos/4655566/pexels-photo-4655566.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&dpr=2" 
                  alt="Belgravia Property" 
@@ -872,18 +872,28 @@
         .from("#listings-subtitle", { opacity: 0, y: 20, duration: 0.6, ease: "power2.out" }, "-=0.4");
 
       // Property Cards Stagger Animation
-      gsap.from(".property-card", {
-        opacity: 0,
-        y: 60,
-        scale: 0.95,
-        stagger: 0.15,
-        duration: 0.8,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: ".property-card",
-          start: "top 85%",
-          toggleActions: "play none none reverse"
-        }
+      gsap.utils.toArray(".property-card").forEach((card, index) => {
+        gsap.fromTo(card,
+          {
+            opacity: 0,
+            y: 60,
+            scale: 0.95
+          },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.8,
+            ease: "power3.out",
+            delay: index * 0.15,
+            scrollTrigger: {
+              trigger: card,
+              start: "top 90%",
+              toggleActions: "play none none none",
+              once: true
+            }
+          }
+        );
       });
 
       // CTA Button Animation
