@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Property Listings | Davidson & Co London</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP & Plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .text-gold-gradient {
+      background: linear-gradient(to right, #D4AF37, #FEE180, #D4AF37);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shine 5s linear infinite;
+    }
+
+    @keyframes shine {
+      to { background-position: 200% center; }
+    }
+
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    .property-card {
+      opacity: 0;
+      transform: translateY(60px);
+    }
+
+    .gsap-marker-scroller-start,
+    .gsap-marker-scroller-end,
+    .gsap-marker-start,
+    .gsap-marker-end {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body class="relative">
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center p-8 mix-blend-difference">
+    <a href="/">
+      <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="/" class="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">Home</a>
+      <a href="/listings" class="text-xs tracking-widest text-brand-gold">Listings</a>
+      <a href="/#contact" class="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">Contact</a>
+    </div>
+  </nav>
+
+  <!-- SECTION 1: HERO - SPLIT SCREEN -->
+  <section id="hero" class="relative min-h-screen flex flex-col lg:flex-row overflow-hidden bg-brand-black">
+    <!-- Left: Text Content -->
+    <div class="lg:w-1/2 flex items-center justify-center p-8 lg:p-16 relative z-10">
+      <div class="max-w-xl">
+        <p class="text-brand-gold text-xs tracking-[0.3em] uppercase mb-6" id="hero-subtitle">Portfolio</p>
+        <h1 class="text-5xl md:text-7xl font-serif font-bold leading-tight mb-8" id="hero-title">
+          Property <span class="text-gold-gradient">Listings</span>
+        </h1>
+        <div class="h-[1px] w-0 bg-brand-gold mb-8" id="hero-line"></div>
+        <p class="text-gray-400 font-light leading-relaxed mb-8" id="hero-description">
+          Discover our exclusive collection of prime London properties. Each listing is carefully curated and presented with the discretion and attention to detail that defines our service.
+        </p>
+        <div class="flex items-center gap-4" id="hero-stats">
+          <div class="text-center">
+            <span class="text-4xl font-serif text-brand-gold">12</span>
+            <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Available</p>
+          </div>
+          <div class="w-[1px] h-12 bg-white/10"></div>
+          <div class="text-center">
+            <span class="text-4xl font-serif text-brand-gold">£850M</span>
+            <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Total Value</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Image with Mask Reveal -->
+    <div class="lg:w-1/2 relative overflow-hidden" id="hero-image-container">
+      <div id="hero-image-mask" style="clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);">
+        <img src="https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
+             alt="Luxury Property" 
+             class="w-full h-full object-cover min-h-screen scale-110"
+             id="hero-image">
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent opacity-60"></div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: FILTER BAR -->
+  <section id="filter-section" class="py-8 bg-brand-charcoal border-y border-white/5 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-8">
+          <span class="text-xs text-gray-500 uppercase tracking-wider">Filter By:</span>
+          <select class="bg-transparent text-white text-sm border-b border-white/20 pb-1 focus:border-brand-gold outline-none transition-colors">
+            <option value="">All Locations</option>
+            <option value="mayfair">Mayfair</option>
+            <option value="knightsbridge">Knightsbridge</option>
+            <option value="belgravia">Belgravia</option>
+            <option value="chelsea">Chelsea</option>
+          </select>
+          <select class="bg-transparent text-white text-sm border-b border-white/20 pb-1 focus:border-brand-gold outline-none transition-colors">
+            <option value="">Property Type</option>
+            <option value="apartment">Apartment</option>
+            <option value="house">House</option>
+            <option value="penthouse">Penthouse</option>
+          </select>
+          <select class="bg-transparent text-white text-sm border-b border-white/20 pb-1 focus:border-brand-gold outline-none transition-colors">
+            <option value="">Price Range</option>
+            <option value="1-2">£1M - £2M</option>
+            <option value="2-5">£2M - £5M</option>
+            <option value="5-10">£5M - £10M</option>
+            <option value="10+">£10M+</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-gray-500">
+          <span>12 Properties</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: FEATURED PROPERTY -->
+  <section id="featured-property" class="py-24 bg-brand-black relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="flex items-center gap-8 mb-16">
+        <div class="w-24 h-[1px] bg-brand-gold" id="featured-line-left"></div>
+        <h2 class="text-4xl font-serif" id="featured-title">Featured Property</h2>
+        <div class="w-24 h-[1px] bg-brand-gold" id="featured-line-right"></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <!-- Image Gallery -->
+        <div class="relative" id="featured-gallery">
+          <div class="relative h-[500px] overflow-hidden">
+            <img src="https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
+                 alt="Featured Property" 
+                 class="w-full h-full object-cover"
+                 id="featured-main-image">
+            <div class="absolute bottom-4 left-4 bg-brand-black/80 px-4 py-2 text-xs tracking-widest">
+              <span class="text-brand-gold">FEATURED</span>
+            </div>
+          </div>
+          <!-- Thumbnail Gallery -->
+          <div class="flex gap-4 mt-4">
+            <div class="w-24 h-16 overflow-hidden cursor-pointer opacity-100 hover:opacity-80 transition-opacity">
+              <img src="https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=400" 
+                   alt="Gallery 1" class="w-full h-full object-cover">
+            </div>
+            <div class="w-24 h-16 overflow-hidden cursor-pointer opacity-60 hover:opacity-80 transition-opacity">
+              <img src="https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=400" 
+                   alt="Gallery 2" class="w-full h-full object-cover">
+            </div>
+            <div class="w-24 h-16 overflow-hidden cursor-pointer opacity-60 hover:opacity-80 transition-opacity">
+              <img src="https://images.pexels.com/photos/20703515/pexels-photo-20703515.jpeg?auto=compress&cs=tinysrgb&w=400" 
+                   alt="Gallery 3" class="w-full h-full object-cover">
+            </div>
+            <div class="w-24 h-16 overflow-hidden cursor-pointer opacity-60 hover:opacity-80 transition-opacity">
+              <img src="https://images.pexels.com/photos/7031712/pexels-photo-7031712.jpeg?auto=compress&cs=tinysrgb&w=400" 
+                   alt="Gallery 4" class="w-full h-full object-cover">
+            </div>
+          </div>
+        </div>
+
+        <!-- Property Details -->
+        <div class="space-y-8" id="featured-details">
+          <div>
+            <p class="text-brand-gold text-xs tracking-widest mb-2">MAYFAIR, W1K</p>
+            <h3 class="text-4xl font-serif mb-4">24 Grosvenor Square</h3>
+            <div class="flex items-baseline gap-2">
+              <span class="text-5xl font-serif text-brand-gold">£12,500,000</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-4 py-6 border-y border-white/10">
+            <div class="text-center">
+              <span class="text-2xl font-serif text-white">5</span>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Bedrooms</p>
+            </div>
+            <div class="text-center">
+              <span class="text-2xl font-serif text-white">4</span>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Bathrooms</p>
+            </div>
+            <div class="text-center">
+              <span class="text-2xl font-serif text-white">3,200</span>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Sq Ft</p>
+            </div>
+            <div class="text-center">
+              <span class="text-2xl font-serif text-white">2</span>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Parking</p>
+            </div>
+          </div>
+
+          <p class="text-gray-400 font-light leading-relaxed">
+            An exceptional penthouse apartment offering panoramic views across London's skyline. This residence features floor-to-ceiling windows, a private terrace, bespoke Italian interiors, and state-of-the-art smart home technology throughout.
+          </p>
+
+          <div class="flex flex-wrap gap-3">
+            <span class="px-4 py-2 border border-brand-gold/30 text-xs tracking-wider text-brand-gold">Penthouse</span>
+            <span class="px-4 py-2 border border-white/20 text-xs tracking-wider text-gray-400">Terrace</span>
+            <span class="px-4 py-2 border border-white/20 text-xs tracking-wider text-gray-400">Concierge</span>
+            <span class="px-4 py-2 border border-white/20 text-xs tracking-wider text-gray-400">Gym</span>
+          </div>
+
+          <a href="/#contact" class="inline-block px-8 py-4 bg-brand-gold text-brand-black text-xs tracking-[0.2em] hover:bg-brand-white transition-all duration-300 font-semibold">
+            ENQUIRE NOW
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: PROPERTY GRID -->
+  <section id="property-grid" class="py-24 bg-brand-charcoal">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="flex items-center gap-8 mb-16">
+        <div class="w-24 h-[1px] bg-brand-gold" id="grid-line-left"></div>
+        <h2 class="text-4xl font-serif" id="grid-title">All Properties</h2>
+        <div class="w-24 h-[1px] bg-brand-gold" id="grid-line-right"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        
+        <!-- Property Card 1 -->
+        <div class="property-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+          <div class="relative h-72 overflow-hidden">
+            <img src="https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&dpr=2" 
+                 alt="40b Westway" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent opacity-60"></div>
+            <div class="absolute top-4 right-4 bg-brand-white text-brand-black text-xs px-3 py-1 tracking-widest">FOR LET</div>
+          </div>
+          <div class="p-6">
+            <div class="text-brand-gold text-xs tracking-widest mb-2">NEASDEN, NW10</div>
+            <h3 class="text-xl font-serif text-brand-white mb-3">40b Westway</h3>
+            <div class="flex items-baseline gap-2 mb-3">
+              <span class="text-2xl font-serif text-brand-gold">£2,950</span>
+              <span class="text-sm text-gray-400">pcm</span>
+            </div>
+            <div class="flex gap-4 text-sm text-gray-400 mb-4">
+              <span>4 Beds</span>
+              <span>•</span>
+              <span>2 Baths</span>
+              <span>•</span>
+              <span>Split-Level</span>
+            </div>
+            <a href="/#contact" class="block w-full py-3 border border-brand-gold/30 text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300 text-center">
+              VIEW DETAILS
+            </a>
+          </div>
+        </div>
+
+        <!-- Property Card 2 -->
+        <div class="property-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+          <div class="relative h-72 overflow-hidden">
+            <img src="https://images.pexels.com/photos/17154879/pexels-photo-17154879.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&dpr=2" 
+                 alt="One Hyde Park" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent opacity-60"></div>
+            <div class="absolute top-4 right-4 bg-brand-gold text-brand-black text-xs px-3 py-1 tracking-widest">FOR SALE</div>
+          </div>
+          <div class="p-6">
+            <div class="text-brand-gold text-xs tracking-widest mb-2">KNIGHTSBRIDGE, SW1X</div>
+            <h3 class="text-xl font-serif text-brand-white mb-3">One Hyde Park</h3>
+            <div class="flex items-baseline gap-2 mb-3">
+              <span class="text-2xl font-serif text-brand-gold">£18,500,000</span>
+            </div>
+            <div class="flex gap-4 text-sm text-gray-400 mb-4">
+              <span>4 Beds</span>
+              <span>•</span>
+              <span>5 Baths</span>
+              <span>•</span>
+              <span>2,800 Sq Ft</span>
+            </div>
+            <a href="/#contact" class="block w-full py-3 border border-brand-gold/30 text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300 text-center">
+              VIEW DETAILS
+            </a>
+          </div>
+        </div>
+
+        <!-- Property Card 3 -->
+        <div class="property-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+          <div class="relative h-72 overflow-hidden">
+            <img src="https://images.pexels.com/photos/4655566/pexels-photo-4655566.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&dpr=2" 
+                 alt="15 Eaton Square" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent opacity-60"></div>
+            <div class="absolute top-4 right-4 bg-brand-gold text-brand-black text-xs px-3 py-1 tracking-widest">FOR SALE</div>
+          </div>
+          <div class="p-6">
+            <div class="text-brand-gold text-xs tracking-widest mb-2">BELGRAVIA, SW1W</div>
+            <h3 class="text-xl font-serif text-brand-white mb-3">15 Eaton Square</h3>
+            <div class="flex items-baseline gap-2 mb-3">
+              <span class="text-2xl font-serif text-brand-gold">£25,000,000</span>
+            </div>
+            <div class="flex gap-4 text-sm text-gray-400 mb-4">
+              <span>6 Beds</span>
+              <span>•</span>
+              <span>6 Baths</span>
+              <span>•</span>
+              <span>5,200 Sq Ft</span>
+            </div>
+            <a href="/#contact" class="block w-full py-3 border border-brand-gold/30 text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300 text-center">
+              VIEW DETAILS
+            </a>
+          </div>
+        </div>
+
+        <!-- Property Card 4 -->
+        <div class="property-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+          <div class="relative h-72 overflow-hidden">
+            <img src="https://images.pexels.com/photos/2031727/pexels-photo-2031727.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&dpr=2" 
+                 alt="8 Cheyne Walk" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent opacity-60"></div>
+            <div class="absolute top-4 right-4 bg-brand-white text-brand-black text-xs px-3 py-1 tracking-widest">FOR LET</div>
+          </div>
+          <div class="p-6">
+            <div class="text-brand-gold text-xs tracking-widest mb-2">CHELSEA, SW3</div>
+            <h3 class="text-xl font-serif text-brand-white mb-3">8 Cheyne Walk</h3>
+            <div class="flex items-baseline gap-2 mb-3">
+              <span class="text-2xl font-serif text-brand-gold">£8,500</span>
+              <span class="text-sm text-gray-400">pcm</span>
+            </div>
+            <div class="flex gap-4 text-sm text-gray-400 mb-4">
+              <span>3 Beds</span>
+              <span>•</span>
+              <span>2 Baths</span>
+              <span>•</span>
+              <span>1,800 Sq Ft</span>
+            </div>
+            <a href="/#contact" class="block w-full py-3 border border-brand-gold/30 text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300 text-center">
+              VIEW DETAILS
+            </a>
+          </div>
+        </div>
+
+        <!-- Property Card 5 -->
+        <div class="property-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+          <div class="relative h-72 overflow-hidden">
+            <img src="https://images.pexels.com/photos/3639504/pexels-photo-3639504.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&dpr=2" 
+                 alt="42 Cadogan Square" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent opacity-60"></div>
+            <div class="absolute top-4 right-4 bg-brand-gold text-brand-black text-xs px-3 py-1 tracking-widest">FOR SALE</div>
+          </div>
+          <div class="p-6">
+            <div class="text-brand-gold text-xs tracking-widest mb-2">KNIGHTSBRIDGE, SW1X</div>
+            <h3 class="text-xl font-serif text-brand-white mb-3">42 Cadogan Square</h3>
+            <div class="flex items-baseline gap-2 mb-3">
+              <span class="text-2xl font-serif text-brand-gold">£15,750,000</span>
+            </div>
+            <div class="flex gap-4 text-sm text-gray-400 mb-4">
+              <span>5 Beds</span>
+              <span>•</span>
+              <span>4 Baths</span>
+              <span>•</span>
+              <span>3,500 Sq Ft</span>
+            </div>
+            <a href="/#contact" class="block w-full py-3 border border-brand-gold/30 text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300 text-center">
+              VIEW DETAILS
+            </a>
+          </div>
+        </div>
+
+        <!-- Property Card 6 -->
+        <div class="property-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+          <div class="relative h-72 overflow-hidden">
+            <img src="https://images.pexels.com/photos/20703515/pexels-photo-20703515.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&dpr=2" 
+                 alt="19 Hans Place" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent opacity-60"></div>
+            <div class="absolute top-4 right-4 bg-brand-white text-brand-black text-xs px-3 py-1 tracking-widest">FOR LET</div>
+          </div>
+          <div class="p-6">
+            <div class="text-brand-gold text-xs tracking-widest mb-2">KNIGHTSBRIDGE, SW1X</div>
+            <h3 class="text-xl font-serif text-brand-white mb-3">19 Hans Place</h3>
+            <div class="flex items-baseline gap-2 mb-3">
+              <span class="text-2xl font-serif text-brand-gold">£12,000</span>
+              <span class="text-sm text-gray-400">pcm</span>
+            </div>
+            <div class="flex gap-4 text-sm text-gray-400 mb-4">
+              <span>4 Beds</span>
+              <span>•</span>
+              <span>3 Baths</span>
+              <span>•</span>
+              <span>2,400 Sq Ft</span>
+            </div>
+            <a href="/#contact" class="block w-full py-3 border border-brand-gold/30 text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300 text-center">
+              VIEW DETAILS
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: CTA -->
+  <section id="cta-section" class="py-24 bg-brand-black relative overflow-hidden">
+    <div class="max-w-4xl mx-auto px-8 text-center">
+      <h2 class="text-4xl md:text-5xl font-serif mb-6" id="cta-title">Find Your Perfect Property</h2>
+      <div class="w-24 h-[1px] bg-brand-gold mx-auto mb-8" id="cta-line"></div>
+      <p class="text-gray-400 font-light leading-relaxed mb-12 max-w-2xl mx-auto" id="cta-text">
+        Our team of experts is ready to help you discover the perfect property. Contact us today for a private consultation and exclusive access to off-market opportunities.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-6 justify-center" id="cta-buttons">
+        <a href="/#contact" class="px-12 py-4 bg-brand-gold text-brand-black text-xs tracking-[0.2em] hover:bg-brand-white transition-all duration-300 font-semibold">
+          REQUEST CONSULTATION
+        </a>
+        <a href="https://davidson-co-london.valuations.homeflow.co.uk/?fbclid=PAVERFWAPPCUpleHRuA2FlbQIxMABzcnRjBmFwcF9pZA8xMjQwMjQ1NzQyODc0MTQAAadKFr0aXGbYcG3i2QN6apfuS6NNxiFioVIgTgwQJ5T3_13353ZiBYT9unpLAA_aem_49U2OfIggvL3Hqv5G9kFhw" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="px-12 py-4 border border-brand-gold/30 text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300">
+          GET VALUATION
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer id="footer" class="bg-black text-white/40 py-24 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start">
+      <div class="mb-12 md:mb-0">
+        <a href="/">
+          <img src="/logo.png" alt="Davidson & Co." class="h-12 mb-4">
+        </a>
+      </div>
+      <div class="flex gap-16 text-xs font-sans tracking-widest">
+        <div>
+          <h6 class="text-white mb-4">NAVIGATION</h6>
+          <ul class="space-y-2">
+            <li><a href="/" class="hover:text-brand-gold transition-colors">Home</a></li>
+            <li><a href="/listings" class="hover:text-brand-gold transition-colors">Listings</a></li>
+            <li><a href="/#contact" class="hover:text-brand-gold transition-colors">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h6 class="text-white mb-4">CONTACT</h6>
+          <ul class="space-y-2">
+            <li><a href="tel:+442080544065" class="hover:text-brand-gold transition-colors">020 8054 4065</a></li>
+            <li><a href="mailto:info@davidsoncolondon.com" class="hover:text-brand-gold transition-colors">info@davidsoncolondon.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-24 opacity-20 font-sans">
+      © 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.
+    </div>
+  </footer>
+
+  <!-- GSAP Animations -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+      // ANIMATION 1: Hero Timeline with Overlapping Animations
+      const heroTl = gsap.timeline();
+      heroTl
+        .from("#hero-subtitle", { opacity: 0, y: 30, duration: 1, ease: "power3.out" })
+        .from("#hero-title", { opacity: 0, y: 60, duration: 1.2, ease: "power4.out" }, "-=0.6")
+        .to("#hero-line", { width: "120px", duration: 1.5, ease: "power2.inOut" }, "-=0.8")
+        .from("#hero-description", { opacity: 0, y: 30, duration: 1, ease: "power2.out" }, "-=1")
+        .from("#hero-stats", { opacity: 0, y: 40, duration: 0.8, ease: "power2.out" }, "-=0.6")
+        .to("#hero-image-mask", { 
+          clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)", 
+          duration: 2, 
+          ease: "expo.inOut" 
+        }, "-=1.5")
+        .from("#hero-image", { scale: 1.3, duration: 2.5, ease: "power2.out" }, "-=2");
+
+      // ANIMATION 2: Filter Bar Reveal
+      gsap.from("#filter-section", {
+        opacity: 0,
+        y: -20,
+        duration: 0.8,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: "#filter-section",
+          start: "top 80%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      // ANIMATION 3: Featured Property Section with Staggered Reveals
+      const featuredTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#featured-property",
+          start: "top 70%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      featuredTl
+        .to("#featured-line-left", { width: "96px", duration: 1, ease: "power2.inOut" })
+        .to("#featured-line-right", { width: "96px", duration: 1, ease: "power2.inOut" }, "<")
+        .from("#featured-title", { opacity: 0, y: 40, duration: 0.8, ease: "power3.out" }, "-=0.6")
+        .from("#featured-gallery", { opacity: 0, x: -60, duration: 1, ease: "power3.out" }, "-=0.4")
+        .from("#featured-details", { opacity: 0, x: 60, duration: 1, ease: "power3.out" }, "-=0.8");
+
+      // ANIMATION 4: Property Grid with ScrollTrigger.batch
+      ScrollTrigger.batch(".property-card", {
+        start: "top 85%",
+        onEnter: batch => gsap.to(batch, {
+          opacity: 1,
+          y: 0,
+          stagger: 0.15,
+          duration: 0.8,
+          ease: "power3.out",
+          overwrite: true
+        })
+      });
+
+      // ANIMATION 5: Grid Section Header
+      const gridTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#property-grid",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      gridTl
+        .to("#grid-line-left", { width: "96px", duration: 1, ease: "power2.inOut" })
+        .to("#grid-line-right", { width: "96px", duration: 1, ease: "power2.inOut" }, "<")
+        .from("#grid-title", { opacity: 0, y: 40, duration: 0.8, ease: "power3.out" }, "-=0.6");
+
+      // ANIMATION 6: CTA Section Reveal
+      const ctaTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#cta-section",
+          start: "top 70%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      ctaTl
+        .from("#cta-title", { opacity: 0, y: 50, duration: 1, ease: "power3.out" })
+        .to("#cta-line", { width: "96px", duration: 1.2, ease: "power2.inOut" }, "-=0.6")
+        .from("#cta-text", { opacity: 0, y: 30, duration: 0.8, ease: "power2.out" }, "-=0.8")
+        .from("#cta-buttons", { opacity: 0, y: 40, duration: 0.8, ease: "power2.out" }, "-=0.4");
+
+      // ANIMATION 7: Footer Reveal
+      gsap.from("#footer", {
+        opacity: 0,
+        y: 60,
+        duration: 1.2,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: "#footer",
+          start: "top 90%"
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
