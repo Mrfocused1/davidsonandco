@@ -987,6 +987,17 @@
         });
       });
 
+
+      // --- ENTER OUR OFFICE BUTTON - SMOOTH SCROLL ---
+      const heroCta = document.getElementById("hero-cta");
+      heroCta.addEventListener("click", () => {
+        const statementsSection = document.getElementById("statements");
+        statementsSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      });
+
     });
   </script>
 </body>
