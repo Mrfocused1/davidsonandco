@@ -1,5 +1,15 @@
 [
   {
+    "id": 1770734068470,
+    "timestamp": "2026-02-10T14:34:28.470Z",
+    "action": "edit",
+    "description": "Remove video tour section from 40b Westway listing page",
+    "files": [
+      "property/40b-westway/index.html"
+    ],
+    "status": "completed"
+  },
+  {
     "id": 1770731846197,
     "timestamp": "2026-02-10T13:57:26.197Z",
     "action": "create",
