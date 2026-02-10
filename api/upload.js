@@ -6,7 +6,7 @@ const REPO_NAME = 'davidsonandco';
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '10mb'
+      sizeLimit: '15mb' // Increased to accommodate compressed images with base64 overhead
     }
   }
 };
@@ -38,12 +38,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid file type. Only images are allowed.' });
     }
 
-    // Validate file size (5MB limit)
+    // Validate file size (8MB limit to account for base64 encoding overhead)
     const fileSize = Buffer.from(content, 'base64').length;
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 8 * 1024 * 1024; // 8MB (images should be auto-compressed on client)
     if (fileSize > maxSize) {
       return res.status(400).json({
-        error: `File too large. Maximum size is 5MB. Your file is ${(fileSize / 1024 / 1024).toFixed(2)}MB.`
+        error: `File too large. Maximum size is 8MB. Your file is ${(fileSize / 1024 / 1024).toFixed(2)}MB. Images should be automatically compressed before upload.`
       });
     }
 
