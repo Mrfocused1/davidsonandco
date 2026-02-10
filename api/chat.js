@@ -1,12 +1,12 @@
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { Octokit } from '@octokit/rest';
 import path from 'path';
 
-// Models to try in order of preference (Claude Sonnet 4.5)
-const MODELS = ['claude-sonnet-4-5-20250929'];
+// Models to try in order of preference (GLM-4.7 variants)
+const MODELS = ['glm-4.7', 'glm-4.7-FlashX', 'glm-4.7-Flash'];
 
-// Vision model for handling image inputs (Claude Sonnet has vision)
-const VISION_MODELS = ['claude-sonnet-4-5-20250929'];
+// Vision model for handling image inputs (GLM-4.7 supports vision)
+const VISION_MODELS = ['glm-4.7'];
 
 // GitHub config
 const REPO_OWNER = 'Mrfocused1';
@@ -15,12 +15,15 @@ const REPO_NAME = 'davidsonandco';
 // Site URL config (configurable via environment variable)
 const SITE_URL = process.env.SITE_URL || 'https://davidsoncolondon.com';
 
-// Initialize Anthropic client (Claude Sonnet)
-// Trim API key to handle potential whitespace/newline characters from env vars
-const anthropic = new Anthropic({
-  apiKey: (process.env.ANTHROPIC_API_KEY || '').trim(),
+// Initialize GLM client using OpenAI SDK (GLM is OpenAI-compatible)
+const glmClient = new OpenAI({
+  apiKey: process.env.GLM_API_KEY,
+  baseURL: 'https://api.z.ai/api/paas/v4/',
   timeout: 280000,        // 280 seconds (20s safety margin from 300s Vercel limit)
-  maxRetries: 1           // Reduce retries, rely on our custom retry logic instead
+  maxRetries: 1,          // Reduce retries, rely on our custom retry logic instead
+  defaultHeaders: {
+    'Connection': 'keep-alive'
+  }
 });
 
 const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Davidson & Co London website. You can:
@@ -37,50 +40,21 @@ const SYSTEM_PROMPT = `You are Davidson, the AI development assistant for the Da
 BRAND IDENTITY - LUXURY & CREATIVITY:
 Davidson & Co London is a HIGH-END luxury brand. Every page you create must reflect this:
 
-CRITICAL FIRST STEP - READ HOMEPAGE FOR NAV/FOOTER ONLY:
-BEFORE creating ANY page, read index.html BUT only to extract:
-
-✅ COPY THESE EXACTLY:
-1. Navigation HTML (the entire <nav> element - copy verbatim)
-2. Footer HTML (the entire <footer> element - copy verbatim)
-3. CSS styling (grain overlay, gold gradient, tailwind config, fonts)
-
-❌ DO NOT COPY THESE (create fresh each time):
-1. Hero section structure - CREATE completely different layouts
-2. Content sections - VARY the types, order, and approaches
-3. GSAP animation patterns - USE different techniques than homepage
-4. Page flow and narrative - TELL different stories
-5. Section backgrounds/colors - MIX UP the visual rhythm
-
-REQUIRED ELEMENTS (copy exactly from index.html):
-- HEADER logo: <a href="/"><img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10"></a>
-- FOOTER logo: <a href="/"><img src="/logo.png" alt="Davidson & Co." class="h-12"></a>
-- Navigation menu: Copy the exact <nav> element structure
-- Footer columns: Copy the exact <footer> element structure
-
-CREATIVE FREEDOM (DO NOT copy from homepage):
-- Hero: Split-screen? Minimal? Full-bleed image? Video? Mask reveal? (choose different than homepage)
-- Sections: Timeline? Carousel? Grid? Accordion? Tabs? (choose different combinations)
-- Animations: Horizontal scroll? Pinned sections? Different timeline choreography?
-- Visual rhythm: Dark section, light section, accent colors - vary the pattern
-
-EXAMPLE - If homepage has:
-- Full-screen hero with centered text
-- 3-column grid of cards
-- Vertical timeline
-- CTA section
-
-Then NEW page should have:
-- Split-screen hero with text left, visual right
-- Horizontal scrolling showcase
-- Accordion FAQ section
-- Interactive contact cards
+CRITICAL FIRST STEP - READ & COPY FROM HOMEPAGE:
+- BEFORE creating ANY page, ALWAYS read index.html using the read_file tool
+- COPY the exact navigation structure (especially logo wrapped in <a href="/">)
+- COPY the exact footer structure (logo, navigation column, contact column with phone/email)
+- Match the luxury styling: grain overlay, gold gradients, smooth animations
+- HEADER logo MUST be wrapped in: <a href="/"><img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10"></a>
+- FOOTER logo MUST ALSO be wrapped in: <a href="/"><img src="/logo.png" alt="Davidson & Co." class="h-12"></a>
 
 AFTER CREATING A PAGE - ASK ABOUT HOMEPAGE UPDATES:
-If you made ANY improvements to the footer/navigation that differ from homepage:
+If you made ANY improvements or changes to the footer/navigation structure that differ from the homepage:
 1. DO NOT automatically update the homepage
-2. Ask: "I've created your new page with [describe improvements]. Would you like me to update the homepage footer/navigation to match?"
-3. Only update homepage if user explicitly says yes
+2. After confirming the new page is created, ask the user:
+   "I've created your new page with [describe footer/nav improvements]. Would you like me to update the homepage footer/navigation to match this new design?"
+3. Wait for user confirmation before making homepage changes
+4. Only update homepage if user explicitly says yes
 
 BLOCKING REQUIREMENT - ANIMATION SOPHISTICATION:
 Every page must have NORTHLINE-LEVEL animation quality (NOT simple fades):
@@ -165,15 +139,14 @@ You CANNOT delete files directly. When a user asks to delete a page or file:
    - "contact page" -> look for "contact" folder -> path is "contact/index.html"
    - "about page" -> look for "about" folder -> path is "about/index.html"
    - NEVER guess the path - ALWAYS verify it exists with list_files first
-3. Once you have confirmed the EXACT file path, include the marker with a space after: DELETE_REQUEST:exact/path/to/file.html (space)
+3. Once you have confirmed the EXACT file path, include the marker: DELETE_REQUEST:exact/path/to/file.html
    - The path MUST be the full path including index.html (e.g., "who-we-are/index.html" NOT "who-we-are")
    - NEVER use just a folder name - always include /index.html for pages
-   - CRITICAL: Always add a SPACE after the file path before continuing your message
 4. Tell the user to click the confirmation button that will appear
 5. Example flow:
    - User says "delete the partner page"
    - You call list_files("") and find a "partner" directory
-   - You respond: "I've prepared to delete the partner page. DELETE_REQUEST:partner/index.html (notice the space here) Click the delete button to confirm."
+   - You respond: "I've prepared to delete the partner page. DELETE_REQUEST:partner/index.html Click the delete button to confirm."
 6. If list_files does NOT show a matching folder/file, tell the user the page doesn't exist and list what pages ARE available
 
 IMPORTANT RULES:
@@ -624,122 +597,140 @@ Be professional, warm, and consultative. Always engage in conversation before ma
 
 const tools = [
   {
-    name: 'read_file',
-    description: 'Read the contents of a file from the repository',
-    input_schema: {
-      type: 'object',
-      properties: {
-        path: {
-          type: 'string',
-          description: 'The file path relative to repository root (e.g., "index.html" or "src/styles.css")'
-        }
-      },
-      required: ['path']
+    type: 'function',
+    function: {
+      name: 'read_file',
+      description: 'Read the contents of a file from the repository',
+      parameters: {
+        type: 'object',
+        properties: {
+          path: {
+            type: 'string',
+            description: 'The file path relative to repository root (e.g., "index.html" or "src/styles.css")'
+          }
+        },
+        required: ['path']
+      }
     }
   },
   {
-    name: 'edit_file',
-    description: 'Make a targeted find-and-replace edit to a file. This is SAFE - it only replaces specific text, not the whole file.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        path: {
-          type: 'string',
-          description: 'The file path relative to repository root'
-        },
-        old_text: {
-          type: 'string',
-          description: 'The exact text to find and replace (must match exactly, including whitespace)'
-        },
-        new_text: {
-          type: 'string',
-          description: 'The new text to replace old_text with'
-        },
-        message: {
-          type: 'string',
-          description: 'Commit message describing the change'
-        },
-        replace_all: {
-          type: 'boolean',
-          description: 'If true, replace ALL occurrences of old_text. If false (default), replace only the first occurrence for safety.'
-        }
-      },
-      required: ['path', 'old_text', 'new_text', 'message']
-    }
-  },
-  {
-    name: 'list_files',
-    description: 'List files in a directory of the repository',
-    input_schema: {
-      type: 'object',
-      properties: {
-        path: {
-          type: 'string',
-          description: 'The directory path relative to repository root (use "" for root)'
-        }
-      },
-      required: ['path']
-    }
-  },
-  {
-    name: 'create_file',
-    description: 'Create a new file (page, section, etc). By default, will NOT overwrite existing files. For pages, use "pagename/index.html" format for clean URLs.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        path: {
-          type: 'string',
-          description: 'The file path for the new file. For pages use folder structure: "about/index.html" for /about, "services/index.html" for /services'
-        },
-        content: {
-          type: 'string',
-          description: 'The full content of the new file'
-        },
-        message: {
-          type: 'string',
-          description: 'Commit message describing what was created'
-        },
-        overwrite: {
-          type: 'boolean',
-          description: 'If true, overwrite existing file. If false (default), return error if file exists. Use with caution.'
-        }
-      },
-      required: ['path', 'content', 'message']
-    }
-  },
-  {
-    name: 'fetch_url',
-    description: 'Fetch content from a URL to gather information, research designs, or get content for the website. Use this to browse the web for inspiration or information.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        url: {
-          type: 'string',
-          description: 'The URL to fetch content from'
-        }
-      },
-      required: ['url']
-    }
-  },
-  {
-    name: 'verify_live_content',
-    description: 'Verify that expected content is visible on the live website. Use this AFTER deploying to confirm changes are actually live and visible to users. Helps catch CDN caching issues and deployment delays.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        url: {
-          type: 'string',
-          description: 'The full URL to verify (e.g., "${SITE_URL}/charity" or use relative like "/charity")'
-        },
-        expectedContent: {
-          type: 'array',
-          items: {
-            type: 'string'
+    type: 'function',
+    function: {
+      name: 'edit_file',
+      description: 'Make a targeted find-and-replace edit to a file. This is SAFE - it only replaces specific text, not the whole file.',
+      parameters: {
+        type: 'object',
+        properties: {
+          path: {
+            type: 'string',
+            description: 'The file path relative to repository root'
           },
-          description: 'Array of text strings that should be present on the live page (e.g., ["Areas of Impact", "Housing Support", "Education & Youth"])'
-        }
-      },
-      required: ['url', 'expectedContent']
+          old_text: {
+            type: 'string',
+            description: 'The exact text to find and replace (must match exactly, including whitespace)'
+          },
+          new_text: {
+            type: 'string',
+            description: 'The new text to replace old_text with'
+          },
+          message: {
+            type: 'string',
+            description: 'Commit message describing the change'
+          },
+          replace_all: {
+            type: 'boolean',
+            description: 'If true, replace ALL occurrences of old_text. If false (default), replace only the first occurrence for safety.'
+          }
+        },
+        required: ['path', 'old_text', 'new_text', 'message']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'list_files',
+      description: 'List files in a directory of the repository',
+      parameters: {
+        type: 'object',
+        properties: {
+          path: {
+            type: 'string',
+            description: 'The directory path relative to repository root (use "" for root)'
+          }
+        },
+        required: ['path']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'create_file',
+      description: 'Create a new file (page, section, etc). By default, will NOT overwrite existing files. For pages, use "pagename/index.html" format for clean URLs.',
+      parameters: {
+        type: 'object',
+        properties: {
+          path: {
+            type: 'string',
+            description: 'The file path for the new file. For pages use folder structure: "about/index.html" for /about, "services/index.html" for /services'
+          },
+          content: {
+            type: 'string',
+            description: 'The full content of the new file'
+          },
+          message: {
+            type: 'string',
+            description: 'Commit message describing what was created'
+          },
+          overwrite: {
+            type: 'boolean',
+            description: 'If true, overwrite existing file. If false (default), return error if file exists. Use with caution.'
+          }
+        },
+        required: ['path', 'content', 'message']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'fetch_url',
+      description: 'Fetch content from a URL to gather information, research designs, or get content for the website. Use this to browse the web for inspiration or information.',
+      parameters: {
+        type: 'object',
+        properties: {
+          url: {
+            type: 'string',
+            description: 'The URL to fetch content from'
+          }
+        },
+        required: ['url']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'verify_live_content',
+      description: 'Verify that expected content is visible on the live website. Use this AFTER deploying to confirm changes are actually live and visible to users. Helps catch CDN caching issues and deployment delays.',
+      parameters: {
+        type: 'object',
+        properties: {
+          url: {
+            type: 'string',
+            description: 'The full URL to verify (e.g., "${SITE_URL}/charity" or use relative like "/charity")'
+          },
+          expectedContent: {
+            type: 'array',
+            items: {
+              type: 'string'
+            },
+            description: 'Array of text strings that should be present on the live page (e.g., ["Areas of Impact", "Housing Support", "Education & Youth"])'
+          }
+        },
+        required: ['url', 'expectedContent']
+      }
     }
   }
 ];
@@ -1416,39 +1407,7 @@ async function executeFunction(name, args, octokit) {
     }
   } catch (error) {
     console.error(`Tool execution error (${name}):`, error.message);
-    console.error(`Tool error details:`, error.status, error.response?.data);
-
-    const errorResult = {
-      error: `Tool '${name}' failed: ${error.message}`,
-      status: error.status || 'unknown',
-      tool: name,
-      success: false
-    };
-
-    // Include file path context if available
-    if (args.path) {
-      errorResult.failedPath = args.path;
-      errorResult.error += ` (path: ${args.path})`;
-    }
-
-    // Include GitHub-specific error details
-    if (error.response?.data?.message) {
-      errorResult.githubError = error.response.data.message;
-      errorResult.error += ` - GitHub says: ${error.response.data.message}`;
-    }
-
-    // Provide actionable hints based on error type
-    if (error.status === 409) {
-      errorResult.hint = 'Conflict error - the file was modified by another process. Try again.';
-    } else if (error.status === 422) {
-      errorResult.hint = 'Validation error - the content or parameters may be invalid.';
-    } else if (error.status === 404) {
-      errorResult.hint = 'File or path not found. Check the path and try again.';
-    } else if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
-      errorResult.hint = 'Request timeout - try again or simplify the request.';
-    }
-
-    return errorResult;
+    return { error: error.message };
   }
 }
 
@@ -1538,18 +1497,16 @@ async function convertToVisionMessage(message, octokit) {
       console.log(`  - Approx size: ${approxSizeMB}MB`);
       console.log(`  - Base64 length: ${base64Content.length} chars`);
 
-      // Warn if image might be too large (Anthropic Vision API limit is 20MB)
+      // Warn if image might be too large (OpenAI Vision API limit is 20MB)
       if (approxSizeBytes > 20 * 1024 * 1024) {
-        console.warn(`⚠️  Image may exceed 20MB limit for Anthropic Vision API (${approxSizeMB}MB)`);
+        console.warn(`⚠️  Image may exceed 20MB limit for OpenAI Vision API (${approxSizeMB}MB)`);
       }
 
-      // Add image in Anthropic vision format
+      // Add image in OpenAI-compatible vision format
       contentArray.push({
-        type: 'image',
-        source: {
-          type: 'base64',
-          media_type: mimeType,
-          data: base64Content
+        type: 'image_url',
+        image_url: {
+          url: `data:${mimeType};base64,${base64Content}`
         }
       });
     } catch (error) {
@@ -1593,8 +1550,8 @@ export default async function handler(req, res) {
   };
 
   // Check for required environment variables
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('ANTHROPIC_API_KEY environment variable not set');
+  if (!process.env.GLM_API_KEY) {
+    console.error('GLM_API_KEY environment variable not set');
     return res.status(500).json({
       error: 'API key not configured',
       message: 'The AI service is not properly configured. Please contact support.'
@@ -1637,177 +1594,14 @@ export default async function handler(req, res) {
       ...processedMessages
     ];
 
-    // Convert OpenAI messages to Anthropic format
-    const convertMessagesToAnthropic = (messages) => {
-      const result = [];
-      let i = 0;
-
-      while (i < messages.length) {
-        const msg = messages[i];
-
-        if (msg.role === 'assistant' && msg.tool_calls) {
-          // Assistant message with tool calls - convert to Anthropic format
-          const content = [];
-          if (msg.content) {
-            content.push({ type: 'text', text: msg.content });
-          }
-          msg.tool_calls.forEach(tc => {
-            content.push({
-              type: 'tool_use',
-              id: tc.id,
-              name: tc.function.name,
-              input: JSON.parse(tc.function.arguments)
-            });
-          });
-          result.push({ role: 'assistant', content });
-          i++;
-        } else if (msg.role === 'tool') {
-          // Collect all tool results and combine into one user message
-          const toolResults = [];
-          while (i < messages.length && messages[i].role === 'tool') {
-            toolResults.push({
-              type: 'tool_result',
-              tool_use_id: messages[i].tool_call_id,
-              content: messages[i].content
-            });
-            i++;
-          }
-          if (toolResults.length > 0) {
-            result.push({ role: 'user', content: toolResults });
-          }
-        } else if (msg.role !== 'system') {
-          // Regular user/assistant message
-          // Ensure content is in the right format
-          let content = msg.content;
-          if (!content) {
-            console.warn('Message has no content:', msg);
-            i++;
-            continue;
-          }
-          // Anthropic accepts either string or array of content blocks
-          result.push({
-            role: msg.role,
-            content: content
-          });
-          i++;
-        } else {
-          i++; // Skip system messages (handled separately)
-        }
-      }
-
-      // Anthropic requires at least one message
-      if (result.length === 0) {
-        console.error('❌ No messages after conversion!');
-        throw new Error('No valid messages to send to Anthropic');
-      }
-
-      // Anthropic requires the first message to have role 'user'.
-      // If the first message is 'assistant', prepend a placeholder user message.
-      if (result.length > 0 && result[0].role !== 'user') {
-        console.warn('⚠️ First message is not user role, prepending placeholder user message');
-        result.unshift({ role: 'user', content: 'Continue the conversation.' });
-      }
-
-      // Anthropic requires strictly alternating user/assistant messages.
-      // Merge consecutive messages with the same role.
-      const merged = [];
-      for (const msg of result) {
-        if (merged.length > 0 && merged[merged.length - 1].role === msg.role) {
-          // Merge content into the previous message of the same role
-          const prev = merged[merged.length - 1];
-          const prevContent = Array.isArray(prev.content) ? prev.content :
-            (typeof prev.content === 'string' ? [{ type: 'text', text: prev.content }] : []);
-          const msgContent = Array.isArray(msg.content) ? msg.content :
-            (typeof msg.content === 'string' ? [{ type: 'text', text: msg.content }] : []);
-          prev.content = [...prevContent, ...msgContent];
-        } else {
-          merged.push({ ...msg });
-        }
-      }
-
-      // Anthropic requires the last message to have role 'user' (for the model to respond to).
-      // This should always be the case, but add a safeguard.
-      if (merged.length > 0 && merged[merged.length - 1].role !== 'user') {
-        console.warn('⚠️ Last message is not user role, appending placeholder user message');
-        merged.push({ role: 'user', content: 'Please continue.' });
-      }
-
-      return merged;
-    };
-
-    // Convert Anthropic response format to OpenAI format for compatibility
-    const convertAnthropicToOpenAI = (anthropicResponse) => {
-      const contentBlocks = anthropicResponse.content || [];
-      const textContent = contentBlocks
-        .filter(block => block.type === 'text')
-        .map(block => block.text)
-        .join('');
-
-      const toolUses = contentBlocks.filter(block => block.type === 'tool_use');
-
-      const message = {
-        role: 'assistant',
-        content: textContent || null
-      };
-
-      if (toolUses.length > 0) {
-        message.tool_calls = toolUses.map(tool => ({
-          id: tool.id,
-          type: 'function',
-          function: {
-            name: tool.name,
-            arguments: JSON.stringify(tool.input)
-          }
-        }));
-      }
-
-      const finishReasonMap = {
-        'end_turn': 'stop',
-        'max_tokens': 'length',
-        'tool_use': 'tool_calls',
-        'stop_sequence': 'stop'
-      };
-
-      return {
-        choices: [{
-          message: message,
-          finish_reason: finishReasonMap[anthropicResponse.stop_reason] || 'stop'
-        }],
-        id: anthropicResponse.id,
-        model: anthropicResponse.model
-      };
-    };
-
     // Helper function to retry API calls with exponential backoff
     const retryWithBackoff = async (fn, maxRetries = 2) => {
       let lastErr;
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-          const result = await fn();
-          console.log('✅ Anthropic API response received:', JSON.stringify(result, null, 2).substring(0, 500));
-          // Convert Anthropic response to OpenAI format
-          return convertAnthropicToOpenAI(result);
+          return await fn();
         } catch (err) {
-          console.error('❌ Anthropic API error:', err.message);
-          console.error('Error status:', err.status);
-          if (err.error?.error?.message) {
-            console.error('Anthropic error message:', err.error.error.message);
-          }
-          console.error('Error details:', JSON.stringify(err, null, 2).substring(0, 1000));
           lastErr = err;
-
-          // Don't retry billing/credit errors - they won't resolve on retry
-          const errMsgLower = (err.message || '').toLowerCase();
-          if (errMsgLower.includes('credit') || errMsgLower.includes('billing') || errMsgLower.includes('balance is too low')) {
-            console.error('❌ Billing/credit error detected - skipping retries');
-            throw err;
-          }
-          // Don't retry authentication errors
-          if (err.status === 401 || err.status === 403) {
-            console.error('❌ Authentication error detected - skipping retries');
-            throw err;
-          }
-
           if (attempt < maxRetries) {
             const delay = Math.pow(2, attempt) * 1000; // 1s, 2s
             console.log(`Retry attempt ${attempt + 1} after ${delay}ms...`);
@@ -1815,7 +1609,6 @@ export default async function handler(req, res) {
           }
         }
       }
-      console.error('❌ All retry attempts failed. Last error:', lastErr);
       throw lastErr;
     };
 
@@ -1837,9 +1630,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Extract system message for Anthropic format
-    const systemMessage = fullMessages.find(m => m.role === 'system');
-
     // Try each model with tools first (with retry)
     for (const model of modelsToTry) {
       try {
@@ -1847,20 +1637,13 @@ export default async function handler(req, res) {
         console.log(`[TIMING] LLM API call started at ${llmStartTime - REQUEST_START_TIME}ms`);
         console.log(`Trying model: ${model} with tools ${hasImages ? '(VISION MODE)' : ''}`);
         response = await retryWithBackoff(async () => {
-          const anthropicMessages = convertMessagesToAnthropic(fullMessages);
-          console.log('📤 Sending to Anthropic:', {
-            model,
-            messageCount: anthropicMessages.length,
-            systemPromptLength: systemMessage.content.length,
-            firstMessage: anthropicMessages[0] ? JSON.stringify(anthropicMessages[0]).substring(0, 200) : 'none'
-          });
-          return await anthropic.messages.create({
+          return await glmClient.chat.completions.create({
             model: model,
-            max_tokens: 16384,
-            system: systemMessage.content,
-            messages: anthropicMessages,
+            messages: fullMessages,
             tools: tools,
-            temperature: 0.7
+            tool_choice: 'auto',
+            temperature: 0.7,
+            max_tokens: 16384
           });
         });
         usedModel = model;
@@ -1890,13 +1673,11 @@ export default async function handler(req, res) {
         try {
           console.log(`Trying model: ${model} without tools ${hasImages ? '(VISION MODE)' : ''}`);
           response = await retryWithBackoff(async () => {
-            const anthropicMessages = convertMessagesToAnthropic(fullMessages);
-            return await anthropic.messages.create({
+            return await glmClient.chat.completions.create({
               model: model,
-              max_tokens: 16384,
-              system: systemMessage.content,
-              messages: anthropicMessages,
-              temperature: 0.7
+              messages: fullMessages,
+              temperature: 0.7,
+              max_tokens: 16384
             });
           });
           usedModel = model;
@@ -1915,23 +1696,20 @@ export default async function handler(req, res) {
       toolsEnabled = false;
 
       // Convert image messages back to text-only by removing image content
-      const textOnlySystemMsg = SYSTEM_PROMPT + '\n\nNOTE: Vision processing failed. User uploaded images but you cannot see them. Acknowledge this limitation and work with text only.';
+      const textOnlyMessages = [
+        { role: 'system', content: SYSTEM_PROMPT + '\n\nNOTE: Vision processing failed. User uploaded images but you cannot see them. Acknowledge this limitation and work with text only.' },
+        ...messages
+      ];
 
       for (const model of MODELS) {
         try {
           console.log(`Trying text model fallback: ${model}`);
           response = await retryWithBackoff(async () => {
-            const textOnlyMessages = [
-              { role: 'system', content: textOnlySystemMsg },
-              ...messages
-            ];
-            const anthropicMessages = convertMessagesToAnthropic(textOnlyMessages);
-            return await anthropic.messages.create({
+            return await glmClient.chat.completions.create({
               model: model,
-              max_tokens: 16384,
-              system: textOnlySystemMsg,
-              messages: anthropicMessages,
-              temperature: 0.7
+              messages: textOnlyMessages,
+              temperature: 0.7,
+              max_tokens: 16384
             });
           });
           usedModel = model;
@@ -2055,13 +1833,6 @@ export default async function handler(req, res) {
           const toolDuration = Date.now() - toolStartTime;
           console.log(`✅ Tool ${functionName} completed in ${toolDuration}ms`);
 
-          // Log the actual result being sent to LLM
-          const resultPreview = JSON.stringify(result).substring(0, 500);
-          console.log(`📤 Tool result for ${functionName}:`, resultPreview);
-          if (result.success === false || result.error) {
-            console.error(`❌ Tool ${functionName} returned error:`, result.error);
-          }
-
           // Track if changes were made (edit_file, create_file, or delete_file with success)
           if ((functionName === 'edit_file' || functionName === 'create_file' || functionName === 'delete_file') && result.success) {
             madeChanges = true;
@@ -2077,14 +1848,13 @@ export default async function handler(req, res) {
         const llmStartTime2 = Date.now();
         console.log(`[TIMING] Second LLM API call started at ${llmStartTime2 - REQUEST_START_TIME}ms`);
         response = await retryWithBackoff(async () => {
-          const anthropicMessages = convertMessagesToAnthropic(fullMessages);
-          return await anthropic.messages.create({
+          return await glmClient.chat.completions.create({
             model: usedModel,
-            max_tokens: 16384,
-            system: systemMessage.content,
-            messages: anthropicMessages,
+            messages: fullMessages,
             tools: tools,
-            temperature: 0.7
+            tool_choice: 'auto',
+            temperature: 0.7,
+            max_tokens: 16384
           });
         });
 
@@ -2136,60 +1906,23 @@ export default async function handler(req, res) {
     const deleteMarker = 'DELETE_REQUEST:';
     if (finalMessage && finalMessage.includes(deleteMarker)) {
       const markerIndex = finalMessage.indexOf(deleteMarker);
-      const afterMarker = finalMessage.substring(markerIndex + deleteMarker.length);
+      const pathStart = markerIndex + deleteMarker.length;
+      const pathEnd = finalMessage.indexOf(' ', pathStart);
+      const filePath = pathEnd > -1
+        ? finalMessage.substring(pathStart, pathEnd)
+        : finalMessage.substring(pathStart);
 
-      // Use regex to extract a valid file path: word-chars, slashes, hyphens, dots
-      // This stops at the FIRST character that isn't part of a file path
-      // Handles all edge cases:
-      //   "path/index.htmlClick..." -> captures "path/index.html" (stops at uppercase after .html)
-      //   "path/index.html Click..." -> captures "path/index.html" (stops at space)
-      //   "path/index.htmlclick..." -> captures "path/index.html" (regex truncates at .html boundary)
-      //   "path/index.html." -> captures "path/index.html"
-      const pathMatch = afterMarker.match(/^[\s]*([\w\-./]+\.html)/i);
+      // Remove the marker from the message
+      finalMessage = finalMessage.replace(deleteMarker + filePath, '').trim();
 
-      let filePath = null;
-      let rawMatchLength = 0;
+      requestsDelete = {
+        path: filePath.trim(),
+        displayName: filePath.includes('/')
+          ? filePath.split('/')[0]
+          : filePath.replace('.html', '')
+      };
 
-      if (pathMatch) {
-        // Best case: we matched up to and including .html
-        filePath = pathMatch[1].trim();
-        rawMatchLength = pathMatch[0].length;
-      } else {
-        // Fallback: extract path-like characters and try to clean up
-        const fallbackMatch = afterMarker.match(/^[\s]*([\w\-./]+)/);
-        if (fallbackMatch) {
-          let rawPath = fallbackMatch[1];
-          // If it contains .html followed by extra chars, truncate at .html
-          const htmlIdx = rawPath.toLowerCase().indexOf('.html');
-          if (htmlIdx !== -1) {
-            rawPath = rawPath.substring(0, htmlIdx + 5); // ".html" is 5 chars
-          }
-          filePath = rawPath.trim();
-          rawMatchLength = fallbackMatch[0].length;
-        }
-      }
-
-      if (filePath) {
-        // Final safety: remove any characters that aren't valid in file paths
-        filePath = filePath.replace(/[^a-zA-Z0-9\/\-_.]/g, '');
-
-        // Remove the entire DELETE_REQUEST:path portion from the message
-        const fullMarkerText = finalMessage.substring(markerIndex, markerIndex + deleteMarker.length + rawMatchLength);
-        finalMessage = finalMessage.replace(fullMarkerText, '').trim();
-
-        requestsDelete = {
-          path: filePath,
-          displayName: filePath.includes('/')
-            ? filePath.split('/')[0]
-            : filePath.replace('.html', '')
-        };
-
-        console.log('Deletion requested:', requestsDelete);
-      } else {
-        console.warn('DELETE_REQUEST marker found but could not parse file path from:', afterMarker.substring(0, 100));
-        // Remove the broken marker from the message so user doesn't see it
-        finalMessage = finalMessage.replace(deleteMarker, '').trim();
-      }
+      console.log('🗑️ Deletion requested:', requestsDelete);
     }
 
     const totalRequestTime = Date.now() - REQUEST_START_TIME;
@@ -2213,37 +1946,26 @@ export default async function handler(req, res) {
 
     const errMsg = error.message?.toLowerCase() || '';
     const errCode = error.code || '';
-    let statusCode = 500;
 
-    // Check authentication errors FIRST (most common issue)
-    if (error.status === 401 || error.status === 403 || errMsg.includes('authentication') || errMsg.includes('invalid x-api-key') || errMsg.includes('unauthorized') || errMsg.includes('forbidden')) {
-      userFriendlyMessage = 'The AI service API key is invalid or expired. Please contact your admin to update the ANTHROPIC_API_KEY in Vercel with a valid API key from console.anthropic.com.';
-      errorMessage = 'Invalid or expired Anthropic API key';
-      statusCode = error.status || 401;
-    } else if (errMsg.includes('credit') || errMsg.includes('billing') || errMsg.includes('balance is too low')) {
-      userFriendlyMessage = 'The AI service has run out of credits. Please contact your admin to top up the Anthropic API credits so I can get back to work.';
-      errorMessage = 'Anthropic API credit balance too low';
-      statusCode = 402;
-    } else if (errMsg.includes('timeout') || errCode === 'ETIMEDOUT' || errCode === 'ECONNABORTED') {
+    if (errMsg.includes('timeout') || errCode === 'ETIMEDOUT' || errCode === 'ECONNABORTED') {
       userFriendlyMessage = 'That task took longer than expected, so I had to stop. Please take a screenshot and send it to your admin so they can help.';
     } else if (errMsg.includes('rate') || error.status === 429) {
       userFriendlyMessage = 'I\'m getting too many requests right now. Please wait a minute and try again. If this keeps happening, take a screenshot and send it to your admin.';
-      statusCode = 429;
     } else if (errMsg.includes('network') || errCode === 'ECONNREFUSED' || errCode === 'ENOTFOUND') {
       userFriendlyMessage = 'I\'m having trouble connecting. Please check your internet connection and try again. If it still doesn\'t work, take a screenshot and send it to your admin.';
-      statusCode = 503;
+    } else if (error.status === 401 || error.status === 403 || errMsg.includes('unauthorized') || errMsg.includes('forbidden')) {
+      userFriendlyMessage = 'I don\'t have permission to do that right now. Please take a screenshot of this conversation and send it to your admin - they\'ll need to fix the permissions.';
     } else if (error.status >= 500 || errMsg.includes('internal server error')) {
       userFriendlyMessage = 'The system is having a temporary issue. Please wait a moment and try again. If it still doesn\'t work, take a screenshot and send it to your admin.';
     } else if (errMsg.includes('invalid') || errMsg.includes('bad request')) {
       userFriendlyMessage = 'I didn\'t quite understand that request. Try saying it differently. If you keep seeing this message, take a screenshot and send it to your admin.';
-      statusCode = 400;
     } else if (errMsg.includes('model') || errMsg.includes('not found')) {
       userFriendlyMessage = 'The system isn\'t available right now. Please try again in a few minutes. If it still doesn\'t work, take a screenshot and send it to your admin.';
     } else if (errMsg.includes('json') || errMsg.includes('parse')) {
       userFriendlyMessage = 'I had trouble understanding the response. Please try again. If this keeps happening, take a screenshot and send it to your admin.';
     }
 
-    return res.status(statusCode).json({
+    return res.status(500).json({
       error: errorMessage,
       message: userFriendlyMessage,
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
