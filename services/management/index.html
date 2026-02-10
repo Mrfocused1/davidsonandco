@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Management | Davidson & Co London</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP & Plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .text-gold-gradient {
+      background: linear-gradient(to right, #D4AF37, #FEE180, #D4AF37);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shine 5s linear infinite;
+    }
+
+    @keyframes shine {
+      to { background-position: 200% center; }
+    }
+
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    .hero-mask {
+      clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    }
+  </style>
+</head>
+
+<body class="relative">
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center p-6 md:p-8 mix-blend-difference transition-all duration-500">
+    <a href="/" class="pointer-events-auto">
+      <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="/" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">HOME</a>
+      <a href="/listings" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">LISTINGS</a>
+      <a href="/#valuation-tools" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">MANAGEMENT RESOURCES</a>
+      <a href="/#contact" class="pointer-events-auto text-xs tracking-[0.2em] text-white/70 hover:text-brand-gold transition-colors duration-300">CONTACT</a>
+    </div>
+    <button class="md:hidden pointer-events-auto text-white/70 hover:text-brand-gold transition-colors duration-300" id="mobile-menu-btn">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="fixed inset-0 bg-brand-black z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-opacity duration-500" id="mobile-menu">
+    <a href="/" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">HOME</a>
+    <a href="/listings" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">LISTINGS</a>
+    <a href="/#valuation-tools" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">MANAGEMENT RESOURCES</a>
+    <a href="/#contact" class="text-2xl font-serif text-white/70 hover:text-brand-gold transition-colors duration-300 mobile-nav-link">CONTACT</a>
+  </div>
+
+  <!-- HERO: Image Mask Reveal -->
+  <section id="hero" class="relative h-screen w-full overflow-hidden bg-brand-black">
+    <div class="absolute inset-0">
+      <div class="hero-mask absolute inset-0" id="hero-mask">
+        <img src="https://images.pexels.com/photos/12291715/pexels-photo-12291715.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Property Management" class="w-full h-full object-cover scale-110" id="hero-image">
+      </div>
+      <div class="absolute inset-0 bg-brand-black/70"></div>
+    </div>
+
+    <div class="relative z-10 h-full flex flex-col justify-center items-center px-8">
+      <span class="text-brand-gold text-xs tracking-[0.4em] uppercase mb-8 opacity-0" id="hero-tagline">Asset Optimization</span>
+      <h1 class="text-6xl md:text-8xl lg:text-9xl font-serif text-white mb-8 opacity-0" id="hero-title">
+        Management
+      </h1>
+      <div class="w-0 h-[1px] bg-brand-gold mb-8" id="hero-line"></div>
+      <p class="text-gray-400 text-lg md:text-xl max-w-3xl text-center leading-relaxed mb-12 opacity-0" id="hero-text">
+        Comprehensive property management services designed to protect and enhance the value of your real estate investments. From maintenance to tenant relations, we handle every detail.
+      </p>
+      <a href="/#contact" class="inline-block px-10 py-4 bg-brand-gold text-brand-black text-xs tracking-[0.2em] hover:bg-brand-white transition-all duration-300 opacity-0" id="hero-cta">
+        DISCOVER OUR SERVICES
+      </a>
+    </div>
+  </section>
+
+  <!-- SECTION: Management Services -->
+  <section id="services" class="py-32 bg-brand-charcoal relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="text-center mb-20">
+        <div class="w-0 h-[1px] bg-brand-gold mx-auto mb-8" id="services-line"></div>
+        <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="services-title">Comprehensive Care</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto opacity-0" id="services-subtitle">Every aspect of your property managed with precision and professionalism.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="service-card p-8 bg-brand-stone/50 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group opacity-0" style="transform: translateY(40px);">
+          <div class="w-12 h-12 mb-6 flex items-center justify-center border border-brand-gold/30 rounded-full group-hover:bg-brand-gold/10 transition-all">
+            <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif mb-4 text-white">Property Maintenance</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Proactive maintenance programs with trusted contractors. Regular inspections, preventative care, and rapid response to issues.</p>
+        </div>
+
+        <div class="service-card p-8 bg-brand-stone/50 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group opacity-0" style="transform: translateY(40px);">
+          <div class="w-12 h-12 mb-6 flex items-center justify-center border border-brand-gold/30 rounded-full group-hover:bg-brand-gold/10 transition-all">
+            <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif mb-4 text-white">Rent Collection</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Timely rent collection with detailed financial reporting. Automated payment processing and transparent accounting.</p>
+        </div>
+
+        <div class="service-card p-8 bg-brand-stone/50 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group opacity-0" style="transform: translateY(40px);">
+          <div class="w-12 h-12 mb-6 flex items-center justify-center border border-brand-gold/30 rounded-full group-hover:bg-brand-gold/10 transition-all">
+            <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif mb-4 text-white">Tenant Relations</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Professional tenant communication and relationship management. Handling inquiries, requests, and lease renewals.</p>
+        </div>
+
+        <div class="service-card p-8 bg-brand-stone/50 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group opacity-0" style="transform: translateY(40px);">
+          <div class="w-12 h-12 mb-6 flex items-center justify-center border border-brand-gold/30 rounded-full group-hover:bg-brand-gold/10 transition-all">
+            <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif mb-4 text-white">Financial Reporting</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Comprehensive monthly and annual financial statements. Income and expense tracking with tax documentation.</p>
+        </div>
+
+        <div class="service-card p-8 bg-brand-stone/50 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group opacity-0" style="transform: translateY(40px);">
+          <div class="w-12 h-12 mb-6 flex items-center justify-center border border-brand-gold/30 rounded-full group-hover:bg-brand-gold/10 transition-all">
+            <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif mb-4 text-white">Compliance Management</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Full regulatory compliance including safety certificates, insurance, and legal requirements. Peace of mind guaranteed.</p>
+        </div>
+
+        <div class="service-card p-8 bg-brand-stone/50 border border-white/5 hover:border-brand-gold/30 transition-all duration-500 group opacity-0" style="transform: translateY(40px);">
+          <div class="w-12 h-12 mb-6 flex items-center justify-center border border-brand-gold/30 rounded-full group-hover:bg-brand-gold/10 transition-all">
+            <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif mb-4 text-white">Property Inspections</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Regular property inspections with detailed reports. Monitoring condition and identifying maintenance needs proactively.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: Process Flow -->
+  <section id="process" class="py-32 bg-brand-black relative overflow-hidden">
+    <div class="max-w-5xl mx-auto px-8">
+      <div class="text-center mb-20">
+        <div class="w-0 h-[1px] bg-brand-gold mx-auto mb-8" id="process-line"></div>
+        <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="process-title">Our Management Approach</h2>
+      </div>
+
+      <div class="relative">
+        <!-- Process Steps -->
+        <div class="space-y-16">
+          <div class="process-step flex gap-8 opacity-0" id="process-step-1">
+            <div class="flex-shrink-0 w-20 h-20 bg-brand-gold/10 border border-brand-gold/30 rounded-full flex items-center justify-center">
+              <span class="text-2xl font-serif text-brand-gold">01</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-serif mb-4">Onboarding & Assessment</h3>
+              <p class="text-gray-400 leading-relaxed">We begin with a comprehensive assessment of your property, documenting its condition and establishing a tailored management plan based on your specific requirements and objectives.</p>
+            </div>
+          </div>
+
+          <div class="process-step flex gap-8 opacity-0" id="process-step-2">
+            <div class="flex-shrink-0 w-20 h-20 bg-brand-gold/10 border border-brand-gold/30 rounded-full flex items-center justify-center">
+              <span class="text-2xl font-serif text-brand-gold">02</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-serif mb-4">System Implementation</h3>
+              <p class="text-gray-400 leading-relaxed">Our team implements management systems, including tenant screening, rent collection processes, maintenance protocols, and financial reporting structures tailored to your portfolio.</p>
+            </div>
+          </div>
+
+          <div class="process-step flex gap-8 opacity-0" id="process-step-3">
+            <div class="flex-shrink-0 w-20 h-20 bg-brand-gold/10 border border-brand-gold/30 rounded-full flex items-center justify-center">
+              <span class="text-2xl font-serif text-brand-gold">03</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-serif mb-4">Ongoing Management</h3>
+              <p class="text-gray-400 leading-relaxed">Day-to-day management handled by our dedicated team, including tenant communication, maintenance coordination, rent collection, and regular property inspections.</p>
+            </div>
+          </div>
+
+          <div class="process-step flex gap-8 opacity-0" id="process-step-4">
+            <div class="flex-shrink-0 w-20 h-20 bg-brand-gold/10 border border-brand-gold/30 rounded-full flex items-center justify-center">
+              <span class="text-2xl font-serif text-brand-gold">04</span>
+            </div>
+            <div>
+              <h3 class="text-2xl font-serif mb-4">Reporting & Review</h3>
+              <p class="text-gray-400 leading-relaxed">Regular financial and operational reports keep you informed. Quarterly reviews ensure our service continues to meet your evolving needs and maximise your returns.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: Stats -->
+  <section id="stats" class="py-32 bg-brand-charcoal relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div class="stat-item opacity-0" id="stat-1">
+          <div class="text-5xl md:text-6xl font-serif text-brand-gold mb-2">500+</div>
+          <div class="text-gray-400 text-sm tracking-widest uppercase">Properties Managed</div>
+        </div>
+        <div class="stat-item opacity-0" id="stat-2">
+          <div class="text-5xl md:text-6xl font-serif text-brand-gold mb-2">98%</div>
+          <div class="text-gray-400 text-sm tracking-widest uppercase">Client Retention</div>
+        </div>
+        <div class="stat-item opacity-0" id="stat-3">
+          <div class="text-5xl md:text-6xl font-serif text-brand-gold mb-2">24/7</div>
+          <div class="text-gray-400 text-sm tracking-widest uppercase">Emergency Response</div>
+        </div>
+        <div class="stat-item opacity-0" id="stat-4">
+          <div class="text-5xl md:text-6xl font-serif text-brand-gold mb-2">15+</div>
+          <div class="text-gray-400 text-sm tracking-widest uppercase">Years Experience</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: CTA -->
+  <section id="cta" class="py-32 bg-brand-black relative overflow-hidden">
+    <div class="max-w-4xl mx-auto px-8 text-center">
+      <div class="w-0 h-[1px] bg-brand-gold mx-auto mb-8" id="cta-line"></div>
+      <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="cta-title">Optimise Your Portfolio</h2>
+      <p class="text-gray-400 mb-12 max-w-2xl mx-auto opacity-0" id="cta-text">Let us handle the day-to-day while you focus on what matters most. Professional property management tailored to your needs.</p>
+      <a href="/#contact" class="inline-block px-12 py-4 bg-brand-gold text-brand-black text-xs tracking-[0.2em] hover:bg-brand-white transition-all duration-300 opacity-0" id="cta-button">
+        REQUEST MANAGEMENT SERVICES
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-black text-white/40 py-24 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start">
+      <div class="mb-12 md:mb-0">
+        <a href="/"><img src="/logo.png" alt="Davidson & Co." class="h-12 mb-4"></a>
+      </div>
+      <div class="flex gap-16 text-xs font-sans tracking-widest">
+        <div>
+          <h6 class="text-white mb-4">NAVIGATION</h6>
+          <ul class="space-y-2">
+            <li><a href="/" class="hover:text-brand-gold transition-colors">Home</a></li>
+            <li><a href="/services/sales" class="hover:text-brand-gold transition-colors">Sales</a></li>
+            <li><a href="/services/lettings" class="hover:text-brand-gold transition-colors">Lettings</a></li>
+            <li><a href="/listings" class="hover:text-brand-gold transition-colors">Listings</a></li>
+          </ul>
+        </div>
+        <div>
+          <h6 class="text-white mb-4">CONTACT</h6>
+          <ul class="space-y-2">
+            <li><a href="tel:+442080544065" class="hover:text-brand-gold transition-colors">020 8054 4065</a></li>
+            <li><a href="mailto:info@davidsoncolondon.com" class="hover:text-brand-gold transition-colors">info@davidsoncolondon.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-24 opacity-20 font-sans">
+      © 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+      // Hero Animation - Image Mask Reveal
+      const heroTl = gsap.timeline();
+      heroTl
+        .from("#hero-tagline", {opacity: 0, y: 30, duration: 1, ease: "power3.out"})
+        .from("#hero-title", {opacity: 0, y: 80, duration: 1.4, ease: "power4.out"}, "-=0.6")
+        .to("#hero-line", {width: "100px", duration: 1, ease: "power2.inOut"}, "-=0.8")
+        .from("#hero-text", {opacity: 0, y: 40, duration: 1, ease: "power3.out"}, "-=0.6")
+        .from("#hero-cta", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4")
+        .to("#hero-mask", {clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)", duration: 2, ease: "expo.inOut"}, "-=1.5")
+        .from("#hero-image", {scale: 1.2, duration: 2.5, ease: "power2.out"}, "-=2");
+
+      // Services Section
+      const servicesTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#services",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      servicesTl
+        .to("#services-line", {width: "100px", duration: 1, ease: "power2.inOut"})
+        .from("#services-title", {opacity: 0, y: 50, duration: 1, ease: "power3.out"}, "-=0.6")
+        .from("#services-subtitle", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4");
+
+      gsap.utils.toArray(".service-card").forEach((card, i) => {
+        gsap.to(card, {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+
+      // Process Section
+      const processTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#process",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      processTl
+        .to("#process-line", {width: "100px", duration: 1, ease: "power2.inOut"})
+        .from("#process-title", {opacity: 0, y: 50, duration: 1, ease: "power3.out"}, "-=0.6");
+
+      gsap.utils.toArray(".process-step").forEach((step, i) => {
+        gsap.to(step, {
+          opacity: 1,
+          x: 0,
+          duration: 1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: step,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+
+      // Stats Section
+      gsap.utils.toArray(".stat-item").forEach((stat, i) => {
+        gsap.to(stat, {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: stat,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+
+      // CTA Section
+      const ctaTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#cta",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+      ctaTl
+        .to("#cta-line", {width: "100px", duration: 1, ease: "power2.inOut"})
+        .from("#cta-title", {opacity: 0, y: 50, duration: 1, ease: "power3.out"}, "-=0.6")
+        .from("#cta-text", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4")
+        .from("#cta-button", {opacity: 0, y: 30, duration: 0.8, ease: "power2.out"}, "-=0.4");
+
+      // Mobile Menu
+      const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+      const mobileMenu = document.getElementById("mobile-menu");
+      const mobileNavLinks = document.querySelectorAll(".mobile-nav-link");
+      let menuOpen = false;
+
+      mobileMenuBtn.addEventListener("click", () => {
+        menuOpen = !menuOpen;
+        if (menuOpen) {
+          gsap.to(mobileMenu, {opacity: 1, pointerEvents: "auto", duration: 0.5});
+          gsap.from(".mobile-nav-link", {y: 30, opacity: 0, stagger: 0.1, duration: 0.5});
+        } else {
+          gsap.to(mobileMenu, {opacity: 0, pointerEvents: "none", duration: 0.3});
+        }
+      });
+
+      mobileNavLinks.forEach(link => {
+        link.addEventListener("click", () => {
+          menuOpen = false;
+          gsap.to(mobileMenu, {opacity: 0, pointerEvents: "none", duration: 0.3});
+        });
+      });
+    });
+  </script>
+</body>
+</html>
