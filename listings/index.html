@@ -319,7 +319,7 @@
         })
       });
 
-      // ANIMATION 5: Grid Section Header
+      // ANIMATION 4: Grid Section Header
       const gridTl = gsap.timeline({
         scrollTrigger: {
           trigger: "#property-grid",
@@ -333,7 +333,7 @@
         .to("#grid-line-right", { width: "96px", duration: 1, ease: "power2.inOut" }, "<")
         .from("#grid-title", { opacity: 0, y: 40, duration: 0.8, ease: "power3.out" }, "-=0.6");
 
-      // ANIMATION 6: CTA Section Reveal
+      // ANIMATION 5: CTA Section Reveal
       const ctaTl = gsap.timeline({
         scrollTrigger: {
           trigger: "#cta-section",
@@ -348,7 +348,7 @@
         .from("#cta-text", { opacity: 0, y: 30, duration: 0.8, ease: "power2.out" }, "-=0.8")
         .from("#cta-buttons", { opacity: 0, y: 40, duration: 0.8, ease: "power2.out" }, "-=0.4");
 
-      // ANIMATION 7: Footer Reveal
+      // ANIMATION 6: Footer Reveal
       gsap.from("#footer", {
         opacity: 0,
         y: 60,
