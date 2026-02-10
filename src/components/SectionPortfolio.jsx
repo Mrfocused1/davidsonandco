@@ -11,6 +11,7 @@ const SectionPortfolio = () => {
     const containerRef = useRef(null);
     const [properties, setProperties] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [imagesLoaded, setImagesLoaded] = useState({});
 
     useEffect(() => {
         const loadProperties = async () => {
@@ -19,7 +20,8 @@ const SectionPortfolio = () => {
                 const formattedProperties = photos.map((photo, index) => ({
                     loc: photo.alt || `Exclusive Property ${index + 1}`,
                     type: "Premium Collection",
-                    img: photo.src.large2x,
+                    img: photo.src.large || photo.src.medium, // Use smaller images for faster loading
+                    placeholder: photo.src.small, // Add low-res placeholder
                     id: photo.id
                 }));
                 setProperties(formattedProperties);
@@ -94,8 +96,18 @@ const SectionPortfolio = () => {
                         <div className="w-full md:w-3/4 h-full overflow-hidden relative group">
                             <img
                                 src={prop.img}
-                                className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
+                                className={`w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105 ${
+                                    imagesLoaded[i] ? 'opacity-100' : 'opacity-0'
+                                }`}
                                 alt={prop.loc}
+                                loading="lazy"
+                                onLoad={() => setImagesLoaded(prev => ({ ...prev, [i]: true }))}
+                                style={{
+                                    transition: 'opacity 0.5s ease-in-out',
+                                    background: prop.placeholder ? `url(${prop.placeholder})` : '#1c1c1c',
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center'
+                                }}
                             />
                             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
                         </div>
