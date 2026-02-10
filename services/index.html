@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Our Services | Davidson & Co London</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP & Plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .text-gold-gradient {
+      background: linear-gradient(to right, #D4AF37, #FEE180, #D4AF37);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shine 5s linear infinite;
+    }
+
+    @keyframes shine {
+      to {
+        background-position: 200% center;
+      }
+    }
+
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    .service-card {
+      opacity: 0;
+      transform: translateY(60px);
+    }
+  </style>
+</head>
+
+<body class="relative">
+
+  <!-- Grain Overlay -->
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 w-full z-50 bg-brand-black/80 backdrop-blur-sm border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-8 py-6 flex justify-between items-center">
+      <a href="/">
+        <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+      </a>
+      <div class="flex gap-8 text-xs tracking-widest">
+        <a href="/#services-wrapper" class="hover:text-brand-gold transition-colors">SERVICES</a>
+        <a href="/#contact" class="hover:text-brand-gold transition-colors">CONTACT</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="hero" class="relative min-h-screen flex items-center justify-center pt-32 pb-16 px-8">
+    <div class="max-w-5xl mx-auto text-center">
+      <!-- Animated Line -->
+      <div class="w-0 h-[1px] bg-brand-gold mx-auto mb-8" id="hero-line"></div>
+
+      <!-- Title -->
+      <h1 class="text-5xl md:text-7xl lg:text-8xl font-serif font-bold mb-6 opacity-0" id="hero-title">
+        Our <span class="text-gold-gradient">Services</span>
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-lg md:text-xl font-sans text-gray-400 max-w-3xl mx-auto mb-12 opacity-0" id="hero-subtitle">
+        Comprehensive property solutions delivered with precision and discretion. From acquisition to management, we handle every aspect of your property journey.
+      </p>
+
+      <!-- Scroll Indicator -->
+      <div class="opacity-0" id="scroll-hint">
+        <div class="w-[1px] h-16 bg-gradient-to-b from-brand-gold to-transparent mx-auto"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Grid -->
+  <section id="services-grid" class="py-24 px-8">
+    <div class="max-w-7xl mx-auto">
+
+      <!-- Grid Container -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+        <!-- Service 1: Sales -->
+        <a href="/services/sales" class="service-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+          <div class="aspect-[4/3] relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-brand-gold/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="text-8xl font-serif text-white/5 group-hover:text-brand-gold/10 transition-colors duration-500">S</span>
+            </div>
+          </div>
+          <div class="p-8">
+            <div class="w-12 h-[1px] bg-brand-gold mb-4 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+            <h3 class="text-3xl font-serif mb-3 group-hover:text-brand-gold transition-colors duration-300">Sales</h3>
+            <p class="text-sm text-gray-400 mb-4 leading-relaxed">Off-market acquisitions and private property sales for discerning clients.</p>
+            <div class="flex items-center gap-2 text-xs text-brand-gold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              EXPLORE <span class="transform group-hover:translate-x-2 transition-transform duration-300">→</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Service 2: Lettings -->
+        <a href="/services/lettings" class="service-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+          <div class="aspect-[4/3] relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-brand-gold/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="text-8xl font-serif text-white/5 group-hover:text-brand-gold/10 transition-colors duration-500">L</span>
+            </div>
+          </div>
+          <div class="p-8">
+            <div class="w-12 h-[1px] bg-brand-gold mb-4 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+            <h3 class="text-3xl font-serif mb-3 group-hover:text-brand-gold transition-colors duration-300">Lettings</h3>
+            <p class="text-sm text-gray-400 mb-4 leading-relaxed">Corporate and private lettings managed with meticulous attention to detail.</p>
+            <div class="flex items-center gap-2 text-xs text-brand-gold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              EXPLORE <span class="transform group-hover:translate-x-2 transition-transform duration-300">→</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Service 3: Management -->
+        <a href="/services/management" class="service-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+          <div class="aspect-[4/3] relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-brand-gold/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="text-8xl font-serif text-white/5 group-hover:text-brand-gold/10 transition-colors duration-500">M</span>
+            </div>
+          </div>
+          <div class="p-8">
+            <div class="w-12 h-[1px] bg-brand-gold mb-4 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+            <h3 class="text-3xl font-serif mb-3 group-hover:text-brand-gold transition-colors duration-300">Management</h3>
+            <p class="text-sm text-gray-400 mb-4 leading-relaxed">Asset optimization and comprehensive property management services.</p>
+            <div class="flex items-center gap-2 text-xs text-brand-gold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              EXPLORE <span class="transform group-hover:translate-x-2 transition-transform duration-300">→</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Service 4: Commercial -->
+        <a href="/services/commercial" class="service-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+          <div class="aspect-[4/3] relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-brand-gold/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="text-8xl font-serif text-white/5 group-hover:text-brand-gold/10 transition-colors duration-500">C</span>
+            </div>
+          </div>
+          <div class="p-8">
+            <div class="w-12 h-[1px] bg-brand-gold mb-4 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+            <h3 class="text-3xl font-serif mb-3 group-hover:text-brand-gold transition-colors duration-300">Commercial</h3>
+            <p class="text-sm text-gray-400 mb-4 leading-relaxed">Investment advisory and commercial property solutions for businesses.</p>
+            <div class="flex items-center gap-2 text-xs text-brand-gold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              EXPLORE <span class="transform group-hover:translate-x-2 transition-transform duration-300">→</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Service 5: Finance -->
+        <a href="/services/finance" class="service-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+          <div class="aspect-[4/3] relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-brand-gold/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="text-8xl font-serif text-white/5 group-hover:text-brand-gold/10 transition-colors duration-500">F</span>
+            </div>
+          </div>
+          <div class="p-8">
+            <div class="w-12 h-[1px] bg-brand-gold mb-4 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+            <h3 class="text-3xl font-serif mb-3 group-hover:text-brand-gold transition-colors duration-300">Finance</h3>
+            <p class="text-sm text-gray-400 mb-4 leading-relaxed">Mortgage advisory and structured finance solutions for property investments.</p>
+            <div class="flex items-center gap-2 text-xs text-brand-gold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              EXPLORE <span class="transform group-hover:translate-x-2 transition-transform duration-300">→</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Service 6: Legal -->
+        <a href="/services/legal" class="service-card group relative overflow-hidden bg-brand-stone border border-white/5 hover:border-brand-gold/30 transition-all duration-500">
+          <div class="aspect-[4/3] relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-brand-gold/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="text-8xl font-serif text-white/5 group-hover:text-brand-gold/10 transition-colors duration-500">L</span>
+            </div>
+          </div>
+          <div class="p-8">
+            <div class="w-12 h-[1px] bg-brand-gold mb-4 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+            <h3 class="text-3xl font-serif mb-3 group-hover:text-brand-gold transition-colors duration-300">Legal</h3>
+            <p class="text-sm text-gray-400 mb-4 leading-relaxed">Compliance and legal structuring for secure property transactions.</p>
+            <div class="flex items-center gap-2 text-xs text-brand-gold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              EXPLORE <span class="transform group-hover:translate-x-2 transition-transform duration-300">→</span>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section id="cta" class="py-32 px-8 bg-brand-charcoal">
+    <div class="max-w-4xl mx-auto text-center">
+      <div class="w-24 h-[1px] bg-brand-gold mx-auto mb-8 opacity-0" id="cta-line"></div>
+      <h2 class="text-4xl md:text-5xl font-serif mb-6 opacity-0" id="cta-title">Ready to Begin?</h2>
+      <p class="text-lg text-gray-400 mb-12 opacity-0" id="cta-text">
+        Speak with our team to discuss your property requirements in complete confidence.
+      </p>
+      <a href="/#contact" class="inline-block px-12 py-4 border border-brand-gold/30 text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300 opacity-0" id="cta-button">
+        REQUEST CONSULTATION
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer id="footer" class="bg-black text-white/40 py-24 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start">
+      <div class="mb-12 md:mb-0">
+        <a href="/">
+          <img src="/logo.png" alt="Davidson & Co." class="h-12 mb-4">
+        </a>
+      </div>
+      <div class="flex gap-16 text-xs font-sans tracking-widest">
+        <div>
+          <h6 class="text-white mb-4">NAVIGATION</h6>
+          <ul class="space-y-2">
+            <li><a href="/" class="hover:text-brand-gold transition-colors">Home</a></li>
+            <li><a href="/services" class="hover:text-brand-gold transition-colors">Services</a></li>
+            <li><a href="/#contact" class="hover:text-brand-gold transition-colors">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h6 class="text-white mb-4">CONTACT</h6>
+          <ul class="space-y-2">
+            <li><a href="tel:+442080544065" class="hover:text-brand-gold transition-colors">020 8054 4065</a></li>
+            <li><a href="mailto:info@davidsoncolondon.com" class="hover:text-brand-gold transition-colors">info@davidsoncolondon.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-24 opacity-20 font-sans">
+      © 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.
+    </div>
+  </footer>
+
+  <!-- GSAP Animations -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+      // Hero Timeline
+      const heroTl = gsap.timeline({ delay: 0.3 });
+
+      heroTl
+        .to("#hero-line", {
+          width: "120px",
+          duration: 1.2,
+          ease: "power2.inOut"
+        })
+        .to("#hero-title", {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          ease: "power3.out"
+        }, "-=0.6")
+        .to("#hero-subtitle", {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power2.out"
+        }, "-=0.4")
+        .to("#scroll-hint", {
+          opacity: 1,
+          duration: 0.6,
+          ease: "power2.out"
+        }, "-=0.2");
+
+      // Service Cards Stagger Animation
+      gsap.to(".service-card", {
+        opacity: 1,
+        y: 0,
+        stagger: 0.15,
+        duration: 0.8,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: "#services-grid",
+          start: "top 75%",
+          toggleActions: "play none none none"
+        }
+      });
+
+      // CTA Section Animation
+      const ctaTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#cta",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      ctaTl
+        .to("#cta-line", {
+          width: "120px",
+          opacity: 1,
+          duration: 1,
+          ease: "power2.inOut"
+        })
+        .to("#cta-title", {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power3.out"
+        }, "-=0.5")
+        .to("#cta-text", {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: "power2.out"
+        }, "-=0.4")
+        .to("#cta-button", {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: "power2.out"
+        }, "-=0.3");
+
+      // Footer Fade
+      gsap.from("#footer", {
+        opacity: 0,
+        y: 40,
+        duration: 1,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: "#footer",
+          start: "top 90%",
+          toggleActions: "play none none none"
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
