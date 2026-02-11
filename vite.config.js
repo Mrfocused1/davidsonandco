@@ -15,7 +15,8 @@ export default defineConfig({
           'admin/index.html',
           'pages/**/index.html',
           'property/**/index.html',
-          'listings/**/index.html'
+          'listings/**/index.html',
+          'services/**/index.html'
         ]).map(file => [
           file.replace(/\/index\.html$/, '').replace(/\//g, '-') || 'main',
           resolve(__dirname, file)
