@@ -2,11 +2,11 @@ import OpenAI from 'openai';
 import { Octokit } from '@octokit/rest';
 import path from 'path';
 
-// Models to try in order of preference (GLM-4.7 variants)
-const MODELS = ['glm-4.7', 'glm-4.7-FlashX', 'glm-4.7-Flash'];
+// Models to try in order of preference (GLM-5 with fallbacks)
+const MODELS = ['glm-5', 'glm-4.7', 'glm-4.7-FlashX'];
 
-// Vision model for handling image inputs (GLM-4.7 supports vision)
-const VISION_MODELS = ['glm-4.7'];
+// Vision model for handling image inputs (GLM-5 supports vision)
+const VISION_MODELS = ['glm-5', 'glm-4.7'];
 
 // GitHub config
 const REPO_OWNER = 'Mrfocused1';
