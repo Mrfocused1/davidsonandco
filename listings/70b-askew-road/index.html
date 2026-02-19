@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>70B Askew Road, Shepherd's Bush | Davidson & Co London</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP & Plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .text-gold-gradient {
+      background: linear-gradient(to right, #D4AF37, #FEE180, #D4AF37);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: shine 5s linear infinite;
+    }
+
+    @keyframes shine {
+      to { background-position: 200% center; }
+    }
+
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    .gsap-marker-scroller-start,
+    .gsap-marker-scroller-end,
+    .gsap-marker-start,
+    .gsap-marker-end {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body class="relative">
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center p-8 mix-blend-difference">
+    <a href="/">
+      <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="/" class="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">Home</a>
+      <a href="/listings" class="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">Listings</a>
+      <a href="/#contact" class="text-xs tracking-widest text-white/60 hover:text-brand-gold transition-colors">Contact</a>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden bg-brand-black">
+    <div class="absolute inset-0 z-0">
+      <img src="/src/assets/img-0224.jpeg" alt="70B Askew Road" class="w-full h-full object-cover opacity-30 scale-110" id="hero-bg">
+      <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/60 to-transparent opacity-90"></div>
+    </div>
+    
+    <div class="relative z-10 max-w-4xl mx-auto px-8 text-center" id="hero-content">
+      <div class="inline-block px-4 py-2 border border-brand-gold/30 mb-6" id="hero-badge">
+        <span class="text-brand-gold text-xs tracking-[0.3em] uppercase">Coming Soon</span>
+      </div>
+      <h1 class="text-5xl md:text-7xl font-serif font-bold leading-tight mb-6" id="hero-title">
+        70B Askew Road
+      </h1>
+      <p class="text-2xl md:text-3xl font-serif text-brand-gold mb-8" id="hero-location">Shepherd's Bush, W12</p>
+      <div class="h-[1px] w-0 bg-brand-gold mx-auto mb-8" id="hero-line"></div>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-8" id="hero-price">
+        <div>
+          <span class="text-4xl md:text-5xl font-serif text-brand-gold">£2,000</span>
+          <span class="text-gray-400 text-sm ml-2">PCM</span>
+        </div>
+        <div class="w-[1px] h-8 bg-white/20 hidden sm:block"></div>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider">For Let</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OVERVIEW SECTION -->
+  <section id="overview" class="py-24 bg-brand-charcoal">
+    <div class="max-w-6xl mx-auto px-8">
+      <div class="flex items-center gap-8 mb-16">
+        <div class="w-24 h-[1px] bg-brand-gold" id="overview-line-left"></div>
+        <h2 class="text-4xl font-serif" id="overview-title">Property Overview</h2>
+        <div class="w-24 h-[1px] bg-brand-gold" id="overview-line-right"></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+        <div>
+          <p class="text-gray-300 font-light leading-relaxed text-lg mb-8" id="overview-text">
+            A newly refurbished two-bedroom private mews residence, discreetly positioned just off Askew Road, offering peaceful living moments from the vibrancy of Shepherd's Bush.
+          </p>
+          <p class="text-gray-400 font-light leading-relaxed mb-8">
+            Recently updated throughout, the property presents fresh, contemporary interiors and comprises two well-proportioned bedrooms, one modern bathroom and a separate kitchen, all arranged within a quiet and private setting. Ideal for professionals, a couple or a small family seeking connectivity without compromising on tranquillity.
+          </p>
+        </div>
+
+        <div class="bg-brand-black/50 p-8 border border-white/5">
+          <h3 class="text-xl font-serif mb-6 text-brand-gold">Key Features</h3>
+          <ul class="space-y-4">
+            <li class="flex items-start gap-3">
+              <span class="text-brand-gold mt-1">✦</span>
+              <span class="text-gray-300">Two well-proportioned bedrooms</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-brand-gold mt-1">✦</span>
+              <span class="text-gray-300">One modern bathroom</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-brand-gold mt-1">✦</span>
+              <span class="text-gray-300">Separate kitchen</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-brand-gold mt-1">✦</span>
+              <span class="text-gray-300">Newly refurbished throughout</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-brand-gold mt-1">✦</span>
+              <span class="text-gray-300">Private mews setting</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-brand-gold mt-1">✦</span>
+              <span class="text-gray-300">Contemporary interiors</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOCATION SECTION -->
+  <section id="location" class="py-24 bg-brand-black">
+    <div class="max-w-6xl mx-auto px-8">
+      <div class="flex items-center gap-8 mb-16">
+        <div class="w-24 h-[1px] bg-brand-gold" id="location-line-left"></div>
+        <h2 class="text-4xl font-serif" id="location-title">Location</h2>
+        <div class="w-24 h-[1px] bg-brand-gold" id="location-line-right"></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+        <div>
+          <p class="text-gray-300 font-light leading-relaxed text-lg mb-8" id="location-text">
+            Situated in the heart of W12, the home benefits from the independent cafés, bakeries and convenience stores along Askew Road, while being within easy reach of Westfield London and Shepherd's Bush Market for shopping, dining and leisure.
+          </p>
+        </div>
+
+        <div class="bg-brand-charcoal/50 p-8 border border-white/5">
+          <h3 class="text-xl font-serif mb-6 text-brand-gold">Transport Links</h3>
+          <p class="text-gray-400 font-light mb-6">Excellent connections into Central London via:</p>
+          <ul class="space-y-4">
+            <li class="flex items-start gap-3">
+              <span class="text-brand-gold mt-1">●</span>
+              <div>
+                <span class="text-white font-medium">Shepherd's Bush</span>
+                <span class="text-gray-500 text-sm ml-2">(Central Line)</span>
+              </div>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-brand-gold mt-1">●</span>
+              <div>
+                <span class="text-white font-medium">Goldhawk Road</span>
+                <span class="text-gray-500 text-sm ml-2">(Circle & Hammersmith & City Lines)</span>
+              </div>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-brand-gold mt-1">●</span>
+              <div>
+                <span class="text-white font-medium">Multiple bus routes</span>
+                <span class="text-gray-500 text-sm ml-2">along Askew Road and Uxbridge Road</span>
+              </div>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-brand-gold mt-1">●</span>
+              <div>
+                <span class="text-white font-medium">Convenient access</span>
+                <span class="text-gray-500 text-sm ml-2">to the A40 and A4</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA SECTION -->
+  <section id="cta-section" class="py-24 bg-brand-charcoal relative overflow-hidden">
+    <div class="max-w-4xl mx-auto px-8 text-center">
+      <h2 class="text-4xl md:text-5xl font-serif mb-6" id="cta-title">Register Your Interest</h2>
+      <div class="w-24 h-[1px] bg-brand-gold mx-auto mb-8" id="cta-line"></div>
+      <p class="text-gray-400 font-light leading-relaxed mb-12 max-w-2xl mx-auto" id="cta-text">
+        Further details, internal photography and viewing dates to be released shortly. To register early interest, contact Davidson & Co London.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-6 justify-center" id="cta-buttons">
+        <a href="/#contact" class="px-12 py-4 bg-brand-gold text-brand-black text-xs tracking-[0.2em] hover:bg-brand-white transition-all duration-300 font-semibold">
+          CONTACT US
+        </a>
+        <a href="tel:+442080544065" class="px-12 py-4 border border-brand-gold/30 text-brand-white text-xs tracking-[0.2em] hover:bg-brand-gold hover:text-brand-black transition-all duration-300">
+          CALL 020 8054 4065
+        </a>
+      </div>
+      <p class="text-brand-gold text-sm mt-12 tracking-widest uppercase" id="cta-tagline">Property, Managed with Precision.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer id="footer" class="bg-black text-white/40 py-24 px-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start">
+      <div class="mb-12 md:mb-0">
+        <a href="/">
+          <img src="/logo.png" alt="Davidson & Co." class="h-12 mb-4">
+        </a>
+      </div>
+      <div class="flex gap-16 text-xs font-sans tracking-widest">
+        <div>
+          <h6 class="text-white mb-4">NAVIGATION</h6>
+          <ul class="space-y-2">
+            <li><a href="/" class="hover:text-brand-gold transition-colors">Home</a></li>
+            <li><a href="/listings" class="hover:text-brand-gold transition-colors">Listings</a></li>
+            <li><a href="/#contact" class="hover:text-brand-gold transition-colors">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h6 class="text-white mb-4">CONTACT</h6>
+          <ul class="space-y-2">
+            <li><a href="tel:+442080544065" class="hover:text-brand-gold transition-colors">020 8054 4065</a></li>
+            <li><a href="mailto:info@davidsoncolondon.com" class="hover:text-brand-gold transition-colors">info@davidsoncolondon.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="text-[10px] text-center mt-24 opacity-20 font-sans">
+      © 2026 DAVIDSON & CO. LONDON. ALL RIGHTS RESERVED.
+    </div>
+  </footer>
+
+  <!-- GSAP Animations -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+      // ANIMATION 1: Hero Timeline
+      const heroTl = gsap.timeline();
+      heroTl
+        .from("#hero-badge", { opacity: 0, y: 30, duration: 1, ease: "power3.out" })
+        .from("#hero-title", { opacity: 0, y: 60, duration: 1.2, ease: "power4.out" }, "-=0.6")
+        .from("#hero-location", { opacity: 0, y: 40, duration: 1, ease: "power3.out" }, "-=0.8")
+        .to("#hero-line", { width: "120px", duration: 1.5, ease: "power2.inOut" }, "-=0.6")
+        .from("#hero-price", { opacity: 0, y: 40, duration: 1, ease: "power2.out" }, "-=1")
+        .from("#hero-bg", { scale: 1.2, duration: 2.5, ease: "power2.out" }, "-=2");
+
+      // ANIMATION 2: Overview Section
+      const overviewTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#overview",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      overviewTl
+        .to("#overview-line-left", { width: "96px", duration: 1, ease: "power2.inOut" })
+        .to("#overview-line-right", { width: "96px", duration: 1, ease: "power2.inOut" }, "<")
+        .from("#overview-title", { opacity: 0, y: 40, duration: 0.8, ease: "power3.out" }, "-=0.6")
+        .from("#overview-text", { opacity: 0, y: 30, duration: 0.8, ease: "power2.out" }, "-=0.4");
+
+      // ANIMATION 3: Location Section
+      const locationTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#location",
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      locationTl
+        .to("#location-line-left", { width: "96px", duration: 1, ease: "power2.inOut" })
+        .to("#location-line-right", { width: "96px", duration: 1, ease: "power2.inOut" }, "<")
+        .from("#location-title", { opacity: 0, y: 40, duration: 0.8, ease: "power3.out" }, "-=0.6")
+        .from("#location-text", { opacity: 0, y: 30, duration: 0.8, ease: "power2.out" }, "-=0.4");
+
+      // ANIMATION 4: CTA Section
+      const ctaTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: "#cta-section",
+          start: "top 70%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      ctaTl
+        .from("#cta-title", { opacity: 0, y: 50, duration: 1, ease: "power3.out" })
+        .to("#cta-line", { width: "96px", duration: 1.2, ease: "power2.inOut" }, "-=0.6")
+        .from("#cta-text", { opacity: 0, y: 30, duration: 0.8, ease: "power2.out" }, "-=0.8")
+        .from("#cta-buttons", { opacity: 0, y: 40, duration: 0.8, ease: "power2.out" }, "-=0.4")
+        .from("#cta-tagline", { opacity: 0, y: 20, duration: 0.6, ease: "power2.out" }, "-=0.2");
+
+      // ANIMATION 5: Footer Reveal
+      gsap.from("#footer", {
+        opacity: 0,
+        y: 60,
+        duration: 1.2,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: "#footer",
+          start: "top 90%"
+        }
+      });
+
+      // ANIMATION 6: List items stagger
+      gsap.utils.toArray("#overview ul li, #location ul li").forEach((item, index) => {
+        gsap.from(item, {
+          opacity: 0,
+          x: -20,
+          duration: 0.6,
+          ease: "power2.out",
+          delay: index * 0.1,
+          scrollTrigger: {
+            trigger: item,
+            start: "top 90%",
+            toggleActions: "play none none reverse"
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
