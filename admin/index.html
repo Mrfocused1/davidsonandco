@@ -564,12 +564,12 @@
 
       // Validate files before upload
       const validFiles = [];
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
 
       for (const file of files) {
         // Check file type
         if (!allowedTypes.includes(file.type)) {
-          addMessage(`⚠️ "${file.name}" is not a supported image format. Please use JPG, PNG, GIF, or WebP.`, false);
+          addMessage(`⚠️ "${file.name}" is not a supported image format. Please use JPG, PNG, GIF, WebP, or SVG.`, false);
           continue;
         }
 
@@ -582,9 +582,9 @@
       uploadButton.classList.add('opacity-50');
 
       for (const file of validFiles) {
-        // Compress image before uploading (skip GIFs to preserve animation)
+        // Compress image before uploading (skip GIFs to preserve animation, skip SVGs to preserve vector quality)
         let fileToUpload = file;
-        if (file.type !== 'image/gif') {
+        if (file.type !== 'image/gif' && file.type !== 'image/svg+xml') {
           try {
             addMessage(`📦 Compressing "${file.name}"...`, false);
             fileToUpload = await compressImage(file);
@@ -716,9 +716,14 @@
                   return;
                 }
 
-                // Create a new file from the blob
-                const compressedFile = new File([blob], file.name, {
-                  type: file.type === 'image/png' ? 'image/png' : 'image/jpeg',
+                // Determine output type and fix filename extension to match actual content
+                const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+                const outputExt = outputType === 'image/png' ? '.png' : '.jpg';
+                const baseName = file.name.replace(/\.[^.]+$/, '');
+                const correctedName = baseName + outputExt;
+
+                const compressedFile = new File([blob], correctedName, {
+                  type: outputType,
                   lastModified: Date.now()
                 });
 
