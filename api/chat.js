@@ -637,6 +637,48 @@ IMAGE UPLOADS:
 - This ensures images work from pages in subdirectories (e.g., /about/index.html)
 - When you see an image, comment on its content (colors, design, subject matter, etc.)
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 PARTNERSHIP LOGO ADDITION - MANDATORY WORKFLOW 🚨
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When a user uploads an image and wants to add it as a partner/partnership logo:
+
+YOU MUST EXECUTE THESE STEPS IMMEDIATELY - NO "I will look" OR "Let me check" RESPONSES:
+
+STEP 1: Call read_file with path "index.html" RIGHT NOW (not later, NOW)
+STEP 2: Find the <!-- SECTION: PARTNERSHIPS --> section and the logos grid
+STEP 3: Call edit_file to INSERT a new partner logo block using this EXACT HTML template:
+
+        <!-- Partner Logo - [NAME] -->
+        <div class="partner-logo opacity-0 transform translate-y-8 group">
+          <div class="w-full aspect-[2/1] bg-white/5 border border-white/10 flex items-center justify-center p-4 hover:border-brand-gold/30 transition-all duration-500 hover:bg-white/10">
+            <img src="/src/assets/FILENAME.EXT" alt="PARTNER NAME" class="w-full h-full object-contain opacity-70 group-hover:opacity-100 transition-opacity duration-500">
+          </div>
+        </div>
+
+Insert it BEFORE the closing </div> of the logos grid (before the </div> that closes the grid).
+
+STEP 4: Report success with specifics ("Added [name] logo to the partnerships section")
+
+CRITICAL: The uploaded image path is in the message as [Uploaded image: src/assets/filename].
+Use that EXACT filename in the img src (with leading /): /src/assets/filename
+
+❌ WRONG: "I'll look through the homepage to find where to add it..."
+❌ WRONG: "Let me check the partnerships section..."
+✅ CORRECT: [call read_file("index.html")] → [call edit_file to insert logo] → "Done! Added your logo."
+
+If user wants to REPLACE an existing partner logo:
+1. read_file("index.html")
+2. Find the specific partner logo <img> tag to replace
+3. edit_file: old_text = the existing <img> tag, new_text = new <img> with uploaded file path
+
+If user wants to REMOVE a partner logo:
+1. read_file("index.html")
+2. Find the full partner logo block (from <!-- Partner Logo --> comment to closing </div></div>)
+3. edit_file: old_text = the full block, new_text = "" (empty string)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 WHEN USER WANTS TO ADD IMAGES/VIDEO - ALWAYS provide this guidance:
 Before they upload, give them recommendations:
 
@@ -2094,6 +2136,18 @@ export default async function handler(req, res) {
       });
     }
 
+    // Detect if this is a partnership logo request (uploaded image + partnership/logo/partner keywords)
+    // Use original messages (not processedMessages) since vision conversion turns content into arrays
+    const lastUserMsg = messages.filter(m => m.role === 'user').pop();
+    const lastUserContent = typeof lastUserMsg?.content === 'string' ? lastUserMsg.content.toLowerCase() : '';
+    const isPartnershipLogoRequest = hasImages && (
+      lastUserContent.includes('partner') ||
+      lastUserContent.includes('logo') ||
+      lastUserContent.includes('partnership') ||
+      lastUserContent.includes('trusted') ||
+      lastUserContent.includes('collaborat')
+    );
+
     // Handle tool calls
     if (toolsEnabled) {
       // Log tool calls for debugging
@@ -2102,6 +2156,39 @@ export default async function handler(req, res) {
         assistantMessage.tool_calls.forEach((tc, idx) => {
           console.log(`  ${idx + 1}. ${tc.function.name} (args length: ${tc.function.arguments.length} chars)`);
         });
+      }
+
+      // ENFORCEMENT: If this is a partnership logo request but AI didn't make tool calls,
+      // force it to act by injecting a follow-up instruction
+      if (isPartnershipLogoRequest && (!assistantMessage.tool_calls || assistantMessage.tool_calls.length === 0)) {
+        console.log('⚠️ Partnership logo request detected but AI made no tool calls - forcing action');
+
+        // Extract the uploaded image path from the user's message
+        const originalContent = typeof lastUserMsg?.content === 'string' ? lastUserMsg.content : '';
+        const uploadedPaths = extractImagePaths(originalContent);
+        const imagePath = uploadedPaths.length > 0 ? uploadedPaths[0] : 'the uploaded image';
+
+        // Add the AI's text response and a follow-up forcing action
+        fullMessages.push(assistantMessage);
+        fullMessages.push({
+          role: 'user',
+          content: `STOP. You just described what you PLAN to do instead of DOING it. This is a CRITICAL FAILURE per Rule #1. You MUST execute tool calls NOW. Do these steps IMMEDIATELY:\n1. Call read_file with path "index.html"\n2. Then call edit_file to add the partner logo using image path "/${imagePath}" into the partnerships section grid.\nDO NOT respond with text. CALL THE TOOLS NOW.`
+        });
+
+        // Re-call the AI with the enforcement message
+        console.log('🔄 Re-calling AI with enforcement prompt...');
+        response = await retryWithBackoff(async () => {
+          return await glmClient.chat.completions.create({
+            model: usedModel,
+            messages: fullMessages,
+            tools: tools,
+            tool_choice: 'auto',
+            temperature: 0.7,
+            max_tokens: 16384
+          });
+        });
+        assistantMessage = response.choices[0].message;
+        console.log(`🔧 After enforcement: ${assistantMessage.tool_calls?.length || 0} tool call(s)`);
       }
 
       // Prevent infinite tool loops
