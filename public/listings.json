@@ -340,5 +340,20 @@
     "features": [],
     "image": "",
     "images": []
+  },
+  {
+    "id": "natfix-1772986647900",
+    "title": "NATFIX-1772986647900",
+    "area": "T",
+    "postcode": "",
+    "price": "1",
+    "priceUnit": "PCM",
+    "beds": "",
+    "type": "For Let",
+    "status": "Available",
+    "description": "",
+    "features": [],
+    "image": "listings/natfix-1772986647900/nat.jpg",
+    "images": []
   }
 ]
