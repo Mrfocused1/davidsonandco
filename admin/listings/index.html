@@ -325,11 +325,11 @@
         const url = URL.createObjectURL(file);
         img.onload = () => {
           let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
-          URL.revokeObjectURL(url);
           if (w > maxDim || h > maxDim) { if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; } else { w = Math.round(w * maxDim / h); h = maxDim; } }
           const canvas = document.createElement('canvas');
           canvas.width = w; canvas.height = h;
           canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          URL.revokeObjectURL(url);
           resolve({ base64: canvas.toDataURL('image/jpeg', quality).split(',')[1], contentType: 'image/jpeg', filename: file.name.replace(/\.[^.]+$/, '.jpg') });
         };
         img.src = url;
