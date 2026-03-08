@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Davidson & Co London | Partners</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Manrope:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#080808',
+              charcoal: '#121212',
+              gold: '#D4AF37',
+              goldDim: '#8A7120',
+              stone: '#1c1c1c',
+              white: '#F5F5F5'
+            }
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['Manrope', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080808;
+      color: #F5F5F5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+    .partner-card {
+      transition: all 0.2s ease;
+    }
+
+    .partner-card:hover .remove-btn {
+      opacity: 1;
+    }
+
+    .remove-btn {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .drop-zone.drag-over {
+      border-color: #D4AF37;
+      background-color: rgba(212, 175, 55, 0.05);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spinner {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      animation: fadeIn 0.3s ease forwards;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen font-sans">
+
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 z-40 bg-brand-black/90 backdrop-blur-sm border-b border-white/5">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <img src="/logo.png" alt="Davidson & Co." class="h-8 sm:h-10">
+      </a>
+      <div class="flex items-center gap-2 sm:gap-4">
+        <a href="/admin" class="text-xs text-gray-400 hover:text-brand-gold transition-colors flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+          </svg>
+          <span class="hidden sm:inline">AI Assistant</span>
+        </a>
+        <a href="/activity" class="text-xs text-gray-400 hover:text-brand-gold transition-colors flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="hidden sm:inline">Activity</span>
+        </a>
+        <span class="text-xs text-brand-gold flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+          </svg>
+          <span class="hidden sm:inline">Partners</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="pt-24 pb-16 px-4 sm:px-6 max-w-5xl mx-auto">
+
+    <!-- Page Title -->
+    <div class="mb-10">
+      <h1 class="font-serif text-2xl sm:text-3xl text-brand-white mb-2">Trusted Partners</h1>
+      <p class="text-sm text-gray-400">Add or remove logos from the partners section on the homepage.</p>
+    </div>
+
+    <!-- Upload Zone -->
+    <div class="mb-10 p-6 bg-brand-charcoal rounded-2xl border border-white/10">
+      <h2 class="text-sm font-medium text-brand-white mb-4 tracking-wide">Add New Partner</h2>
+
+      <div id="dropZone" class="drop-zone border-2 border-dashed border-white/20 rounded-xl p-8 text-center cursor-pointer hover:border-white/40 transition-colors mb-4">
+        <input type="file" id="fileInput" accept="image/*" class="hidden">
+        <div id="dropContent">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 mx-auto mb-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+          </svg>
+          <p class="text-sm text-gray-400 mb-1">Drag & drop a logo here, or <span class="text-brand-gold">click to browse</span></p>
+          <p class="text-xs text-gray-600">PNG, JPG, SVG, WebP — max 8MB</p>
+        </div>
+        <div id="dropPreview" class="hidden">
+          <img id="previewImg" class="max-h-24 mx-auto mb-2 object-contain" src="" alt="Preview">
+          <p id="previewName" class="text-xs text-gray-400"></p>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input
+          type="text"
+          id="partnerName"
+          placeholder="Partner name (e.g. Zoopla)"
+          class="flex-1 bg-brand-stone border border-white/10 rounded-xl px-4 py-3 text-sm text-brand-white placeholder-gray-600 outline-none focus:border-brand-gold/50 transition-colors"
+        >
+        <button
+          id="uploadBtn"
+          disabled
+          class="px-6 py-3 bg-brand-gold text-brand-black text-sm font-medium rounded-xl hover:bg-brand-gold/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 justify-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Partner
+        </button>
+      </div>
+
+      <!-- Upload feedback -->
+      <div id="uploadStatus" class="hidden mt-3 text-sm rounded-xl px-4 py-3"></div>
+    </div>
+
+    <!-- Current Partners Grid -->
+    <div>
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-sm font-medium text-brand-white tracking-wide">Current Partners</h2>
+        <span id="partnerCount" class="text-xs text-gray-500"></span>
+      </div>
+
+      <!-- Loading state -->
+      <div id="loadingState" class="flex items-center justify-center py-16">
+        <svg class="spinner w-6 h-6 text-brand-gold" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+      </div>
+
+      <!-- Partners grid -->
+      <div id="partnersGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+
+      <!-- Empty state -->
+      <div id="emptyState" class="hidden text-center py-16 text-gray-600 text-sm">
+        No partners yet. Add your first logo above.
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Remove Confirm Modal -->
+  <div id="removeModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="bg-brand-charcoal border border-white/10 rounded-2xl p-6 max-w-sm w-full">
+      <h3 class="text-base font-medium text-brand-white mb-2">Remove Partner</h3>
+      <p class="text-sm text-gray-400 mb-6">Remove <span id="modalPartnerName" class="text-brand-white"></span> from the Trusted Partners section?</p>
+      <div class="flex gap-3">
+        <button id="cancelRemove" class="flex-1 px-4 py-2.5 text-sm border border-white/10 rounded-xl text-gray-400 hover:text-brand-white hover:border-white/30 transition-colors">
+          Cancel
+        </button>
+        <button id="confirmRemove" class="flex-1 px-4 py-2.5 text-sm bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2">
+          Remove
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let partners = [];
+    let selectedFile = null;
+    let pendingRemoveId = null;
+
+    // ── Fetch & render partners ───────────────────────────────────────────
+    async function fetchPartners() {
+      try {
+        const res = await fetch('/api/partners');
+        const data = await res.json();
+        partners = data.partners || [];
+        renderGrid();
+      } catch (e) {
+        console.error('Failed to load partners:', e);
+        document.getElementById('loadingState').innerHTML =
+          '<p class="text-sm text-red-400">Failed to load partners. Please refresh.</p>';
+      }
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('partnersGrid');
+      const loading = document.getElementById('loadingState');
+      const empty = document.getElementById('emptyState');
+      const count = document.getElementById('partnerCount');
+
+      loading.classList.add('hidden');
+      count.textContent = `${partners.length} partner${partners.length !== 1 ? 's' : ''}`;
+
+      if (partners.length === 0) {
+        grid.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      grid.classList.remove('hidden');
+
+      grid.innerHTML = partners.map(p => `
+        <div class="partner-card relative fade-in bg-brand-charcoal border border-white/10 rounded-xl p-3 group" data-id="${p.id}">
+          <div class="aspect-[2/1] flex items-center justify-center mb-2 overflow-hidden">
+            <img src="/${p.path}" alt="${p.name}" class="max-w-full max-h-full object-contain opacity-80">
+          </div>
+          <p class="text-xs text-gray-500 text-center truncate">${p.name}</p>
+          <button
+            class="remove-btn absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 hover:bg-red-500/40 transition-colors"
+            onclick="promptRemove('${p.id}', '${p.name.replace(/'/g, "\\'")}')"
+            title="Remove partner"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // ── File selection ────────────────────────────────────────────────────
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFileSelect(file);
+    });
+
+    fileInput.addEventListener('change', e => {
+      if (e.target.files[0]) handleFileSelect(e.target.files[0]);
+    });
+
+    function handleFileSelect(file) {
+      if (!file.type.startsWith('image/')) {
+        showStatus('Only image files are allowed.', 'error');
+        return;
+      }
+      selectedFile = file;
+      document.getElementById('uploadBtn').disabled = false;
+
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('previewImg').src = e.target.result;
+        document.getElementById('previewName').textContent = file.name;
+        document.getElementById('dropContent').classList.add('hidden');
+        document.getElementById('dropPreview').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+
+      // Auto-fill name from filename
+      const nameInput = document.getElementById('partnerName');
+      if (!nameInput.value) {
+        nameInput.value = file.name.replace(/[-_]/g, ' ').replace(/\.[^.]+$/, '');
+      }
+    }
+
+    // ── Upload ────────────────────────────────────────────────────────────
+    document.getElementById('uploadBtn').addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      const btn = document.getElementById('uploadBtn');
+      const name = document.getElementById('partnerName').value.trim();
+
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg class="spinner w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        Uploading...
+      `;
+
+      try {
+        // Compress image
+        const compressed = await compressImage(selectedFile);
+        const base64 = compressed.base64;
+        const contentType = compressed.type;
+
+        const res = await fetch('/api/partners', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: selectedFile.name,
+            content: base64,
+            contentType,
+            name: name || selectedFile.name
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+        showStatus(`${data.partner.name} added successfully! The site will redeploy shortly.`, 'success');
+        resetUploadForm();
+        await fetchPartners();
+
+      } catch (err) {
+        showStatus(err.message || 'Upload failed. Please try again.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Partner
+        `;
+      }
+    });
+
+    // ── Image compression ─────────────────────────────────────────────────
+    function compressImage(file, maxDim = 1200, quality = 0.85) {
+      return new Promise((resolve) => {
+        if (file.type === 'image/gif' || file.type === 'image/svg+xml') {
+          const reader = new FileReader();
+          reader.onload = e => {
+            resolve({
+              base64: e.target.result.split(',')[1],
+              type: file.type
+            });
+          };
+          reader.readAsDataURL(file);
+          return;
+        }
+
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          let w = img.width, h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+            else { w = Math.round(w * maxDim / h); h = maxDim; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve({ base64: dataUrl.split(',')[1], type: 'image/jpeg' });
+        };
+        img.src = url;
+      });
+    }
+
+    // ── Remove ────────────────────────────────────────────────────────────
+    function promptRemove(id, name) {
+      pendingRemoveId = id;
+      document.getElementById('modalPartnerName').textContent = name;
+      document.getElementById('removeModal').classList.remove('hidden');
+    }
+
+    document.getElementById('cancelRemove').addEventListener('click', () => {
+      pendingRemoveId = null;
+      document.getElementById('removeModal').classList.add('hidden');
+    });
+
+    document.getElementById('confirmRemove').addEventListener('click', async () => {
+      if (!pendingRemoveId) return;
+
+      const btn = document.getElementById('confirmRemove');
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg class="spinner w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        Removing...
+      `;
+
+      try {
+        const res = await fetch('/api/partners', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: pendingRemoveId })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to remove');
+
+        document.getElementById('removeModal').classList.add('hidden');
+        pendingRemoveId = null;
+        showStatus(`Partner removed. The site will redeploy shortly.`, 'success');
+        await fetchPartners();
+
+      } catch (err) {
+        showStatus(err.message || 'Remove failed.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Remove';
+      }
+    });
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+    function resetUploadForm() {
+      selectedFile = null;
+      document.getElementById('fileInput').value = '';
+      document.getElementById('partnerName').value = '';
+      document.getElementById('uploadBtn').disabled = true;
+      document.getElementById('uploadBtn').innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        Add Partner
+      `;
+      document.getElementById('dropContent').classList.remove('hidden');
+      document.getElementById('dropPreview').classList.add('hidden');
+      document.getElementById('previewImg').src = '';
+    }
+
+    let statusTimer;
+    function showStatus(msg, type) {
+      const el = document.getElementById('uploadStatus');
+      el.textContent = msg;
+      el.className = `mt-3 text-sm rounded-xl px-4 py-3 ${
+        type === 'success'
+          ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+          : 'bg-red-500/10 border border-red-500/20 text-red-400'
+      }`;
+      el.classList.remove('hidden');
+      clearTimeout(statusTimer);
+      statusTimer = setTimeout(() => el.classList.add('hidden'), 5000);
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('removeModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('removeModal')) {
+        pendingRemoveId = null;
+        document.getElementById('removeModal').classList.add('hidden');
+      }
+    });
+
+    // ── Init ──────────────────────────────────────────────────────────────
+    fetchPartners();
+  </script>
+
+</body>
+</html>

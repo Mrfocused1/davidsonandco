@@ -13,6 +13,7 @@ export default defineConfig({
           'index.html',
           '*/index.html',
           'admin/index.html',
+          'admin/partners/index.html',
           'pages/**/index.html',
           'property/**/index.html',
           'listings/**/index.html',
