@@ -1,0 +1,32 @@
+[
+  {
+    "id": "70b-askew-road",
+    "title": "70B Askew Road",
+    "area": "Shepherd's Bush",
+    "postcode": "W12",
+    "price": "2,000",
+    "priceUnit": "PCM",
+    "beds": "2 Beds",
+    "type": "For Let",
+    "status": "Coming Soon",
+    "description": "A newly refurbished two-bedroom private mews residence, discreetly positioned just off Askew Road, offering peaceful living moments from the vibrancy of Shepherd's Bush.",
+    "features": ["Two well-proportioned bedrooms", "One modern bathroom", "Separate kitchen", "Newly refurbished throughout", "Private mews setting"],
+    "image": "src/assets/img-0224.jpeg",
+    "images": []
+  },
+  {
+    "id": "301a-cricklewood-broadway",
+    "title": "Room 1A, 301a Cricklewood Broadway",
+    "area": "Cricklewood",
+    "postcode": "NW2",
+    "price": "1,200",
+    "priceUnit": "PCM",
+    "beds": "Ensuite Room",
+    "type": "For Let",
+    "status": "Coming Soon",
+    "description": "A well-presented ensuite room available in Cricklewood, NW2.",
+    "features": ["Ensuite bathroom", "Modern shared kitchen", "Bills considered"],
+    "image": "src/assets/img-0224.jpeg",
+    "images": []
+  }
+]
