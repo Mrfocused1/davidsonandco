@@ -411,7 +411,7 @@ export default async function handler(req, res) {
         status: status || existing.status,
         description: description !== undefined ? description : existing.description,
         features: features !== undefined ? features : existing.features,
-        image: allImages[0] || existing.image,
+        image: allImages[0] !== undefined ? allImages[0] : (keepExistingImages ? existing.image : ''),
         images: allImages.slice(1)
       };
 
