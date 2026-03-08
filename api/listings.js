@@ -82,11 +82,6 @@ function cardHtml(listing) {
 
 // ── HTML manipulation ─────────────────────────────────────────────────────────
 
-function addCardToHtml(html, listing, gridEndPattern) {
-  const card = cardHtml(listing);
-  return html.replace(gridEndPattern, card + '\n        \n      </div>');
-}
-
 function removeCardFromHtml(html, slug) {
   const escaped = slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const pattern = new RegExp(

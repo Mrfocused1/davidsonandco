@@ -65,7 +65,7 @@
     <!-- Title -->
     <div class="mb-10">
       <h1 class="font-serif text-2xl sm:text-3xl text-brand-white mb-2">Property Listings</h1>
-      <p class="text-sm text-gray-400">Add or remove properties from the listings page.</p>
+      <p class="text-sm text-gray-400">Add or remove properties from the homepage and listings page.</p>
     </div>
 
     <!-- ADD LISTING FORM -->
@@ -250,7 +250,7 @@
       empty.classList.add('hidden');
       grid.classList.remove('hidden');
       grid.innerHTML = listings.map(l => {
-        const imgSrc = l.image ? `/${l.image}` : null;
+        const imgSrc = (l.image && !l.image.startsWith('src/')) ? `/${l.image}` : null;
         return `
         <div class="listing-card relative fade-in bg-brand-charcoal border border-white/10 rounded-xl overflow-hidden group">
           <div class="relative h-40 bg-brand-stone overflow-hidden">
