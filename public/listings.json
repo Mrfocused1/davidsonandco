@@ -54,21 +54,6 @@
     "images": []
   },
   {
-    "id": "with-revoke-1772986270910",
-    "title": "WITH-REVOKE-1772986270910",
-    "area": "Test",
-    "postcode": "",
-    "price": "999",
-    "priceUnit": "PCM",
-    "beds": "",
-    "type": "For Let",
-    "status": "Available",
-    "description": "",
-    "features": [],
-    "image": "",
-    "images": []
-  },
-  {
     "id": "no-revoke-1772986277831",
     "title": "NO-REVOKE-1772986277831",
     "area": "Test",
