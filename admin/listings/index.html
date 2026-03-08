@@ -313,26 +313,16 @@
       renderPreviews();
     }
 
-    // ── Image compression ──────────────────────────────────────────────────
-    function compressImage(file, maxDim = 1920, quality = 0.85) {
+    // ── Image encoding ─────────────────────────────────────────────────────
+    function compressImage(file) {
       return new Promise(resolve => {
-        if (file.type === 'image/gif' || file.type === 'image/svg+xml') {
-          const r = new FileReader();
-          r.onload = e => resolve({ base64: e.target.result.split(',')[1], contentType: file.type, filename: file.name });
-          r.readAsDataURL(file); return;
-        }
-        const img = new Image();
-        const url = URL.createObjectURL(file);
-        img.onload = () => {
-          let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
-          if (w > maxDim || h > maxDim) { if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; } else { w = Math.round(w * maxDim / h); h = maxDim; } }
-          const canvas = document.createElement('canvas');
-          canvas.width = w; canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          URL.revokeObjectURL(url);
-          resolve({ base64: canvas.toDataURL('image/jpeg', quality).split(',')[1], contentType: 'image/jpeg', filename: file.name.replace(/\.[^.]+$/, '.jpg') });
-        };
-        img.src = url;
+        const r = new FileReader();
+        r.onload = e => resolve({
+          base64: e.target.result.split(',')[1],
+          contentType: file.type,
+          filename: file.name
+        });
+        r.readAsDataURL(file);
       });
     }
 
