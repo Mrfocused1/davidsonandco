@@ -54,24 +54,6 @@
     "images": []
   },
   {
-    "id": "debug-test-1772985453163",
-    "title": "Debug Test 1772985453163",
-    "area": "Debug Area",
-    "postcode": "W1",
-    "price": "1000",
-    "priceUnit": "PCM",
-    "beds": "2 Beds",
-    "type": "For Let",
-    "status": "Available",
-    "description": "Test description",
-    "features": [
-      "Feature 1",
-      "Feature 2"
-    ],
-    "image": "listings/debug-test-1772985453163/test.jpg",
-    "images": []
-  },
-  {
     "id": "file-test-1772985518623",
     "title": "File Test 1772985518623",
     "area": "Test",
