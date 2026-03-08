@@ -54,21 +54,6 @@
     "images": []
   },
   {
-    "id": "test-debug-upload",
-    "title": "TEST DEBUG UPLOAD",
-    "area": "Test Area",
-    "postcode": "",
-    "price": "999",
-    "priceUnit": "PCM",
-    "beds": "",
-    "type": "For Let",
-    "status": "Available",
-    "description": "",
-    "features": [],
-    "image": "",
-    "images": []
-  },
-  {
     "id": "debug-test-1772985453163",
     "title": "Debug Test 1772985453163",
     "area": "Debug Area",
