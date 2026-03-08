@@ -1,16 +1,77 @@
 [
-  { "id": "img-6489", "name": "Partner", "path": "src/assets/img-6489.png" },
-  { "id": "img-6490", "name": "Partner", "path": "src/assets/img-6490.jpg" },
-  { "id": "img-6491", "name": "Partner", "path": "src/assets/img-6491.jpg" },
-  { "id": "img-6492", "name": "Partner", "path": "src/assets/img-6492.jpg" },
-  { "id": "arla-logo", "name": "ARLA", "path": "src/assets/arla-logo.png" },
-  { "id": "mydeposits-logo", "name": "MyDeposits", "path": "src/assets/mydeposits-logo.png" },
-  { "id": "propertymark-cmp-logo", "name": "Propertymark CMP", "path": "src/assets/propertymark-cmp-logo.png" },
-  { "id": "propertymark-company-logo", "name": "Propertymark Company", "path": "src/assets/propertymark-company-logo.png" },
-  { "id": "tprs-logo", "name": "TPRS", "path": "src/assets/tprs-logo.jpg" },
-  { "id": "zoopla-logo-white-1081x360", "name": "Zoopla", "path": "src/assets/zoopla-logo-white-1081x360.png" },
-  { "id": "openrent-logo", "name": "OpenRent", "path": "src/assets/openrent-logo.jpg" },
-  { "id": "flatfair-logo", "name": "FlatFair No Deposit", "path": "src/assets/flatfair-logo.jpg" },
-  { "id": "rent-guarantor-logo", "name": "Rent Guarantor", "path": "src/assets/rent-guarantor-logo.jpg" },
-  { "id": "reposit-logo", "name": "Reposit", "path": "src/assets/reposit-logo.jpg" }
+  {
+    "id": "img-6489",
+    "name": "Partner",
+    "path": "src/assets/img-6489.png"
+  },
+  {
+    "id": "img-6490",
+    "name": "Partner",
+    "path": "src/assets/img-6490.jpg"
+  },
+  {
+    "id": "img-6491",
+    "name": "Partner",
+    "path": "src/assets/img-6491.jpg"
+  },
+  {
+    "id": "img-6492",
+    "name": "Partner",
+    "path": "src/assets/img-6492.jpg"
+  },
+  {
+    "id": "arla-logo",
+    "name": "ARLA",
+    "path": "src/assets/arla-logo.png"
+  },
+  {
+    "id": "mydeposits-logo",
+    "name": "MyDeposits",
+    "path": "src/assets/mydeposits-logo.png"
+  },
+  {
+    "id": "propertymark-cmp-logo",
+    "name": "Propertymark CMP",
+    "path": "src/assets/propertymark-cmp-logo.png"
+  },
+  {
+    "id": "propertymark-company-logo",
+    "name": "Propertymark Company",
+    "path": "src/assets/propertymark-company-logo.png"
+  },
+  {
+    "id": "tprs-logo",
+    "name": "TPRS",
+    "path": "src/assets/tprs-logo.jpg"
+  },
+  {
+    "id": "zoopla-logo-white-1081x360",
+    "name": "Zoopla",
+    "path": "src/assets/zoopla-logo-white-1081x360.png"
+  },
+  {
+    "id": "openrent-logo",
+    "name": "OpenRent",
+    "path": "src/assets/openrent-logo.jpg"
+  },
+  {
+    "id": "flatfair-logo",
+    "name": "FlatFair No Deposit",
+    "path": "src/assets/flatfair-logo.jpg"
+  },
+  {
+    "id": "rent-guarantor-logo",
+    "name": "Rent Guarantor",
+    "path": "src/assets/rent-guarantor-logo.jpg"
+  },
+  {
+    "id": "reposit-logo",
+    "name": "Reposit",
+    "path": "src/assets/reposit-logo.jpg"
+  },
+  {
+    "id": "navy---nyla--1-",
+    "name": "Navy & Nyla (1)",
+    "path": "src/assets/navy---nyla--1-.png"
+  }
 ]
