@@ -10,7 +10,13 @@
     "type": "For Let",
     "status": "Coming Soon",
     "description": "A newly refurbished two-bedroom private mews residence, discreetly positioned just off Askew Road, offering peaceful living moments from the vibrancy of Shepherd's Bush.",
-    "features": ["Two well-proportioned bedrooms", "One modern bathroom", "Separate kitchen", "Newly refurbished throughout", "Private mews setting"],
+    "features": [
+      "Two well-proportioned bedrooms",
+      "One modern bathroom",
+      "Separate kitchen",
+      "Newly refurbished throughout",
+      "Private mews setting"
+    ],
     "image": "src/assets/img-0224.jpeg",
     "images": []
   },
@@ -25,7 +31,11 @@
     "type": "For Let",
     "status": "Coming Soon",
     "description": "A well-presented ensuite room available in Cricklewood, NW2.",
-    "features": ["Ensuite bathroom", "Modern shared kitchen", "Bills considered"],
+    "features": [
+      "Ensuite bathroom",
+      "Modern shared kitchen",
+      "Bills considered"
+    ],
     "image": "src/assets/img-0224.jpeg",
     "images": []
   }
