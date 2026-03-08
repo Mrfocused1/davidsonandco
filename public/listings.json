@@ -100,5 +100,20 @@
     "features": [],
     "image": "",
     "images": []
+  },
+  {
+    "id": "test-full-flow-1772985610043",
+    "title": "TEST-FULL-FLOW-1772985610043",
+    "area": "Debug",
+    "postcode": "",
+    "price": "999",
+    "priceUnit": "PCM",
+    "beds": "",
+    "type": "For Let",
+    "status": "Available",
+    "description": "",
+    "features": [],
+    "image": "",
+    "images": []
   }
 ]
