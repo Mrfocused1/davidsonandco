@@ -294,7 +294,7 @@ export default async function handler(req, res) {
       // Upload images to public/listings/SLUG/
       const uploadedImages = [];
       for (const img of (images || [])) {
-        const { filename, content, contentType } = img;
+        const { filename, base64: content, contentType } = img;
         if (!filename || !content) continue;
         const sanitized = filename.replace(/[^a-zA-Z0-9.-]/g, '-').toLowerCase();
         const imgPath = `public/listings/${slug}/${sanitized}`;
@@ -383,7 +383,7 @@ export default async function handler(req, res) {
       // Upload any new images
       const newImages = [];
       for (const img of (images || [])) {
-        const { filename, content, contentType } = img;
+        const { filename, base64: content, contentType } = img;
         if (!filename || !content) continue;
         const sanitized = filename.replace(/[^a-zA-Z0-9.-]/g, '-').toLowerCase();
         const imgPath = `public/listings/${id}/${sanitized}`;
