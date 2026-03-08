@@ -313,17 +313,34 @@
       renderPreviews();
     }
 
-    // ── Image encoding ─────────────────────────────────────────────────────
-    function compressImage(file) {
-      return new Promise(resolve => {
-        const r = new FileReader();
-        r.onload = e => resolve({
-          base64: e.target.result.split(',')[1],
-          contentType: file.type,
-          filename: file.name
+    // ── Image compression ──────────────────────────────────────────────────
+    async function compressImage(file) {
+      const maxDim = 1920, quality = 0.82;
+      try {
+        const bitmap = await createImageBitmap(file);
+        let w = bitmap.width, h = bitmap.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+          else { w = Math.round(w * maxDim / h); h = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+        bitmap.close();
+        return await new Promise(resolve => {
+          canvas.toBlob(blob => {
+            const r = new FileReader();
+            r.onload = e => resolve({ base64: e.target.result.split(',')[1], contentType: 'image/jpeg', filename: file.name.replace(/\.[^.]+$/, '.jpg') });
+            r.readAsDataURL(blob);
+          }, 'image/jpeg', quality);
         });
-        r.readAsDataURL(file);
-      });
+      } catch {
+        return new Promise(resolve => {
+          const r = new FileReader();
+          r.onload = e => resolve({ base64: e.target.result.split(',')[1], contentType: file.type, filename: file.name });
+          r.readAsDataURL(file);
+        });
+      }
     }
 
     // ── Edit ───────────────────────────────────────────────────────────────
