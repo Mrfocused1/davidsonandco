@@ -71,7 +71,7 @@
     <!-- ADD LISTING FORM -->
     <div class="mb-12 bg-brand-charcoal rounded-2xl border border-white/10 overflow-hidden">
       <button id="toggleForm" class="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-white/5 transition-colors">
-        <span class="text-sm font-medium text-brand-white">Add New Property</span>
+        <span id="formTitle" class="text-sm font-medium text-brand-white">Add New Property</span>
         <svg id="toggleIcon" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
       </button>
 
@@ -146,10 +146,21 @@
           </div>
         </div>
 
+        <!-- Edit mode: existing images -->
+        <div id="existingImagesSection" class="hidden mb-4">
+          <label class="block text-xs text-gray-400 mb-2 tracking-wide">Existing Images</label>
+          <div id="existingImagesGrid" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-2"></div>
+          <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer mt-2">
+            <input type="checkbox" id="keepExistingImages" checked class="accent-brand-gold">
+            Keep existing images
+          </label>
+        </div>
+
         <div id="formStatus" class="hidden mb-4 text-sm rounded-xl px-4 py-3"></div>
 
-        <div class="flex justify-end">
-          <button id="submitBtn" class="px-8 py-3 bg-brand-gold text-brand-black text-sm font-medium rounded-xl hover:bg-brand-gold/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
+        <div class="flex justify-between items-center">
+          <button id="cancelEditBtn" class="hidden text-xs text-gray-500 hover:text-gray-300 transition-colors">Cancel edit</button>
+          <button id="submitBtn" class="ml-auto px-8 py-3 bg-brand-gold text-brand-black text-sm font-medium rounded-xl hover:bg-brand-gold/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
             Add Property
           </button>
@@ -194,6 +205,7 @@
     let listings = [];
     let selectedFiles = [];
     let pendingRemoveId = null;
+    let editingId = null;
 
     // ── Toggle form ────────────────────────────────────────────────────────
     document.getElementById('toggleForm').addEventListener('click', () => {
@@ -246,9 +258,14 @@
             <div class="absolute top-2 left-2">
               <span class="text-xs px-2 py-1 rounded border ${statusColor(l.status)}">${l.status}</span>
             </div>
-            <button class="remove-btn absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 hover:bg-red-500/40 transition-colors" onclick="promptRemove('${l.id}', '${l.title.replace(/'/g, "\\'")}')">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
+            <div class="remove-btn absolute top-2 right-2 flex gap-1">
+              <button class="w-6 h-6 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold hover:bg-brand-gold/40 transition-colors" onclick="startEdit('${l.id}')" title="Edit">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+              </button>
+              <button class="w-6 h-6 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 hover:bg-red-500/40 transition-colors" onclick="promptRemove('${l.id}', '${l.title.replace(/'/g, "\\'")}')" title="Remove">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
           </div>
           <div class="p-3">
             <p class="text-xs font-medium text-brand-white truncate mb-0.5">${l.title}</p>
@@ -323,6 +340,53 @@
       });
     }
 
+    // ── Edit ───────────────────────────────────────────────────────────────
+    function startEdit(id) {
+      const listing = listings.find(l => l.id === id);
+      if (!listing) return;
+      editingId = id;
+
+      // Populate form
+      document.getElementById('f-title').value = listing.title || '';
+      document.getElementById('f-area').value = listing.area || '';
+      document.getElementById('f-postcode').value = listing.postcode || '';
+      document.getElementById('f-price').value = listing.price || '';
+      document.getElementById('f-priceUnit').value = listing.priceUnit || 'PCM';
+      document.getElementById('f-beds').value = listing.beds || '';
+      document.getElementById('f-type').value = listing.type || 'For Let';
+      document.getElementById('f-status').value = listing.status || 'Available';
+      document.getElementById('f-description').value = listing.description || '';
+      document.getElementById('f-features').value = (listing.features || []).join('\n');
+
+      // Show existing images
+      const allImgs = [listing.image, ...(listing.images || [])].filter(i => i && i.startsWith('listings/'));
+      const existingSection = document.getElementById('existingImagesSection');
+      if (allImgs.length > 0) {
+        existingSection.classList.remove('hidden');
+        document.getElementById('existingImagesGrid').innerHTML = allImgs.map((img, i) => `
+          <div class="relative aspect-square rounded-lg overflow-hidden bg-brand-stone ${i === 0 ? 'ring-2 ring-brand-gold' : ''}">
+            <img src="/${img}" class="w-full h-full object-cover">
+            ${i === 0 ? '<div class="absolute bottom-0 left-0 right-0 bg-black/60 text-brand-gold text-[10px] text-center py-0.5">MAIN</div>' : ''}
+          </div>`).join('');
+      } else {
+        existingSection.classList.add('hidden');
+      }
+
+      // Update UI for edit mode
+      document.getElementById('formTitle').textContent = `Editing: ${listing.title}`;
+      document.getElementById('submitBtn').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg> Save Changes`;
+      document.getElementById('cancelEditBtn').classList.remove('hidden');
+
+      // Open form and scroll to it
+      const form = document.getElementById('addForm');
+      const icon = document.getElementById('toggleIcon');
+      form.classList.remove('hidden');
+      icon.style.transform = 'rotate(45deg)';
+      document.querySelector('.mb-12').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
+
     // ── Submit ─────────────────────────────────────────────────────────────
     document.getElementById('submitBtn').addEventListener('click', async () => {
       const title = document.getElementById('f-title').value.trim();
@@ -336,35 +400,40 @@
 
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
-      btn.innerHTML = `<svg class="spinner w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Uploading...`;
-      showFormStatus('Uploading images and creating listing — this may take a moment...', 'info');
+      const isEditing = !!editingId;
+      btn.innerHTML = `<svg class="spinner w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> ${isEditing ? 'Saving...' : 'Uploading...'}`;
+      showFormStatus(isEditing ? 'Saving changes...' : 'Uploading images and creating listing — this may take a moment...', 'info');
 
       try {
-        // Compress all images
         const images = await Promise.all(selectedFiles.map(compressImage));
+        const payload = {
+          title, area,
+          postcode: document.getElementById('f-postcode').value.trim(),
+          price,
+          priceUnit: document.getElementById('f-priceUnit').value,
+          beds: document.getElementById('f-beds').value.trim(),
+          type: document.getElementById('f-type').value,
+          status: document.getElementById('f-status').value,
+          description: document.getElementById('f-description').value.trim(),
+          features: document.getElementById('f-features').value.split('\n').map(s => s.trim()).filter(Boolean),
+          images
+        };
+
+        if (isEditing) {
+          payload.id = editingId;
+          payload.keepExistingImages = document.getElementById('keepExistingImages').checked;
+        }
 
         const res = await fetch('/api/listings', {
-          method: 'POST',
+          method: isEditing ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title,
-            area,
-            postcode: document.getElementById('f-postcode').value.trim(),
-            price,
-            priceUnit: document.getElementById('f-priceUnit').value,
-            beds: document.getElementById('f-beds').value.trim(),
-            type: document.getElementById('f-type').value,
-            status: document.getElementById('f-status').value,
-            description: document.getElementById('f-description').value.trim(),
-            features: document.getElementById('f-features').value.split('\n').map(s => s.trim()).filter(Boolean),
-            images
-          })
+          body: JSON.stringify(payload)
         });
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to add listing');
+        if (!res.ok) throw new Error(data.error || `Failed to ${isEditing ? 'update' : 'add'} listing`);
 
-        showFormStatus(`"${title}" added successfully! The site will redeploy shortly.`, 'success');
+        showFormStatus(`"${title}" ${isEditing ? 'updated' : 'added'} successfully! The site will redeploy shortly.`, 'success');
         resetForm();
         await fetchListings();
 
@@ -377,6 +446,7 @@
     });
 
     function resetForm() {
+      editingId = null;
       ['f-title','f-area','f-postcode','f-price','f-beds','f-description','f-features'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('f-priceUnit').value = 'PCM';
       document.getElementById('f-type').value = 'For Let';
@@ -384,6 +454,13 @@
       selectedFiles = [];
       fileInput.value = '';
       renderPreviews();
+      document.getElementById('existingImagesSection').classList.add('hidden');
+      document.getElementById('formTitle').textContent = 'Add New Property';
+      document.getElementById('submitBtn').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg> Add Property`;
+      document.getElementById('cancelEditBtn').classList.add('hidden');
+      // Close form
+      document.getElementById('addForm').classList.add('hidden');
+      document.getElementById('toggleIcon').style.transform = '';
     }
 
     // ── Remove ─────────────────────────────────────────────────────────────

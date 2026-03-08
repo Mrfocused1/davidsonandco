@@ -259,7 +259,7 @@ ${galleryHtml}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -367,6 +367,91 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error('POST listings error:', err);
       return res.status(500).json({ error: err.message || 'Failed to add listing' });
+    }
+  }
+
+  // PUT — edit existing listing
+  if (req.method === 'PUT') {
+    try {
+      const { id, title, area, postcode, price, priceUnit, beds, type, status, description, features, images, keepExistingImages } = req.body;
+      if (!id) return res.status(400).json({ error: 'id is required' });
+
+      const { listings, sha: listingsSha } = await getListings(octokit);
+      const existing = listings.find(l => l.id === id);
+      if (!existing) return res.status(404).json({ error: 'Listing not found' });
+
+      // Upload any new images
+      const newImages = [];
+      for (const img of (images || [])) {
+        const { filename, content, contentType } = img;
+        if (!filename || !content) continue;
+        const sanitized = filename.replace(/[^a-zA-Z0-9.-]/g, '-').toLowerCase();
+        const imgPath = `public/listings/${id}/${sanitized}`;
+        let sha = null;
+        try {
+          const ex = await octokit.repos.getContent({ owner: REPO_OWNER, repo: REPO_NAME, path: imgPath, ref: 'main' });
+          sha = ex.data.sha;
+        } catch (e) { /* new */ }
+        await octokit.repos.createOrUpdateFileContents({
+          owner: REPO_OWNER, repo: REPO_NAME, path: imgPath,
+          message: `[Listings] Update image for ${id}: ${sanitized}`,
+          content, ...(sha && { sha }), branch: 'main'
+        });
+        newImages.push(`listings/${id}/${sanitized}`);
+      }
+
+      // Merge images: keep existing ones if requested, prepend new uploads
+      const existingImgs = keepExistingImages ? [existing.image, ...(existing.images || [])].filter(Boolean) : [];
+      const allImages = [...newImages, ...existingImgs];
+
+      const updated = {
+        ...existing,
+        title: title || existing.title,
+        area: area || existing.area,
+        postcode: postcode !== undefined ? postcode : existing.postcode,
+        price: price || existing.price,
+        priceUnit: priceUnit || existing.priceUnit,
+        beds: beds !== undefined ? beds : existing.beds,
+        type: type || existing.type,
+        status: status || existing.status,
+        description: description !== undefined ? description : existing.description,
+        features: features !== undefined ? features : existing.features,
+        image: allImages[0] || existing.image,
+        images: allImages.slice(1)
+      };
+
+      // Update listings.json
+      const updatedList = listings.map(l => l.id === id ? updated : l);
+      await saveFile(octokit, LISTINGS_FILE, JSON.stringify(updatedList, null, 2), listingsSha, `[Listings] Update ${updated.title}`);
+
+      // Regenerate detail page
+      const listingPagePath = `listings/${id}/index.html`;
+      let pageSha = null;
+      try { const ex = await octokit.repos.getContent({ owner: REPO_OWNER, repo: REPO_NAME, path: listingPagePath, ref: 'main' }); pageSha = ex.data.sha; } catch (e) {}
+      await saveFile(octokit, listingPagePath, generateListingPage(updated), pageSha, `[Listings] Update page for ${updated.title}`);
+
+      // Update card in index.html: remove old, add new
+      const { content: homeHtml, sha: homeSha } = await getFile(octokit, INDEX_FILE);
+      const homeWithout = removeCardFromHtml(homeHtml, id);
+      const homeUpdated = homeWithout.replace(
+        /(\s*<\/div>\s*\n\s*<!-- View All Properties CTA -->)/,
+        cardHtml(updated) + '\n        \n      </div>\n\n      <!-- View All Properties CTA -->'
+      );
+      if (homeUpdated !== homeHtml) await saveFile(octokit, INDEX_FILE, homeUpdated, homeSha, `[Listings] Update ${updated.title} on homepage`);
+
+      // Update card in listings/index.html
+      const { content: listingsHtml, sha: listingsSha2 } = await getFile(octokit, LISTINGS_INDEX_FILE);
+      const listingsWithout = removeCardFromHtml(listingsHtml, id);
+      const listingsUpdated = listingsWithout.replace(
+        /(\s*\n\s*<\/div>\s*\n\s*<\/div>\s*\n\s*<\/section>\s*\n\s*<!-- SECTION 5)/,
+        cardHtml(updated) + '\n        \n      </div>\n    </div>\n  </section>\n\n  <!-- SECTION 5'
+      );
+      if (listingsUpdated !== listingsHtml) await saveFile(octokit, LISTINGS_INDEX_FILE, listingsUpdated, listingsSha2, `[Listings] Update ${updated.title} on listings page`);
+
+      return res.status(200).json({ success: true, listing: updated });
+    } catch (err) {
+      console.error('PUT listings error:', err);
+      return res.status(500).json({ error: err.message || 'Failed to update listing' });
     }
   }
 
