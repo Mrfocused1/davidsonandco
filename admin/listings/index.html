@@ -250,7 +250,7 @@
       empty.classList.add('hidden');
       grid.classList.remove('hidden');
       grid.innerHTML = listings.map(l => {
-        const imgSrc = l.image && l.image.startsWith('listings/') ? `/${l.image}` : null;
+        const imgSrc = l.image ? `/${l.image}` : null;
         return `
         <div class="listing-card relative fade-in bg-brand-charcoal border border-white/10 rounded-xl overflow-hidden group">
           <div class="relative h-40 bg-brand-stone overflow-hidden">
@@ -359,7 +359,7 @@
       document.getElementById('f-features').value = (listing.features || []).join('\n');
 
       // Show existing images
-      const allImgs = [listing.image, ...(listing.images || [])].filter(i => i && i.startsWith('listings/'));
+      const allImgs = [listing.image, ...(listing.images || [])].filter(Boolean);
       const existingSection = document.getElementById('existingImagesSection');
       if (allImgs.length > 0) {
         existingSection.classList.remove('hidden');
@@ -441,7 +441,11 @@
         showFormStatus(err.message || 'Something went wrong. Please try again.', 'error');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg> Add Property`;
+        if (!editingId) {
+          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg> Add Property`;
+        } else {
+          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg> Save Changes`;
+        }
       }
     });
 

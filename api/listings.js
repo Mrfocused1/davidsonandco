@@ -45,9 +45,9 @@ async function getListings(octokit) {
 
 function cardHtml(listing) {
   const { id, title, area, postcode, price, priceUnit, beds, type, status, image } = listing;
-  const imgPath = image.startsWith('listings/') ? `/${image}` : `/${image}`;
+  const imgPath = image ? `/${image}` : '';
   const statusBg = status === 'Available' ? 'bg-green-600' : status === 'Let Agreed' || status === 'Sold' ? 'bg-gray-600' : 'bg-brand-gold';
-  const statusText = status === 'Available' ? 'text-white' : 'text-brand-black';
+  const statusText = status === 'Coming Soon' ? 'text-brand-black' : 'text-white';
   return `
         <!-- Property Card: ${title} -->
         <a href="/listings/${id}" class="property-card group block">
@@ -100,7 +100,7 @@ function removeCardFromHtml(html, slug) {
 
 function generateListingPage(listing) {
   const { id, title, area, postcode, price, priceUnit, type, status, description, features, image, images } = listing;
-  const mainImg = image.startsWith('listings/') ? `/${image}` : `/${image}`;
+  const mainImg = image ? `/${image}` : '';
   const allImages = [image, ...(images || [])].filter(Boolean);
   const galleryImages = allImages.slice(1);
 
@@ -323,7 +323,7 @@ export default async function handler(req, res) {
         status: status || 'Available',
         description: description || '',
         features: features || [],
-        image: uploadedImages[0] || 'src/assets/coming-soon.jpg',
+        image: uploadedImages[0] || '',
         images: uploadedImages.slice(1)
       };
 
