@@ -85,5 +85,20 @@
     ],
     "image": "listings/debug-test-1772985453163/test.jpg",
     "images": []
+  },
+  {
+    "id": "file-test-1772985518623",
+    "title": "File Test 1772985518623",
+    "area": "Test",
+    "postcode": "",
+    "price": "999",
+    "priceUnit": "PCM",
+    "beds": "",
+    "type": "For Let",
+    "status": "Available",
+    "description": "",
+    "features": [],
+    "image": "",
+    "images": []
   }
 ]
