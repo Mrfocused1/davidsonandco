@@ -148,12 +148,8 @@
 
         <!-- Edit mode: existing images -->
         <div id="existingImagesSection" class="hidden mb-4">
-          <label class="block text-xs text-gray-400 mb-2 tracking-wide">Existing Images</label>
+          <label class="block text-xs text-gray-400 mb-2 tracking-wide">Existing Images <span class="text-gray-600">(uploading new images will replace these)</span></label>
           <div id="existingImagesGrid" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-2"></div>
-          <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer mt-2">
-            <input type="checkbox" id="keepExistingImages" checked class="accent-brand-gold">
-            Keep existing images
-          </label>
         </div>
 
         <div id="formStatus" class="hidden mb-4 text-sm rounded-xl px-4 py-3"></div>
@@ -421,7 +417,7 @@
 
         if (isEditing) {
           payload.id = editingId;
-          payload.keepExistingImages = document.getElementById('keepExistingImages').checked;
+          payload.keepExistingImages = images.length === 0;
         }
 
         const res = await fetch('/api/listings', {
