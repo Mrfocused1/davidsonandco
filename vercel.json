@@ -3,6 +3,12 @@
   "framework": "vite",
   "buildCommand": "vite build",
   "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/listings", "destination": "/", "permanent": false },
+    { "source": "/listings/(.*)", "destination": "/", "permanent": false },
+    { "source": "/services", "destination": "/", "permanent": false },
+    { "source": "/services/(.*)", "destination": "/", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ],
